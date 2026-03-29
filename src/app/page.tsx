@@ -4,8 +4,8 @@ import Link from "next/link";
 
 const MENUS = [
   { href: "/settlement", icon: "💰", title: "정산 관리", desc: "촬영비·편집비 정산서 작성 및 제출" },
-  { href: "/ads", icon: "📺", title: "광고 관리", desc: "광고 DB, 정산현황, 캘린더" },
-  { href: "/admin", icon: "⚙️", title: "관리자", desc: "직원 관리, 정산 승인, 대시보드" },
+  { href: "/calendar", icon: "📅", title: "촬영 일정", desc: "촬영·업로드 일정 캘린더" },
+  { href: "/admin", icon: "⚙️", title: "관리자", desc: "직원 관리, 광고 DB, 정산 대시보드" },
 ];
 
 export default function Home() {

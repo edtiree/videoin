@@ -209,7 +209,10 @@ export default function AdminPage() {
       {/* 헤더 */}
       <div className="bg-white border-b border-toss-gray-100">
         <div className="max-w-3xl mx-auto px-5 py-5 flex items-center justify-between">
-          <h1 className="text-[20px] font-bold text-toss-gray-900">관리자</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-[20px] font-bold text-toss-gray-900">관리자</h1>
+            <a href="/ads" className="px-3 py-1.5 bg-toss-blue text-white text-[12px] font-semibold rounded-lg hover:bg-toss-blue-hover transition">광고 관리</a>
+          </div>
           <button
             onClick={() => {
               const url = `${window.location.origin}`;
