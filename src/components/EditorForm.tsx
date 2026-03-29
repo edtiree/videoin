@@ -10,6 +10,7 @@ interface EditorFormProps {
   worker: Worker;
   onSubmitSuccess: () => void;
   onDraftSaved?: () => void;
+  onDeleteDraft?: (draftId: string) => void;
   loadDraft?: boolean;
 }
 
@@ -17,7 +18,7 @@ const emptyItem = (): EditorLineItem => ({
   performer: "", videoLink: "", videoDuration: 0, amount: 0,
 });
 
-export default function EditorForm({ worker, onSubmitSuccess, onDraftSaved, loadDraft = true }: EditorFormProps) {
+export default function EditorForm({ worker, onSubmitSuccess, onDraftSaved, onDeleteDraft, loadDraft = true }: EditorFormProps) {
   const [month, setMonth] = useState(() => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
@@ -295,6 +296,12 @@ export default function EditorForm({ worker, onSubmitSuccess, onDraftSaved, load
       )}
 
       <div className="flex gap-3">
+        {draftId && onDeleteDraft && (
+          <button type="button" onClick={() => { localStorage.removeItem(autoSaveKey); onDeleteDraft(draftId); }}
+            className="py-4 px-4 bg-red-50 text-toss-red font-semibold rounded-2xl hover:bg-red-100 active:scale-[0.98] transition-all text-[16px]">
+            삭제
+          </button>
+        )}
         <button type="button" onClick={handleSaveDraft} disabled={savingDraft}
           className="flex-1 py-4 bg-toss-gray-100 text-toss-gray-700 font-semibold rounded-2xl hover:bg-toss-gray-200 disabled:opacity-50 active:scale-[0.98] transition-all text-[16px]">
           {savingDraft ? "저장 중..." : "임시저장"}
