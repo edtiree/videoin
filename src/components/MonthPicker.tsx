@@ -41,7 +41,9 @@ export default function MonthPicker({ value, onChange }: MonthPickerProps) {
     }
   };
 
-  const displayValue = value ? `${selectedYear}년 ${selectedMonth}월` : "";
+  const displayValue = value && selectedYear && selectedMonth
+    ? `${selectedYear}년 ${selectedMonth}월 1일 ~ ${getDaysInMonth(selectedYear, selectedMonth)}일`
+    : "";
 
   return (
     <div ref={ref} className="relative">
