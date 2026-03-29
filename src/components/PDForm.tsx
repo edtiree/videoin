@@ -316,7 +316,7 @@ export default function PDForm({ worker, onSubmitSuccess, onDraftSaved, onDelete
         </div>
         {draftId && onDeleteDraft && (
           <button type="button" onClick={() => { localStorage.removeItem(autoSaveKey); onDeleteDraft(draftId); }}
-            className="w-full py-3 text-toss-gray-400 text-[14px] hover:text-toss-red transition">
+            className="w-full py-4 bg-red-50 text-toss-red font-semibold rounded-2xl hover:bg-red-100 active:scale-[0.98] transition-all text-[16px]">
             임시저장 삭제
           </button>
         )}
