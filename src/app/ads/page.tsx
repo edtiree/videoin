@@ -50,8 +50,9 @@ export default function AdsPage() {
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [alertMsg, setAlertMsg] = useState<string | null>(null);
-  const [tab, setTab] = useState<"dashboard" | "db" | "calendar">("dashboard");
+  const [tab, setTab] = useState<"dashboard" | "calendar">("dashboard");
   const [dashMonth, setDashMonth] = useState(() => { const n = new Date(); return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, "0")}`; });
+  const [dashView, setDashView] = useState<"unsettled_fee" | "unsettled_rs" | "unpaid_invoice" | "all" | "in_progress" | "schedule">("unsettled_fee");
   const [calMonth, setCalMonth] = useState(() => { const n = new Date(); return { year: n.getFullYear(), month: n.getMonth() + 1 }; });
   const [calFilter, setCalFilter] = useState<"all" | "filming" | "upload">("all");
   const [calChannels, setCalChannels] = useState<string[]>([...CHANNELS]);
@@ -180,7 +181,7 @@ export default function AdsPage() {
             <a href="/admin" className="text-toss-gray-400 hover:text-toss-gray-600 text-[14px]">← 관리자</a>
             <h1 className="text-[20px] font-bold text-toss-gray-900">광고 관리</h1>
           </div>
-          {tab === "db" && (
+          {tab === "dashboard" && dashView === "all" && (
             <button onClick={() => setEditAd({ youtube_channel: "돈벌쥐", progress: "완료", filming_fee_status: "정산 전", vat_method: "부가세 별도", tax_invoice: "발행 전", rs_settlement: "시작 전", ad_fee: 0, supply_amount: 0, vat_amount: 0, total_amount: 0, rs_rate: 0, rs_cost: 0 })}
               className="px-4 py-2 bg-toss-blue text-white text-[14px] font-semibold rounded-xl hover:bg-toss-blue-hover active:scale-[0.98] transition-all">
               + 새 광고
@@ -189,7 +190,7 @@ export default function AdsPage() {
         </div>
         <div className="max-w-6xl mx-auto px-5">
           <div className="flex gap-1 bg-toss-gray-100 rounded-xl p-1">
-            {([["dashboard","정산현황"],["db","광고 DB"],["calendar","캘린더"]] as const).map(([k,l]) => (
+            {([["dashboard","정산현황"],["calendar","캘린더"]] as const).map(([k,l]) => (
               <button key={k} onClick={() => setTab(k)}
                 className={`flex-1 py-2.5 text-[14px] font-semibold rounded-lg transition-all ${tab === k ? "bg-white text-toss-gray-900 shadow-sm" : "text-toss-gray-500"}`}>
                 {l}
@@ -261,23 +262,37 @@ export default function AdsPage() {
               </div>
             </div>
 
-            {/* 요약 카드 */}
+            {/* 요약 카드 (클릭 가능) */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {[
-                { label: "전체 광고", value: `${ads.length}건`, color: "text-toss-blue" },
-                { label: "촬영비 미정산", value: `${unsettledFee.length}건`, color: unsettledFee.length > 0 ? "text-toss-red" : "text-toss-green" },
-                { label: "RS 미정산", value: `${unsettledRS.length}건`, color: unsettledRS.length > 0 ? "text-toss-red" : "text-toss-green" },
-                { label: "세금계산서 미발행", value: `${unpaidInvoice.length}건`, color: unpaidInvoice.length > 0 ? "text-amber-600" : "text-toss-green" },
-              ].map((c, i) => (
-                <div key={i} className="bg-white rounded-2xl border border-toss-gray-100 p-4 shadow-sm">
+              {([
+                { key: "all" as const, label: "전체 광고", value: `${ads.length}건`, color: "text-toss-blue", ring: "ring-toss-blue" },
+                { key: "unsettled_fee" as const, label: "촬영비 미정산", value: `${unsettledFee.length}건`, color: unsettledFee.length > 0 ? "text-toss-red" : "text-toss-green", ring: "ring-toss-red" },
+                { key: "unsettled_rs" as const, label: "RS 미정산", value: `${unsettledRS.length}건`, color: unsettledRS.length > 0 ? "text-toss-red" : "text-toss-green", ring: "ring-toss-red" },
+                { key: "unpaid_invoice" as const, label: "세금계산서 미발행", value: `${unpaidInvoice.length}건`, color: unpaidInvoice.length > 0 ? "text-amber-600" : "text-toss-green", ring: "ring-amber-400" },
+              ]).map((c) => (
+                <button key={c.key} onClick={() => setDashView(c.key)}
+                  className={`bg-white rounded-2xl border p-4 shadow-sm text-left transition-all ${dashView === c.key ? `ring-2 ${c.ring} border-transparent` : "border-toss-gray-100"}`}>
                   <p className="text-[13px] text-toss-gray-500">{c.label}</p>
                   <p className={`text-[22px] font-bold mt-1 ${c.color}`}>{c.value}</p>
-                </div>
+                </button>
+              ))}
+            </div>
+
+            {/* 추가 필터 버튼 */}
+            <div className="flex gap-2">
+              {([
+                { key: "in_progress" as const, label: `진행 중 (${inProgress.length})` },
+                { key: "schedule" as const, label: `일정 미정 (${noUpload.length + noFilming.length + noBoth.length})` },
+              ]).map(b => (
+                <button key={b.key} onClick={() => setDashView(b.key)}
+                  className={`px-4 py-2 rounded-xl text-[13px] font-semibold transition-all ${dashView === b.key ? "bg-toss-gray-900 text-white" : "bg-white border border-toss-gray-200 text-toss-gray-600"}`}>
+                  {b.label}
+                </button>
               ))}
             </div>
 
             {/* 일정 미정 */}
-            {hasScheduleIssue && (
+            {dashView === "schedule" && hasScheduleIssue && (
               <div className="bg-white rounded-2xl border border-amber-200 p-5 shadow-sm">
                 <h3 className="text-[16px] font-bold text-toss-gray-900 mb-3">일정 미정 ({noUpload.length + noFilming.length + noBoth.length}건)</h3>
                 <div className="space-y-2">
@@ -313,7 +328,7 @@ export default function AdsPage() {
             )}
 
             {/* 촬영비 미정산 */}
-            {unsettledFee.length > 0 && (
+            {dashView === "unsettled_fee" && unsettledFee.length > 0 && (
               <div className="bg-white rounded-2xl border border-toss-gray-100 p-5 shadow-sm">
                 <h3 className="text-[16px] font-bold text-toss-gray-900 mb-3">촬영비 미정산 ({unsettledFee.length}건)</h3>
                 <div className="space-y-2">
@@ -331,7 +346,7 @@ export default function AdsPage() {
             )}
 
             {/* RS 미정산 */}
-            {unsettledRS.length > 0 && (
+            {dashView === "unsettled_rs" && unsettledRS.length > 0 && (
               <div className="bg-white rounded-2xl border border-toss-gray-100 p-5 shadow-sm">
                 <h3 className="text-[16px] font-bold text-toss-gray-900 mb-3">RS 미정산 ({unsettledRS.length}건)</h3>
                 <div className="space-y-2">
@@ -349,7 +364,7 @@ export default function AdsPage() {
             )}
 
             {/* 진행 중 */}
-            {inProgress.length > 0 && (
+            {dashView === "in_progress" && inProgress.length > 0 && (
               <div className="bg-white rounded-2xl border border-toss-gray-100 p-5 shadow-sm">
                 <h3 className="text-[16px] font-bold text-toss-gray-900 mb-3">진행 중 ({inProgress.length}건)</h3>
                 <div className="space-y-2">
@@ -367,7 +382,7 @@ export default function AdsPage() {
             )}
 
             {/* 세금계산서 미발행 */}
-            {unpaidInvoice.length > 0 && (
+            {dashView === "unpaid_invoice" && unpaidInvoice.length > 0 && (
               <div className="bg-white rounded-2xl border border-toss-gray-100 p-5 shadow-sm">
                 <h3 className="text-[16px] font-bold text-toss-gray-900 mb-3">세금계산서 미발행 ({unpaidInvoice.length}건)</h3>
                 <div className="space-y-2">
@@ -533,7 +548,7 @@ export default function AdsPage() {
       )}
 
       {/* ─── 광고 DB ─── */}
-      {tab === "db" && (<>
+      {tab === "dashboard" && dashView === "all" && (<>
         {/* 필터 */}
         <div className="flex flex-wrap gap-2 mb-4">
           {[
