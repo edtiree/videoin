@@ -453,7 +453,7 @@ function DashboardView({ dashboard, loading, selectedMonth, onMonthChange, forma
                             i === 0 ? "bg-toss-blue text-white" : "bg-toss-gray-100 text-toss-gray-600"
                           }`}>{i + 1}</span>
                           <span className="text-[14px] font-semibold text-toss-gray-900">{w.name}</span>
-                          <span className="text-[11px] text-toss-gray-400">{w.role} · {w.count}건</span>
+                          <span className="text-[11px] text-toss-gray-400">{w.count}건</span>
                         </div>
                         <span className="text-[15px] font-bold text-toss-gray-900">
                           {w.totalFinal.toLocaleString()}원
