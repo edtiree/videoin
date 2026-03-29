@@ -48,6 +48,7 @@ export default function AdsPage() {
   const [tab, setTab] = useState<"dashboard" | "db" | "calendar">("dashboard");
   const [calMonth, setCalMonth] = useState(() => { const n = new Date(); return { year: n.getFullYear(), month: n.getMonth() + 1 }; });
   const [calFilter, setCalFilter] = useState<"all" | "filming" | "upload">("all");
+  const [calChannels, setCalChannels] = useState<string[]>([...CHANNELS]);
   const [calDetail, setCalDetail] = useState<Ad | null>(null);
   const [picker, setPicker] = useState<{ id: string; field: string; title: string; options?: string[]; type: "select" | "text" | "date"; value: string } | null>(null);
 
@@ -302,8 +303,9 @@ export default function AdsPage() {
 
         const makeDateStr = (d: number) => `${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
 
-        const getFilming = (day: number) => ads.filter(a => a.filming_date === makeDateStr(day));
-        const getUpload = (day: number) => ads.filter(a => a.upload_date?.startsWith(makeDateStr(day)));
+        const channelFilter = (a: Ad) => calChannels.includes(a.youtube_channel);
+        const getFilming = (day: number) => ads.filter(a => a.filming_date === makeDateStr(day) && channelFilter(a));
+        const getUpload = (day: number) => ads.filter(a => a.upload_date?.startsWith(makeDateStr(day)) && channelFilter(a));
 
         const prevMo = () => setCalMonth(p => p.month === 1 ? { year: p.year - 1, month: 12 } : { ...p, month: p.month - 1 });
         const nextMo = () => setCalMonth(p => p.month === 12 ? { year: p.year + 1, month: 1 } : { ...p, month: p.month + 1 });
@@ -316,11 +318,18 @@ export default function AdsPage() {
         return (
           <div className="space-y-3">
             {/* 필터 */}
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {([["all","전체"],["filming","촬영만"],["upload","업로드만"]] as const).map(([k,l]) => (
                 <button key={k} onClick={() => setCalFilter(k)}
                   className={`px-4 py-2 rounded-xl text-[13px] font-semibold transition-all ${calFilter === k ? "bg-toss-blue text-white" : "bg-white border border-toss-gray-200 text-toss-gray-600"}`}>
                   {l}
+                </button>
+              ))}
+              <span className="w-px bg-toss-gray-200 mx-1"></span>
+              {CHANNELS.map(ch => (
+                <button key={ch} onClick={() => setCalChannels(prev => prev.includes(ch) ? prev.filter(c => c !== ch) : [...prev, ch])}
+                  className={`px-3 py-2 rounded-xl text-[13px] font-semibold transition-all ${calChannels.includes(ch) ? "bg-toss-gray-900 text-white" : "bg-white border border-toss-gray-200 text-toss-gray-400"}`}>
+                  {ch}
                 </button>
               ))}
             </div>
@@ -349,7 +358,7 @@ export default function AdsPage() {
                         const { id, field } = JSON.parse(data);
                         handleDrop(id, field, makeDateStr(day));
                       }}
-                      className={`min-h-[80px] border-b border-r border-toss-gray-50 p-1 ${!day ? "bg-toss-gray-50/50" : ""} ${day && isToday(day) ? "bg-blue-50/60 ring-2 ring-toss-blue ring-inset" : ""}`}>
+                      className={`min-h-[100px] border-b border-r border-toss-gray-50 p-1 ${!day ? "bg-toss-gray-50/50" : ""} ${day && isToday(day) ? "bg-blue-50/60 ring-2 ring-toss-blue ring-inset" : ""}`}>
                       {day && (
                         <>
                           <span className={`text-[12px] font-medium ${isToday(day) ? "bg-toss-blue text-white rounded-full w-5 h-5 inline-flex items-center justify-center" : idx % 7 === 0 ? "text-toss-red" : idx % 7 === 6 ? "text-toss-blue" : "text-toss-gray-600"}`}>{day}</span>
@@ -359,10 +368,16 @@ export default function AdsPage() {
                                 draggable
                                 onDragStart={e => e.dataTransfer.setData("text/plain", JSON.stringify({ id: ev.id, field: ev.type === "filming" ? "filming_date" : "upload_date" }))}
                                 onClick={() => setCalDetail(ev)}
-                                className={`text-[10px] rounded px-1 py-0.5 cursor-pointer hover:opacity-80 leading-tight ${
-                                  ev.type === "filming" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"
+                                className={`text-[10px] rounded-lg px-1.5 py-1 cursor-pointer hover:opacity-80 border ${
+                                  ev.type === "filming" ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"
                                 }`}>
-                                {ev.performer}
+                                <div className="font-bold text-toss-gray-900 text-[11px]">{ev.performer}</div>
+                                <div className="flex items-center gap-1 mt-0.5">
+                                  <span className="text-toss-gray-400">{ev.youtube_channel}</span>
+                                  <span className={`px-1 py-0 rounded text-[9px] font-bold ${
+                                    ev.progress === "완료" ? "bg-green-100 text-green-600" : ev.progress === "편집중" ? "bg-amber-100 text-amber-600" : "bg-red-100 text-red-600"
+                                  }`}>{ev.progress}</span>
+                                </div>
                               </div>
                             ))}
                             {allEvents.length > 4 && <div className="text-[10px] text-toss-gray-400">+{allEvents.length - 4}</div>}
