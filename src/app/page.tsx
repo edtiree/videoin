@@ -24,6 +24,10 @@ export default function Home() {
   const [showBackModal, setShowBackModal] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [alertMsg, setAlertMsg] = useState<string | null>(null);
+  const [showPinChange, setShowPinChange] = useState(false);
+  const [pinForm, setPinForm] = useState({ current: "", newPin: "", confirm: "" });
+  const [pinError, setPinError] = useState("");
+  const [pinChanging, setPinChanging] = useState(false);
 
   const [phone, setPhone] = useState("");
   const [pin, setPin] = useState("");
@@ -164,6 +168,26 @@ export default function Home() {
     setCategory(null);
     setLoadDraft(false);
     setDraftsKey((k) => k + 1);
+  };
+
+  const handleChangePin = async () => {
+    if (!worker) return;
+    if (!pinForm.current) { setPinError("현재 PIN을 입력해주세요."); return; }
+    if (pinForm.newPin.length !== 4 || !/^\d{4}$/.test(pinForm.newPin)) { setPinError("새 PIN은 4자리 숫자로 입력해주세요."); return; }
+    if (pinForm.newPin !== pinForm.confirm) { setPinError("새 PIN이 일치하지 않습니다."); return; }
+    setPinChanging(true); setPinError("");
+    try {
+      const res = await fetch("/api/auth/change-pin", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workerId: worker.id, currentPin: pinForm.current, newPin: pinForm.newPin }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setPinError(data.error); return; }
+      setShowPinChange(false);
+      setPinForm({ current: "", newPin: "", confirm: "" });
+      setAlertMsg("PIN이 변경되었습니다.");
+    } catch { setPinError("서버 연결에 실패했습니다."); }
+    finally { setPinChanging(false); }
   };
 
   const handleResumeDraft = (role: string) => {
@@ -397,12 +421,17 @@ export default function Home() {
                 </span>
               </div>
             </div>
-            <button
-              onClick={handleLogout}
-              className="text-[13px] text-toss-gray-400 hover:text-toss-gray-600 transition px-3 py-2"
-            >
-              로그아웃
-            </button>
+            <div className="flex items-center gap-1">
+              <button onClick={() => { setShowPinChange(true); setPinForm({ current: "", newPin: "", confirm: "" }); setPinError(""); }}
+                className="text-[13px] text-toss-gray-400 hover:text-toss-gray-600 transition px-2 py-2">
+                PIN변경
+              </button>
+              <span className="text-toss-gray-200">|</span>
+              <button onClick={handleLogout}
+                className="text-[13px] text-toss-gray-400 hover:text-toss-gray-600 transition px-2 py-2">
+                로그아웃
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -517,6 +546,48 @@ export default function Home() {
 
       {alertMsg && (
         <ConfirmModal title="알림" message={alertMsg} confirmText="확인" onConfirm={() => setAlertMsg(null)} />
+      )}
+
+      {showPinChange && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-6" onClick={() => setShowPinChange(false)}>
+          <div className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-[18px] font-bold text-toss-gray-900 mb-6">PIN 변경</h3>
+            {pinError && <div className="mb-4 px-4 py-3 bg-red-50 text-toss-red rounded-2xl text-[14px]">{pinError}</div>}
+            <div className="space-y-4">
+              <div>
+                <label className="block text-[13px] font-medium text-toss-gray-600 mb-1.5">현재 PIN</label>
+                <input type="password" value={pinForm.current} inputMode="numeric"
+                  onChange={(e) => setPinForm({ ...pinForm, current: e.target.value.replace(/\D/g, "").slice(0, 4) })}
+                  className="w-full rounded-xl border border-toss-gray-200 px-4 py-3 text-[15px] text-toss-gray-900 focus:border-toss-blue focus:ring-1 focus:ring-toss-blue/30 outline-none transition-all bg-white"
+                  placeholder="현재 4자리" />
+              </div>
+              <div>
+                <label className="block text-[13px] font-medium text-toss-gray-600 mb-1.5">새 PIN</label>
+                <input type="password" value={pinForm.newPin} inputMode="numeric"
+                  onChange={(e) => setPinForm({ ...pinForm, newPin: e.target.value.replace(/\D/g, "").slice(0, 4) })}
+                  className="w-full rounded-xl border border-toss-gray-200 px-4 py-3 text-[15px] text-toss-gray-900 focus:border-toss-blue focus:ring-1 focus:ring-toss-blue/30 outline-none transition-all bg-white"
+                  placeholder="새 4자리" />
+              </div>
+              <div>
+                <label className="block text-[13px] font-medium text-toss-gray-600 mb-1.5">새 PIN 확인</label>
+                <input type="password" value={pinForm.confirm} inputMode="numeric"
+                  onChange={(e) => setPinForm({ ...pinForm, confirm: e.target.value.replace(/\D/g, "").slice(0, 4) })}
+                  className="w-full rounded-xl border border-toss-gray-200 px-4 py-3 text-[15px] text-toss-gray-900 focus:border-toss-blue focus:ring-1 focus:ring-toss-blue/30 outline-none transition-all bg-white"
+                  placeholder="다시 입력" />
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button onClick={() => setShowPinChange(false)}
+                className="flex-1 py-3.5 bg-toss-gray-100 text-toss-gray-700 font-semibold rounded-2xl hover:bg-toss-gray-200 active:scale-[0.98] transition-all text-[15px]">
+                취소
+              </button>
+              <button onClick={handleChangePin} disabled={pinChanging}
+                className="flex-1 py-3.5 bg-toss-blue text-white font-semibold rounded-2xl hover:bg-toss-blue-hover disabled:opacity-50 active:scale-[0.98] transition-all text-[15px]">
+                {pinChanging ? "변경 중..." : "변경"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {showBackModal && (
