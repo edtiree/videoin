@@ -51,6 +51,7 @@ export default function AdsPage() {
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [alertMsg, setAlertMsg] = useState<string | null>(null);
   const [tab, setTab] = useState<"dashboard" | "db" | "calendar">("dashboard");
+  const [dashMonth, setDashMonth] = useState(() => { const n = new Date(); return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, "0")}`; });
   const [calMonth, setCalMonth] = useState(() => { const n = new Date(); return { year: n.getFullYear(), month: n.getMonth() + 1 }; });
   const [calFilter, setCalFilter] = useState<"all" | "filming" | "upload">("all");
   const [calChannels, setCalChannels] = useState<string[]>([...CHANNELS]);
@@ -203,12 +204,63 @@ export default function AdsPage() {
       {/* ─── 대시보드 ─── */}
       {tab === "dashboard" && (() => {
         if (loading) return <div className="text-center py-20 text-toss-gray-400">불러오는 중...</div>;
+
+        // 기간별 매출
+        const monthAds = ads.filter(a => a.upload_date?.startsWith(dashMonth));
+        const monthRevenue = monthAds.reduce((s, a) => s + (a.ad_fee || 0), 0);
+        const monthTotal = monthAds.reduce((s, a) => s + (a.total_amount || 0), 0);
+        const monthCount = monthAds.length;
+
+        // 정산 현황
         const unsettledFee = ads.filter(a => a.filming_fee_status === "정산 전");
         const unsettledRS = ads.filter(a => a.rs_rate > 0 && a.rs_settlement === "시작 전");
         const unpaidInvoice = ads.filter(a => a.tax_invoice === "발행 전" && a.ad_fee > 0);
         const inProgress = ads.filter(a => a.progress !== "완료");
+
+        // 일정 미정
+        const noUpload = ads.filter(a => a.filming_date && !a.upload_date);
+        const noFilming = ads.filter(a => !a.filming_date && a.upload_date);
+        const noBoth = ads.filter(a => !a.filming_date && !a.upload_date);
+        const hasScheduleIssue = noUpload.length > 0 || noFilming.length > 0 || noBoth.length > 0;
+
+        const prevMonth = () => {
+          const [y, m] = dashMonth.split("-").map(Number);
+          setDashMonth(m === 1 ? `${y-1}-12` : `${y}-${String(m-1).padStart(2,"0")}`);
+        };
+        const nextMonth = () => {
+          const [y, m] = dashMonth.split("-").map(Number);
+          setDashMonth(m === 12 ? `${y+1}-01` : `${y}-${String(m+1).padStart(2,"0")}`);
+        };
+        const [dy, dm] = dashMonth.split("-").map(Number);
+
         return (
           <div className="space-y-4">
+            {/* 월별 매출 */}
+            <div className="bg-white rounded-2xl border border-toss-gray-100 p-5 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-[16px] font-bold text-toss-gray-900">월별 매출</h3>
+                <div className="flex items-center gap-2">
+                  <button onClick={prevMonth} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-toss-gray-100 text-toss-blue font-bold">‹</button>
+                  <span className="text-[14px] font-semibold text-toss-gray-900 min-w-[80px] text-center">{dy}년 {dm}월</span>
+                  <button onClick={nextMonth} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-toss-gray-100 text-toss-blue font-bold">›</button>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="bg-blue-50 rounded-xl p-3 text-center">
+                  <p className="text-[12px] text-toss-blue">광고 건수</p>
+                  <p className="text-[20px] font-bold text-toss-blue mt-1">{monthCount}건</p>
+                </div>
+                <div className="bg-green-50 rounded-xl p-3 text-center">
+                  <p className="text-[12px] text-green-600">광고비</p>
+                  <p className="text-[18px] font-bold text-green-600 mt-1">{(monthRevenue / 10000).toLocaleString()}만</p>
+                </div>
+                <div className="bg-amber-50 rounded-xl p-3 text-center">
+                  <p className="text-[12px] text-amber-600">총액(VAT포함)</p>
+                  <p className="text-[18px] font-bold text-amber-600 mt-1">{(monthTotal / 10000).toLocaleString()}만</p>
+                </div>
+              </div>
+            </div>
+
             {/* 요약 카드 */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {[
@@ -223,6 +275,42 @@ export default function AdsPage() {
                 </div>
               ))}
             </div>
+
+            {/* 일정 미정 */}
+            {hasScheduleIssue && (
+              <div className="bg-white rounded-2xl border border-amber-200 p-5 shadow-sm">
+                <h3 className="text-[16px] font-bold text-toss-gray-900 mb-3">일정 미정 ({noUpload.length + noFilming.length + noBoth.length}건)</h3>
+                <div className="space-y-2">
+                  {noUpload.map(a => (
+                    <div key={a.id} className="flex items-center justify-between py-2 border-b border-toss-gray-50 last:border-0">
+                      <div>
+                        <span className="text-[14px] font-semibold text-toss-gray-900">{a.performer}</span>
+                        <span className="text-[12px] text-toss-gray-400 ml-2">{a.platform}</span>
+                      </div>
+                      <span className="text-[12px] text-amber-600 font-semibold">업로드일 미정</span>
+                    </div>
+                  ))}
+                  {noFilming.map(a => (
+                    <div key={a.id} className="flex items-center justify-between py-2 border-b border-toss-gray-50 last:border-0">
+                      <div>
+                        <span className="text-[14px] font-semibold text-toss-gray-900">{a.performer}</span>
+                        <span className="text-[12px] text-toss-gray-400 ml-2">{a.platform}</span>
+                      </div>
+                      <span className="text-[12px] text-amber-600 font-semibold">촬영일 미정</span>
+                    </div>
+                  ))}
+                  {noBoth.map(a => (
+                    <div key={a.id} className="flex items-center justify-between py-2 border-b border-toss-gray-50 last:border-0">
+                      <div>
+                        <span className="text-[14px] font-semibold text-toss-gray-900">{a.performer}</span>
+                        <span className="text-[12px] text-toss-gray-400 ml-2">{a.platform}</span>
+                      </div>
+                      <span className="text-[12px] text-toss-red font-semibold">일정 전체 미정</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* 촬영비 미정산 */}
             {unsettledFee.length > 0 && (
