@@ -192,6 +192,7 @@ export default function AdsPage() {
 
       {/* ─── 대시보드 ─── */}
       {tab === "dashboard" && (() => {
+        if (loading) return <div className="text-center py-20 text-toss-gray-400">불러오는 중...</div>;
         const unsettledFee = ads.filter(a => a.filming_fee_status === "정산 전");
         const unsettledRS = ads.filter(a => a.rs_rate > 0 && a.rs_settlement === "시작 전");
         const unpaidInvoice = ads.filter(a => a.tax_invoice === "발행 전" && a.ad_fee > 0);
@@ -289,6 +290,7 @@ export default function AdsPage() {
 
       {/* ─── 캘린더 ─── */}
       {tab === "calendar" && (() => {
+        if (loading) return <div className="text-center py-20 text-toss-gray-400">불러오는 중...</div>;
         const y = calMonth.year, m = calMonth.month;
         const daysInMonth = new Date(y, m, 0).getDate();
         const firstDay = new Date(y, m - 1, 1).getDay();
