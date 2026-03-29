@@ -44,6 +44,7 @@ export default function SettlementHistory({ workerId, role, contractType, refres
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [cancelTarget, setCancelTarget] = useState<string | null>(null);
+  const [alertMsg, setAlertMsg] = useState<string | null>(null);
 
   useEffect(() => {
     if (initialData) {
@@ -91,7 +92,7 @@ export default function SettlementHistory({ workerId, role, contractType, refres
       setSettlements((prev) => prev.filter((s) => s.id !== settlementId));
       setExpandedId(null);
     } catch (err) {
-      alert(err instanceof Error ? err.message : "취소 중 오류가 발생했습니다.");
+      setAlertMsg(err instanceof Error ? err.message : "취소 중 오류가 발생했습니다.");
     } finally {
       setCancellingId(null);
     }
@@ -196,6 +197,10 @@ export default function SettlementHistory({ workerId, role, contractType, refres
           </div>
         );
       })}
+
+      {alertMsg && (
+        <ConfirmModal title="알림" message={alertMsg} confirmText="확인" onConfirm={() => setAlertMsg(null)} />
+      )}
 
       {cancelTarget && (
         <ConfirmModal

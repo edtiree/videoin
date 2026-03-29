@@ -5,6 +5,7 @@ import { Worker, EditorLineItem, SettlementSubmission } from "@/types";
 import { calculateTax, EDITOR_RATE } from "@/lib/tax";
 import MonthPicker from "./MonthPicker";
 import SettlementSummary from "./SettlementSummary";
+import ConfirmModal from "./ConfirmModal";
 
 interface EditorFormProps {
   worker: Worker;
@@ -31,6 +32,7 @@ export default function EditorForm({ worker, onSubmitSuccess, onDraftSaved, onDe
   const [savingDraft, setSavingDraft] = useState(false);
   const [banner, setBanner] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
+  const [alertMsg, setAlertMsg] = useState<string | null>(null);
 
   // 마운트 시 임시저장 불러오기
   useEffect(() => {
@@ -127,7 +129,7 @@ export default function EditorForm({ worker, onSubmitSuccess, onDraftSaved, onDe
       }
       setBanner("임시저장되었어요");
     } catch {
-      alert("임시저장에 실패했습니다.");
+      setAlertMsg("임시저장에 실패했습니다.");
     } finally {
       setSavingDraft(false);
     }
@@ -136,7 +138,7 @@ export default function EditorForm({ worker, onSubmitSuccess, onDraftSaved, onDe
   // 제출
   const handleSubmit = async () => {
     const error = validate();
-    if (error) { alert(error); return; }
+    if (error) { setAlertMsg(error); return; }
     setSubmitting(true);
     try {
       const submission: SettlementSubmission & { draftId?: string | null } = {
@@ -152,7 +154,7 @@ export default function EditorForm({ worker, onSubmitSuccess, onDraftSaved, onDe
       if (!res.ok) { const data = await res.json(); throw new Error(data.error || "제출 실패"); }
       onSubmitSuccess();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "제출 중 오류가 발생했습니다.");
+      setAlertMsg(err instanceof Error ? err.message : "제출 중 오류가 발생했습니다.");
     } finally { setSubmitting(false); }
   };
 
@@ -247,6 +249,10 @@ export default function EditorForm({ worker, onSubmitSuccess, onDraftSaved, onDe
           </button>
         )}
       </div>
+
+      {alertMsg && (
+        <ConfirmModal title="알림" message={alertMsg} confirmText="확인" onConfirm={() => setAlertMsg(null)} />
+      )}
     </div>
   );
 }

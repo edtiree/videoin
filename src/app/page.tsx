@@ -23,6 +23,7 @@ export default function Home() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [showBackModal, setShowBackModal] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [alertMsg, setAlertMsg] = useState<string | null>(null);
 
   const [phone, setPhone] = useState("");
   const [pin, setPin] = useState("");
@@ -153,7 +154,7 @@ export default function Home() {
       setDrafts((prev) => prev.filter((d) => d.id !== deleteTarget));
       setCategory(null);
     } catch {
-      alert("삭제에 실패했습니다.");
+      setAlertMsg("삭제에 실패했습니다.");
     } finally {
       setDeleteTarget(null);
     }
@@ -513,6 +514,10 @@ export default function Home() {
           />
         )}
       </div>
+
+      {alertMsg && (
+        <ConfirmModal title="알림" message={alertMsg} confirmText="확인" onConfirm={() => setAlertMsg(null)} />
+      )}
 
       {showBackModal && (
         <ConfirmModal

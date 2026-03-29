@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import ConfirmModal from "./ConfirmModal";
 
 interface FileUploadProps {
   onUpload: (urls: string[]) => void;
@@ -12,10 +13,11 @@ export default function FileUpload({ onUpload, currentUrls = [] }: FileUploadPro
   const [previews, setPreviews] = useState<string[]>(currentUrls);
   const [uploadedUrls, setUploadedUrls] = useState<string[]>(currentUrls);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [alertMsg, setAlertMsg] = useState<string | null>(null);
 
   const handleFiles = async (files: FileList) => {
     const imageFiles = Array.from(files).filter((f) => f.type.startsWith("image/"));
-    if (imageFiles.length === 0) { alert("이미지 파일만 업로드 가능합니다."); return; }
+    if (imageFiles.length === 0) { setAlertMsg("이미지 파일만 업로드 가능합니다."); return; }
 
     setPreviews((prev) => [...prev, ...imageFiles.map((f) => URL.createObjectURL(f))]);
     setUploading(true);
@@ -32,7 +34,7 @@ export default function FileUpload({ onUpload, currentUrls = [] }: FileUploadPro
       const allUrls = [...uploadedUrls, ...newUrls];
       setUploadedUrls(allUrls);
       onUpload(allUrls);
-    } catch { alert("업로드 중 오류가 발생했습니다."); setPreviews(uploadedUrls); }
+    } catch { setAlertMsg("업로드 중 오류가 발생했습니다."); setPreviews(uploadedUrls); }
     finally { setUploading(false); }
   };
 
@@ -78,6 +80,10 @@ export default function FileUpload({ onUpload, currentUrls = [] }: FileUploadPro
           </p>
         )}
       </div>
+
+      {alertMsg && (
+        <ConfirmModal title="알림" message={alertMsg} confirmText="확인" onConfirm={() => setAlertMsg(null)} />
+      )}
     </div>
   );
 }

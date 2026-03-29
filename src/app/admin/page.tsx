@@ -56,6 +56,7 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [deleteWorkerTarget, setDeleteWorkerTarget] = useState<string | null>(null);
+  const [alertMsg, setAlertMsg] = useState<string | null>(null);
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
@@ -63,7 +64,7 @@ export default function AdminPage() {
 
   const handleAuth = () => {
     if (pin === ADMIN_PIN) { setAuthed(true); fetchAll(); }
-    else alert("PIN이 일치하지 않습니다.");
+    else setAlertMsg("PIN이 일치하지 않습니다.");
   };
 
   const fetchAll = () => { fetchWorkers(); fetchDashboard(); fetchSettlements(); };
@@ -186,7 +187,7 @@ export default function AdminPage() {
             onClick={() => {
               const url = `${window.location.origin}`;
               navigator.clipboard.writeText(url);
-              alert("가입 링크가 복사되었습니다!\n직원에게 공유해주세요.");
+              setAlertMsg("가입 링크가 복사되었습니다!\n직원에게 공유해주세요.");
             }}
             className="flex items-center gap-1.5 px-4 py-2 bg-toss-blue text-white rounded-xl text-[13px] font-semibold hover:bg-toss-blue-hover active:scale-[0.98] transition-all"
           >
@@ -242,6 +243,10 @@ export default function AdminPage() {
           />
         )}
       </div>
+
+      {alertMsg && (
+        <ConfirmModal title="알림" message={alertMsg} confirmText="확인" onConfirm={() => setAlertMsg(null)} />
+      )}
 
       {deleteWorkerTarget && (
         <ConfirmModal
