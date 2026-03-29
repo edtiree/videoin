@@ -71,8 +71,11 @@ export default function DatePickerButton({ value, onChange, placeholder = "ë‚ ì§
   return (
     <>
       <button type="button" onClick={handleOpen}
-        className="w-full rounded-xl border border-toss-gray-200 px-4 py-3 text-left text-[15px] text-toss-gray-900 focus:border-toss-blue focus:ring-1 focus:ring-toss-blue/30 outline-none transition-all bg-white">
-        {displayValue || <span className="text-toss-gray-400">{placeholder}</span>}
+        className="w-full rounded-xl border border-toss-gray-200 px-4 py-3 text-left text-[15px] text-toss-gray-900 focus:border-toss-blue focus:ring-1 focus:ring-toss-blue/30 outline-none transition-all bg-white flex items-center justify-between">
+        <span>{displayValue || <span className="text-toss-gray-400">{placeholder}</span>}</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-toss-gray-400 shrink-0">
+          <rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" />
+        </svg>
       </button>
 
       {open && (
