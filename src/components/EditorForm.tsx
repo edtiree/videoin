@@ -295,21 +295,23 @@ export default function EditorForm({ worker, onSubmitSuccess, onDraftSaved, onDe
         </p>
       )}
 
-      <div className="flex gap-3">
+      <div className="space-y-3">
+        <div className="flex gap-3">
+          <button type="button" onClick={handleSaveDraft} disabled={savingDraft}
+            className="flex-1 py-4 bg-toss-gray-100 text-toss-gray-700 font-semibold rounded-2xl hover:bg-toss-gray-200 disabled:opacity-50 active:scale-[0.98] transition-all text-[16px]">
+            {savingDraft ? "저장 중..." : "임시저장"}
+          </button>
+          <button type="button" onClick={handleSubmit} disabled={submitting}
+            className="flex-1 py-4 bg-toss-blue text-white font-semibold rounded-2xl hover:bg-toss-blue-hover disabled:bg-toss-gray-300 active:scale-[0.98] transition-all text-[16px]">
+            {submitting ? "제출 중..." : "정산서 제출"}
+          </button>
+        </div>
         {draftId && onDeleteDraft && (
           <button type="button" onClick={() => { localStorage.removeItem(autoSaveKey); onDeleteDraft(draftId); }}
-            className="py-4 px-4 bg-red-50 text-toss-red font-semibold rounded-2xl hover:bg-red-100 active:scale-[0.98] transition-all text-[16px]">
-            삭제
+            className="w-full py-3 text-toss-gray-400 text-[14px] hover:text-toss-red transition">
+            임시저장 삭제
           </button>
         )}
-        <button type="button" onClick={handleSaveDraft} disabled={savingDraft}
-          className="flex-1 py-4 bg-toss-gray-100 text-toss-gray-700 font-semibold rounded-2xl hover:bg-toss-gray-200 disabled:opacity-50 active:scale-[0.98] transition-all text-[16px]">
-          {savingDraft ? "저장 중..." : "임시저장"}
-        </button>
-        <button type="button" onClick={handleSubmit} disabled={submitting}
-          className="flex-1 py-4 bg-toss-blue text-white font-semibold rounded-2xl hover:bg-toss-blue-hover disabled:bg-toss-gray-300 active:scale-[0.98] transition-all text-[16px]">
-          {submitting ? "제출 중..." : "정산서 제출"}
-        </button>
       </div>
     </div>
   );
