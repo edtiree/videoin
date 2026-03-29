@@ -124,6 +124,22 @@ export default function Home() {
     if (worker) fetchAllSettlements(worker.id);
   };
 
+  const handleDeleteDraft = async (draftId: string) => {
+    if (!confirm("임시저장된 정산서를 삭제하시겠어요?")) return;
+    if (!worker) return;
+    try {
+      const res = await fetch("/api/settlements/cancel", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ settlementId: draftId, workerId: worker.id }),
+      });
+      if (!res.ok) throw new Error();
+      setDrafts((prev) => prev.filter((d) => d.id !== draftId));
+    } catch {
+      alert("삭제에 실패했습니다.");
+    }
+  };
+
   const handleDraftSaved = () => {
     setCategory(null);
     setLoadDraft(false);
@@ -396,22 +412,30 @@ export default function Home() {
                         ? `${monthParts[0]}년 ${parseInt(monthParts[1])}월 ${parseInt(monthParts[2])}일`
                         : `${monthParts[0]}년 ${parseInt(monthParts[1])}월`;
                       return (
-                        <button key={d.id} onClick={() => { setLoadDraft(true); setCategory(d.role as Category); }}
-                          className="w-full flex items-center justify-between bg-white rounded-2xl border border-amber-200 bg-amber-50/50 p-4 hover:border-toss-blue hover:bg-blue-50/30 active:scale-[0.98] transition-all text-left shadow-sm">
-                          <div className="flex items-center gap-3">
-                            <span className="text-[22px]">{d.role === "촬영PD" ? "🎬" : "🎞️"}</span>
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <p className="text-[15px] font-bold text-toss-gray-900">
-                                  {monthLabel} {d.role === "촬영PD" ? "촬영비" : "편집비"}
-                                </p>
-                                <span className="px-1.5 py-0.5 bg-amber-100 text-amber-600 rounded text-[11px] font-bold">임시저장</span>
+                        <div key={d.id} className="relative flex items-center gap-2">
+                          <button onClick={() => { setLoadDraft(true); setCategory(d.role as Category); }}
+                            className="flex-1 flex items-center justify-between bg-white rounded-2xl border border-amber-200 bg-amber-50/50 p-4 hover:border-toss-blue hover:bg-blue-50/30 active:scale-[0.98] transition-all text-left shadow-sm">
+                            <div className="flex items-center gap-3">
+                              <span className="text-[22px]">{d.role === "촬영PD" ? "🎬" : "🎞️"}</span>
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <p className="text-[15px] font-bold text-toss-gray-900">
+                                    {monthLabel} {d.role === "촬영PD" ? "촬영비" : "편집비"}
+                                  </p>
+                                  <span className="px-1.5 py-0.5 bg-amber-100 text-amber-600 rounded text-[11px] font-bold">임시저장</span>
+                                </div>
+                                <p className="text-[13px] text-toss-gray-500">{d.itemCount}건</p>
                               </div>
-                              <p className="text-[13px] text-toss-gray-500">{d.itemCount}건</p>
                             </div>
-                          </div>
-                          <span className="text-[14px] font-bold text-toss-blue">{d.final_amount.toLocaleString()}원</span>
-                        </button>
+                            <span className="text-[14px] font-bold text-toss-blue">{d.final_amount.toLocaleString()}원</span>
+                          </button>
+                          <button onClick={() => handleDeleteDraft(d.id)}
+                            className="shrink-0 w-9 h-9 flex items-center justify-center rounded-xl text-toss-gray-400 hover:bg-red-50 hover:text-toss-red transition">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                            </svg>
+                          </button>
+                        </div>
                       );
                     })}
                   </div>

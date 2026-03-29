@@ -14,13 +14,13 @@ export async function POST(request: Request) {
 
     const supabase = getSupabase();
 
-    // 본인의 제출됨 상태 정산서만 취소 가능
+    // 본인의 제출됨 또는 임시저장 상태 정산서만 삭제 가능
     const { data: settlement } = await supabase
       .from("settlements")
       .select("id, status, worker_id")
       .eq("id", settlementId)
       .eq("worker_id", workerId)
-      .eq("status", "제출됨")
+      .in("status", ["제출됨", "임시저장"])
       .maybeSingle();
 
     if (!settlement) {
