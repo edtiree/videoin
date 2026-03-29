@@ -109,7 +109,7 @@ export default function CalendarPage() {
               const upload = calFilter !== "filming" ? getUpload(dateStr) : [];
               const allEvents = [...filming.map(e => ({...e, type: "filming" as const})), ...upload.map(e => ({...e, type: "upload" as const}))];
               return (
-                <div key={idx} className={`min-h-[100px] border-b border-r border-toss-gray-50 p-1 ${!cell.current ? "opacity-40" : ""} ${cell.current && isToday(cell.day) ? "bg-blue-50/60 ring-2 ring-toss-blue ring-inset" : ""}`}>
+                <div key={idx} className={`min-h-[60px] md:min-h-[100px] border-b border-r border-toss-gray-50 p-1 ${!cell.current ? "opacity-40" : ""} ${cell.current && isToday(cell.day) ? "bg-blue-50/60 ring-2 ring-toss-blue ring-inset" : ""}`}>
                   <span className={`text-[12px] font-medium ${cell.current && isToday(cell.day) ? "bg-toss-blue text-white rounded-full w-5 h-5 inline-flex items-center justify-center" : idx % 7 === 0 ? "text-toss-red" : idx % 7 === 6 ? "text-toss-blue" : "text-toss-gray-600"}`}>{cell.day}</span>
                   <div className="space-y-0.5 mt-0.5">
                     {allEvents.slice(0, 4).map((ev, i) => (
@@ -117,10 +117,10 @@ export default function CalendarPage() {
                         className={`text-[10px] rounded-lg px-1.5 py-1 cursor-pointer hover:opacity-80 border ${
                           ev.type === "filming" ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"
                         }`}>
-                        <div className="font-bold text-toss-gray-900 text-[11px]">{ev.performer}</div>
-                        <div className="flex items-center gap-1 mt-0.5">
-                          <span className="text-toss-gray-400">{ev.youtube_channel}</span>
-                          <span className={`px-1 py-0 rounded text-[9px] font-bold ${
+                        <div className="font-bold text-toss-gray-900 text-[11px] truncate">{ev.performer}</div>
+                        <div className="hidden md:flex items-center gap-1 mt-0.5">
+                          <span className="text-toss-gray-400 truncate">{ev.youtube_channel}</span>
+                          <span className={`px-1 py-0 rounded text-[9px] font-bold shrink-0 ${
                             ev.progress === "완료" ? "bg-green-100 text-green-600" : ev.progress === "편집중" ? "bg-amber-100 text-amber-600" : "bg-red-100 text-red-600"
                           }`}>{ev.progress}</span>
                         </div>
