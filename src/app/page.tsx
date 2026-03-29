@@ -97,6 +97,7 @@ export default function Home() {
       const w: Worker = {
         id: data.worker.id, name: data.worker.name, email: data.worker.phone,
         role: data.worker.role, contractType: data.worker.contractType,
+        categories: data.worker.categories || ["촬영PD", "편집자"],
       };
       localStorage.setItem("worker", JSON.stringify(w));
       setWorker(w);
@@ -450,7 +451,7 @@ export default function Home() {
                 { key: "숏폼" as Category, icon: "📱", label: "숏폼 정산", desc: "건당 10,000원" },
                 { key: "카드뉴스" as Category, icon: "📰", label: "카드뉴스 정산", desc: "건당 10,000원" },
                 { key: "편집자" as Category, icon: "🎞️", label: "편집비 정산", desc: "분당 10,000원" },
-              ].map((c) => (
+              ].filter((c) => (worker.categories || ["촬영PD", "편집자"]).includes(c.key!)).map((c) => (
                 <button key={c.key} onClick={() => { setLoadDraft(false); setCategory(c.key); }}
                   className="w-full flex items-center gap-4 bg-white rounded-2xl border border-toss-gray-100 p-5 hover:border-toss-blue hover:bg-blue-50/30 active:scale-[0.98] transition-all text-left shadow-sm">
                   <span className="text-[28px]">{c.icon}</span>

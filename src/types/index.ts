@@ -7,6 +7,7 @@ export interface Worker {
   email: string;
   role: Role;
   contractType: ContractType;
+  categories?: string[];
 }
 
 export interface PDLineItem {

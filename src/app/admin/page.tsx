@@ -6,7 +6,15 @@ interface WorkerData {
   id: string; name: string; phone: string; role: string; contract_type: string;
   bank_name: string | null; bank_account: string | null; account_holder: string | null;
   business_registration_url: string | null; approved: boolean; created_at: string;
+  categories: string[] | null;
 }
+
+const ALL_CATEGORIES = [
+  { key: "촬영PD", label: "롱폼" },
+  { key: "숏폼", label: "숏폼" },
+  { key: "카드뉴스", label: "카드뉴스" },
+  { key: "편집자", label: "편집비" },
+];
 
 interface DashboardData {
   summary: {
@@ -97,6 +105,20 @@ export default function AdminPage() {
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
   }, [authed]);
+
+  const handleCategoryToggle = async (workerId: string, category: string) => {
+    const worker = workers.find((w) => w.id === workerId);
+    if (!worker) return;
+    const current = worker.categories || ["촬영PD", "편집자"];
+    const updated = current.includes(category)
+      ? current.filter((c) => c !== category)
+      : [...current, category];
+    const res = await fetch("/api/admin/workers", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ workerId, categories: updated }),
+    });
+    if (res.ok) setWorkers((prev) => prev.map((w) => w.id === workerId ? { ...w, categories: updated } : w));
+  };
 
   const handleApprove = async (workerId: string, approved: boolean) => {
     const res = await fetch("/api/admin/approve", {
@@ -207,6 +229,7 @@ export default function AdminPage() {
             setExpandedId={setExpandedId}
             handleApprove={handleApprove}
             handleReject={handleReject}
+            handleCategoryToggle={handleCategoryToggle}
             formatPhone={formatPhone}
             formatDate={formatDate}
           />
@@ -515,11 +538,12 @@ function SummaryCard({ label, value, highlight }: { label: string; value: string
 }
 
 // ─── 직원 관리 ───
-function WorkersView({ pendingWorkers, approvedWorkers, expandedId, setExpandedId, handleApprove, handleReject, formatPhone, formatDate }: {
+function WorkersView({ pendingWorkers, approvedWorkers, expandedId, setExpandedId, handleApprove, handleReject, handleCategoryToggle, formatPhone, formatDate }: {
   pendingWorkers: WorkerData[]; approvedWorkers: WorkerData[];
   expandedId: string | null; setExpandedId: (id: string | null) => void;
   handleApprove: (id: string, approved: boolean) => void;
   handleReject: (id: string) => void;
+  handleCategoryToggle: (workerId: string, category: string) => void;
   formatPhone: (p: string) => string; formatDate: (d: string) => string;
 }) {
   return (
@@ -536,6 +560,7 @@ function WorkersView({ pendingWorkers, approvedWorkers, expandedId, setExpandedI
                 onToggle={() => setExpandedId(expandedId === w.id ? null : w.id)}
                 onApprove={() => handleApprove(w.id, true)}
                 onReject={() => handleReject(w.id)}
+                onCategoryToggle={(cat) => handleCategoryToggle(w.id, cat)}
                 formatPhone={formatPhone} formatDate={formatDate} />
             ))}
           </div>
@@ -554,6 +579,7 @@ function WorkersView({ pendingWorkers, approvedWorkers, expandedId, setExpandedI
               <WorkerCard key={w.id} worker={w} expanded={expandedId === w.id}
                 onToggle={() => setExpandedId(expandedId === w.id ? null : w.id)}
                 onDelete={() => handleReject(w.id)}
+                onCategoryToggle={(cat) => handleCategoryToggle(w.id, cat)}
                 formatPhone={formatPhone} formatDate={formatDate} />
             ))}
           </div>
@@ -563,11 +589,13 @@ function WorkersView({ pendingWorkers, approvedWorkers, expandedId, setExpandedI
   );
 }
 
-function WorkerCard({ worker, expanded, onToggle, onApprove, onReject, onRevoke, onDelete, formatPhone, formatDate }: {
+function WorkerCard({ worker, expanded, onToggle, onApprove, onReject, onRevoke, onDelete, onCategoryToggle, formatPhone, formatDate }: {
   worker: WorkerData; expanded: boolean; onToggle: () => void;
   onApprove?: () => void; onReject?: () => void; onRevoke?: () => void; onDelete?: () => void;
+  onCategoryToggle?: (category: string) => void;
   formatPhone: (p: string) => string; formatDate: (d: string) => string;
 }) {
+  const categories = worker.categories || ["촬영PD", "편집자"];
   return (
     <div className="bg-white border border-toss-gray-100 rounded-2xl overflow-hidden shadow-sm">
       <button onClick={onToggle}
@@ -599,6 +627,24 @@ function WorkerCard({ worker, expanded, onToggle, onApprove, onReject, onRevoke,
               <img src={worker.business_registration_url} alt="사업자등록증" className="max-h-48 rounded-xl border border-toss-gray-200" />
             </div>
           )}
+          {onCategoryToggle && (
+            <div>
+              <span className="text-[12px] text-toss-gray-400 block mb-2">정산 카테고리</span>
+              <div className="flex flex-wrap gap-2">
+                {ALL_CATEGORIES.map((c) => (
+                  <button key={c.key} onClick={() => onCategoryToggle(c.key)}
+                    className={`px-3 py-1.5 rounded-lg text-[13px] font-semibold transition-all ${
+                      categories.includes(c.key)
+                        ? "bg-toss-blue text-white"
+                        : "bg-toss-gray-100 text-toss-gray-400"
+                    }`}>
+                    {c.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="flex gap-2 pt-1">
             {onApprove && (
               <button onClick={onApprove}

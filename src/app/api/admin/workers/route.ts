@@ -15,3 +15,14 @@ export async function GET() {
 
   return NextResponse.json(data || []);
 }
+
+export async function POST(request: Request) {
+  const { workerId, categories } = await request.json();
+  const supabase = getSupabase();
+  const { error } = await supabase
+    .from("workers")
+    .update({ categories })
+    .eq("id", workerId);
+  if (error) return NextResponse.json({ error: "업데이트 실패" }, { status: 500 });
+  return NextResponse.json({ success: true });
+}
