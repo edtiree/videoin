@@ -20,6 +20,7 @@ export default function Home() {
   const [loadDraft, setLoadDraft] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [showBackModal, setShowBackModal] = useState(false);
 
   const [phone, setPhone] = useState("");
   const [pin, setPin] = useState("");
@@ -476,12 +477,7 @@ export default function Home() {
                   const formEl = document.querySelector("[data-dirty]");
                   const isDirty = formEl?.getAttribute("data-dirty") === "true";
                   if (!isDirty) { setCategory(null); return; }
-                  const choice = confirm("임시저장하시겠습니까?\n\n확인 → 임시저장 후 나가기\n취소 → 저장하지 않고 나가기");
-                  if (choice) {
-                    document.getElementById("btn-draft-save")?.click();
-                  } else {
-                    setCategory(null);
-                  }
+                  setShowBackModal(true);
                 }}
                 className="text-[13px] text-toss-gray-500 hover:text-toss-gray-700 transition mb-4 flex items-center gap-1">
                 ← 카테고리 다시 선택
@@ -510,6 +506,25 @@ export default function Home() {
           />
         )}
       </div>
+
+      {showBackModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-6" onClick={() => setShowBackModal(false)}>
+          <div className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-[18px] font-bold text-toss-gray-900 mb-2">저장하지 않은 내용이 있어요</h3>
+            <p className="text-[14px] text-toss-gray-500 mb-6">임시저장하지 않으면 작성한 내용이 사라져요.</p>
+            <div className="flex gap-3">
+              <button onClick={() => { setShowBackModal(false); setCategory(null); }}
+                className="flex-1 py-3.5 bg-toss-gray-100 text-toss-gray-700 font-semibold rounded-2xl hover:bg-toss-gray-200 active:scale-[0.98] transition-all text-[15px]">
+                저장 안 함
+              </button>
+              <button onClick={() => { setShowBackModal(false); document.getElementById("btn-draft-save")?.click(); }}
+                className="flex-1 py-3.5 bg-toss-blue text-white font-semibold rounded-2xl hover:bg-toss-blue-hover active:scale-[0.98] transition-all text-[15px]">
+                저장
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
