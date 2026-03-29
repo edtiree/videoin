@@ -51,15 +51,19 @@ export default function AdsPage() {
   const [calDetail, setCalDetail] = useState<Ad | null>(null);
   const [picker, setPicker] = useState<{ id: string; field: string; title: string; options?: string[]; type: "select" | "text" | "date"; value: string } | null>(null);
 
+  const fetchAds = () => {
+    setLoading(true);
+    fetch("/api/ads").then(r => r.json()).then(setAds).finally(() => setLoading(false));
+  };
+
   const handleAuth = (v?: string) => {
-    if ((v || pin) === ADMIN_PIN) { setAuthed(true); }
+    if ((v || pin) === ADMIN_PIN) { setAuthed(true); fetchAds(); }
     else { setLoginError("PIN이 일치하지 않습니다."); setPin(""); }
   };
 
   useEffect(() => {
     if (!authed) return;
-    setLoading(true);
-    fetch("/api/ads").then(r => r.json()).then(setAds).finally(() => setLoading(false));
+    if (ads.length === 0) fetchAds();
   }, [authed]);
 
   const handleSave = async () => {
