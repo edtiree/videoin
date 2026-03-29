@@ -34,10 +34,10 @@ export const EDITOR_RATE = 10000; // 편집 분당 1만원
 // role → 표시 라벨
 export function getRoleLabel(role: string): string {
   const map: Record<string, string> = {
-    "촬영비": "촬영비",
-    "숏폼": "숏폼",
-    "카드뉴스": "카드뉴스",
-    "편집비": "편집비",
+    "촬영비": "유튜브 촬영",
+    "숏폼": "쇼츠·릴스 편집",
+    "카드뉴스": "인스타 카드뉴스",
+    "편집비": "유튜브 롱폼 편집",
   };
   return map[role] || role;
 }
