@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import ConfirmModal from "@/components/ConfirmModal";
 
 interface WorkerData {
@@ -49,6 +49,7 @@ interface SettlementData {
 export default function AdminPage() {
   const [authed, setAuthed] = useState(false);
   const [pin, setPin] = useState("");
+  const pinRef = useRef<HTMLInputElement>(null);
   const [tab, setTab] = useState<Tab>("dashboard");
   const [workers, setWorkers] = useState<WorkerData[]>([]);
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
@@ -62,9 +63,10 @@ export default function AdminPage() {
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   });
 
-  const handleAuth = () => {
-    if (pin === ADMIN_PIN) { setAuthed(true); fetchAll(); }
-    else setAlertMsg("PIN이 일치하지 않습니다.");
+  const handleAuth = (pinVal?: string) => {
+    const p = pinVal || pin;
+    if (p === ADMIN_PIN) { setAuthed(true); fetchAll(); }
+    else { setAlertMsg("PIN이 일치하지 않습니다."); setPin(""); }
   };
 
   const fetchAll = () => { fetchWorkers(); fetchDashboard(); fetchSettlements(); };
@@ -157,19 +159,39 @@ export default function AdminPage() {
   // ─── 로그인 ───
   if (!authed) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-6">
+      <div className="min-h-screen flex flex-col items-center justify-center px-6"
+        onClick={() => pinRef.current?.focus()}>
         <div className="w-full max-w-sm text-center">
-          <h1 className="text-[22px] font-bold text-toss-gray-900 mb-1">관리자</h1>
-          <p className="text-toss-gray-500 text-[14px] mb-8">관리자 PIN을 입력하세요</p>
-          <input type="password" value={pin} onChange={(e) => setPin(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleAuth()}
-            className="w-full rounded-xl border border-toss-gray-200 px-4 py-3 text-[16px] text-center focus:border-toss-blue focus:ring-1 focus:ring-toss-blue/30 outline-none transition-all bg-white mb-4"
-            placeholder="관리자 PIN" autoFocus />
-          <button onClick={handleAuth}
-            className="w-full py-4 bg-toss-blue text-white font-semibold rounded-2xl hover:bg-toss-blue-hover active:scale-[0.98] transition-all text-[16px]">
-            접속
-          </button>
+          <h2 className="text-[22px] font-bold text-toss-gray-900 mb-2">관리자 PIN 입력</h2>
+          <p className="text-toss-gray-500 text-[15px] mb-10">4자리 비밀번호를 입력하세요</p>
+
+          <div className="relative flex justify-center gap-4 mb-8">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i}
+                className={`w-[52px] h-[52px] rounded-2xl flex items-center justify-center text-xl transition-all duration-200 ${
+                  pin.length > i
+                    ? "bg-toss-blue text-white scale-105"
+                    : pin.length === i
+                    ? "bg-white border-2 border-toss-blue"
+                    : "bg-toss-gray-100 border border-toss-gray-200"
+                }`}>
+                {pin[i] ? "●" : ""}
+              </div>
+            ))}
+            <input ref={pinRef} type="tel" value={pin} autoFocus
+              onChange={(e) => {
+                const val = e.target.value.replace(/\D/g, "").slice(0, 4);
+                setPin(val);
+                if (val.length === 4) setTimeout(() => handleAuth(val), 150);
+              }}
+              className="absolute inset-0 opacity-0 w-full h-full"
+              inputMode="numeric" />
+          </div>
         </div>
+
+        {alertMsg && (
+          <ConfirmModal title="알림" message={alertMsg} confirmText="확인" onConfirm={() => { setAlertMsg(null); setPin(""); }} />
+        )}
       </div>
     );
   }
