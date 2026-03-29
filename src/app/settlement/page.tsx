@@ -453,6 +453,7 @@ export default function Home() {
       {/* 헤더 */}
       <div className="bg-white border-b border-toss-gray-100">
         <div className="max-w-lg mx-auto px-5 py-5">
+          <a href="/" className="text-toss-gray-400 hover:text-toss-gray-600 text-[13px] mb-2 inline-block">← 홈</a>
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-[20px] font-bold text-toss-gray-900">{worker.name}</h1>

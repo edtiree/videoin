@@ -50,6 +50,7 @@ export default function AdminPage() {
   const [authed, setAuthed] = useState(false);
   const [pin, setPin] = useState("");
   const pinRef = useRef<HTMLInputElement>(null);
+  const [adminMode, setAdminMode] = useState<"menu" | "staff" | "ads">("menu");
   const [tab, setTab] = useState<Tab>("dashboard");
   const [workers, setWorkers] = useState<WorkerData[]>([]);
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
@@ -67,7 +68,7 @@ export default function AdminPage() {
 
   const handleAuth = (pinVal?: string) => {
     const p = pinVal || pin;
-    if (p === ADMIN_PIN) { setAuthed(true); fetchAll(); }
+    if (p === ADMIN_PIN) { setAuthed(true); sessionStorage.setItem("ads_authed", "1"); fetchAll(); }
     else { setLoginError("PIN이 일치하지 않습니다."); setPin(""); }
   };
 
@@ -204,14 +205,52 @@ export default function AdminPage() {
   const pendingWorkers = workers.filter((w) => !w.approved);
   const approvedWorkers = workers.filter((w) => w.approved);
 
+  // 메뉴 선택
+  if (adminMode === "menu") {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center px-6">
+        <div className="w-full max-w-md">
+          <div className="flex items-center gap-3 mb-8">
+            <a href="/" className="text-toss-gray-400 hover:text-toss-gray-600 text-[14px]">← 홈</a>
+            <h1 className="text-[22px] font-bold text-toss-gray-900">관리자</h1>
+          </div>
+          <div className="space-y-3">
+            <button onClick={() => setAdminMode("staff")}
+              className="w-full flex items-center gap-4 bg-white rounded-2xl border border-toss-gray-100 p-5 hover:border-toss-blue hover:bg-blue-50/30 active:scale-[0.98] transition-all text-left shadow-sm">
+              <span className="text-[32px]">👥</span>
+              <div>
+                <p className="text-[17px] font-bold text-toss-gray-900">직원 · 정산 관리</p>
+                <p className="text-[13px] text-toss-gray-500 mt-0.5">직원 승인, 정산서 확인, 대시보드</p>
+              </div>
+            </button>
+            <button onClick={() => setAdminMode("ads")}
+              className="w-full flex items-center gap-4 bg-white rounded-2xl border border-toss-gray-100 p-5 hover:border-toss-blue hover:bg-blue-50/30 active:scale-[0.98] transition-all text-left shadow-sm">
+              <span className="text-[32px]">📺</span>
+              <div>
+                <p className="text-[17px] font-bold text-toss-gray-900">광고 관리</p>
+                <p className="text-[13px] text-toss-gray-500 mt-0.5">광고 DB, 정산현황, 캘린더</p>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 광고 관리 → /ads로 이동 (PIN 없이)
+  if (adminMode === "ads") {
+    if (typeof window !== "undefined") window.location.href = "/ads?authed=1";
+    return <div className="min-h-screen flex items-center justify-center text-toss-gray-400">이동 중...</div>;
+  }
+
   return (
     <div className="min-h-screen pb-10">
       {/* 헤더 */}
       <div className="bg-white border-b border-toss-gray-100">
         <div className="max-w-3xl mx-auto px-5 py-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <h1 className="text-[20px] font-bold text-toss-gray-900">관리자</h1>
-            <a href="/ads" className="px-3 py-1.5 bg-toss-blue text-white text-[12px] font-semibold rounded-lg hover:bg-toss-blue-hover transition">광고 관리</a>
+            <button onClick={() => setAdminMode("menu")} className="text-toss-gray-400 hover:text-toss-gray-600 text-[14px]">← 메뉴</button>
+            <h1 className="text-[20px] font-bold text-toss-gray-900">직원 · 정산 관리</h1>
           </div>
           <button
             onClick={() => {

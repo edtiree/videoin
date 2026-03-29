@@ -34,7 +34,12 @@ const RS_SETTLEMENT = ["시작 전", "정산 완료"];
 const ADMIN_PIN = "0123";
 
 export default function AdsPage() {
-  const [authed, setAuthed] = useState(false);
+  const [authed, setAuthed] = useState(() => {
+    if (typeof window !== "undefined") {
+      return new URLSearchParams(window.location.search).get("authed") === "1" || sessionStorage.getItem("ads_authed") === "1";
+    }
+    return false;
+  });
   const [pin, setPin] = useState("");
   const [loginError, setLoginError] = useState("");
   const [ads, setAds] = useState<Ad[]>([]);
@@ -58,7 +63,7 @@ export default function AdsPage() {
   };
 
   const handleAuth = (v?: string) => {
-    if ((v || pin) === ADMIN_PIN) { setAuthed(true); fetchAds(); }
+    if ((v || pin) === ADMIN_PIN) { setAuthed(true); sessionStorage.setItem("ads_authed", "1"); fetchAds(); }
     else { setLoginError("PIN이 일치하지 않습니다."); setPin(""); }
   };
 
@@ -147,6 +152,7 @@ export default function AdsPage() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center px-6" onClick={() => document.getElementById("ads-pin")?.focus()}>
         <div className="w-full max-w-sm text-center">
+          <a href="/" className="text-toss-gray-400 hover:text-toss-gray-600 text-[13px] mb-6 inline-block">← 홈</a>
           <h2 className="text-[22px] font-bold text-toss-gray-900 mb-2">광고 DB</h2>
           <p className="text-toss-gray-500 text-[15px] mb-10">관리자 PIN을 입력하세요</p>
           {loginError && <div className="mb-5 px-4 py-3 bg-red-50 text-toss-red rounded-2xl text-[14px]">{loginError}</div>}
@@ -169,7 +175,10 @@ export default function AdsPage() {
     <div className="min-h-screen bg-gray-50 pb-10">
       <div className="bg-white border-b border-toss-gray-100">
         <div className="max-w-6xl mx-auto px-5 py-4 flex items-center justify-between">
-          <h1 className="text-[20px] font-bold text-toss-gray-900">광고 관리</h1>
+          <div className="flex items-center gap-3">
+            <a href="/admin" className="text-toss-gray-400 hover:text-toss-gray-600 text-[14px]">← 관리자</a>
+            <h1 className="text-[20px] font-bold text-toss-gray-900">광고 관리</h1>
+          </div>
           {tab === "db" && (
             <button onClick={() => setEditAd({ youtube_channel: "돈벌쥐", progress: "완료", filming_fee_status: "정산 전", vat_method: "부가세 별도", tax_invoice: "발행 전", rs_settlement: "시작 전", ad_fee: 0, supply_amount: 0, vat_amount: 0, total_amount: 0, rs_rate: 0, rs_cost: 0 })}
               className="px-4 py-2 bg-toss-blue text-white text-[14px] font-semibold rounded-xl hover:bg-toss-blue-hover active:scale-[0.98] transition-all">
