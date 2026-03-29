@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import ConfirmModal from "@/components/ConfirmModal";
+import { getRoleLabel } from "@/lib/tax";
 
 interface WorkerData {
   id: string; name: string; phone: string; role: string; contract_type: string;
@@ -402,7 +403,7 @@ function SettlementsView({ settlements, selectedMonth, onMonthChange, onStatusCh
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-[15px] font-bold text-toss-gray-900">{s.worker_name}</span>
                       <span className="px-1.5 py-0.5 bg-toss-gray-100 text-toss-gray-600 rounded text-[11px] font-bold">
-                        {s.role === "촬영비" ? "촬영비" : s.role === "편집비" ? "편집비" : s.role}
+                        {getRoleLabel(s.role)}
                       </span>
                       <span className={`px-2 py-0.5 rounded-lg text-[11px] font-bold ${statusStyle[s.status] || ""}`}>
                         {s.status}
@@ -421,7 +422,7 @@ function SettlementsView({ settlements, selectedMonth, onMonthChange, onStatusCh
                 {isExpanded && (
                   <div className="border-t border-toss-gray-100 px-5 py-5 bg-toss-gray-50 space-y-4">
                     <div className="space-y-2.5 text-[14px]">
-                      <SRow label={s.role === "촬영비" ? "촬영비" : s.role === "편집비" ? "편집비" : s.role} value={`${(s.total_amount - s.total_expense).toLocaleString()}원`} />
+                      <SRow label={getRoleLabel(s.role)} value={`${(s.total_amount - s.total_expense).toLocaleString()}원`} />
                       {s.total_expense > 0 && <SRow label="경비" value={`${s.total_expense.toLocaleString()}원`} />}
                       <SRow label="총액" value={`${s.total_amount.toLocaleString()}원`} />
                       <SRow label={isFreelancer ? "원천징수(3.3%)" : "부가세(10%)"}
@@ -632,7 +633,7 @@ function DashboardView({ dashboard, loading, selectedMonth, onMonthChange, forma
                         </span>
                       </div>
                       <span className="text-[12px] text-toss-gray-400">
-                        {formatMonth(s.settlementMonth)} · {s.role === "촬영비" ? "촬영비" : s.role === "편집비" ? "편집비" : s.role}
+                        {formatMonth(s.settlementMonth)} · {getRoleLabel(s.role)}
                       </span>
                     </div>
                     <span className="text-[15px] font-bold text-toss-gray-900">
