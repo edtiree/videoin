@@ -146,6 +146,8 @@ export default function EditorForm({ worker, onSubmitSuccess, onDraftSaved, onDe
   const totalDuration = items.reduce((sum, item) => sum + item.videoDuration, 0);
   const taxResult = calculateTax(totalWork, worker.contractType);
 
+  const hasContent = items.some((item) => item.performer.trim() || item.videoLink.trim() || item.videoDuration > 0);
+
   const validate = (): string | null => {
     if (!month) return "정산월을 선택해주세요.";
     for (let i = 0; i < items.length; i++) {
@@ -286,8 +288,10 @@ export default function EditorForm({ worker, onSubmitSuccess, onDraftSaved, onDe
         </button>
       </div>
 
-      <SettlementSummary totalWork={totalWork} totalExpense={0}
-        contractType={worker.contractType} itemCount={items.length} role="편집비" totalDuration={totalDuration} />
+      {hasContent && (
+        <SettlementSummary totalWork={totalWork} totalExpense={0}
+          contractType={worker.contractType} itemCount={items.length} role="편집비" totalDuration={totalDuration} />
+      )}
 
       {autoSavedAt && (
         <p className="text-[12px] text-toss-gray-400 text-center">
@@ -297,11 +301,11 @@ export default function EditorForm({ worker, onSubmitSuccess, onDraftSaved, onDe
 
       <div className="space-y-3">
         <div className="flex gap-3">
-          <button type="button" onClick={handleSaveDraft} disabled={savingDraft}
+          <button type="button" onClick={handleSaveDraft} disabled={savingDraft || !hasContent}
             className="flex-1 py-4 bg-toss-gray-100 text-toss-gray-700 font-semibold rounded-2xl hover:bg-toss-gray-200 disabled:opacity-50 active:scale-[0.98] transition-all text-[16px]">
             {savingDraft ? "저장 중..." : "임시저장"}
           </button>
-          <button type="button" onClick={handleSubmit} disabled={submitting}
+          <button type="button" onClick={handleSubmit} disabled={submitting || !hasContent}
             className="flex-1 py-4 bg-toss-blue text-white font-semibold rounded-2xl hover:bg-toss-blue-hover disabled:bg-toss-gray-300 active:scale-[0.98] transition-all text-[16px]">
             {submitting ? "제출 중..." : "정산서 제출"}
           </button>

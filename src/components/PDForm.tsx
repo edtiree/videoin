@@ -145,6 +145,8 @@ export default function PDForm({ worker, onSubmitSuccess, onDraftSaved, onDelete
   const grandTotal = totalWork + totalExpense;
   const taxResult = calculateTax(grandTotal, worker.contractType);
 
+  const hasContent = items.some((item) => item.performer.trim() || item.filmingDate);
+
   const validate = (): string | null => {
     if (!month) return "정산월을 선택해주세요.";
     for (let i = 0; i < items.length; i++) {
@@ -292,8 +294,10 @@ export default function PDForm({ worker, onSubmitSuccess, onDraftSaved, onDelete
         </button>
       </div>
 
-      <SettlementSummary totalWork={totalWork} totalExpense={totalExpense}
-        contractType={worker.contractType} itemCount={items.length} role={roleName} />
+      {hasContent && (
+        <SettlementSummary totalWork={totalWork} totalExpense={totalExpense}
+          contractType={worker.contractType} itemCount={items.length} role={roleName} />
+      )}
 
       {autoSavedAt && (
         <p className="text-[12px] text-toss-gray-400 text-center">
@@ -303,11 +307,11 @@ export default function PDForm({ worker, onSubmitSuccess, onDraftSaved, onDelete
 
       <div className="space-y-3">
         <div className="flex gap-3">
-          <button type="button" onClick={handleSaveDraft} disabled={savingDraft}
+          <button type="button" onClick={handleSaveDraft} disabled={savingDraft || !hasContent}
             className="flex-1 py-4 bg-toss-gray-100 text-toss-gray-700 font-semibold rounded-2xl hover:bg-toss-gray-200 disabled:opacity-50 active:scale-[0.98] transition-all text-[16px]">
             {savingDraft ? "저장 중..." : "임시저장"}
           </button>
-          <button type="button" onClick={handleSubmit} disabled={submitting}
+          <button type="button" onClick={handleSubmit} disabled={submitting || !hasContent}
             className="flex-1 py-4 bg-toss-blue text-white font-semibold rounded-2xl hover:bg-toss-blue-hover disabled:bg-toss-gray-300 active:scale-[0.98] transition-all text-[16px]">
             {submitting ? "제출 중..." : "정산서 제출"}
           </button>
