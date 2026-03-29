@@ -45,7 +45,7 @@ export default function SettlementHistory({ workerId, role, contractType, refres
     setLoading(true);
     fetch(`/api/settlements/${workerId}`)
       .then((res) => res.ok ? res.json() : [])
-      .then(setSettlements)
+      .then((data: SettlementRecord[]) => setSettlements(data.filter((s) => s.status !== "임시저장")))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [workerId, refreshKey]);
