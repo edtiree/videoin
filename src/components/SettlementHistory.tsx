@@ -120,7 +120,7 @@ export default function SettlementHistory({ workerId, role, contractType, refres
               <div className="flex items-center gap-2.5">
                 <span className="text-[15px] font-bold text-toss-gray-900">{formatMonth(s.settlement_month)}</span>
                 <span className="px-1.5 py-0.5 bg-toss-gray-100 text-toss-gray-600 rounded text-[11px] font-bold">
-                  {s.role === "촬영PD" ? "촬영" : "편집"}
+                  {s.role === "촬영PD" ? "촬영비" : "편집비"}
                 </span>
                 <span className={`px-2 py-0.5 rounded-lg text-[11px] font-bold ${statusStyle[s.status] || "bg-toss-gray-100 text-toss-gray-600"}`}>
                   {s.status}

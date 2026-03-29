@@ -276,7 +276,7 @@ function SettlementsView({ settlements, selectedMonth, onMonthChange, onStatusCh
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-[15px] font-bold text-toss-gray-900">{s.worker_name}</span>
                       <span className="px-1.5 py-0.5 bg-toss-gray-100 text-toss-gray-600 rounded text-[11px] font-bold">
-                        {s.role === "촬영PD" ? "촬영" : "편집"}
+                        {s.role === "촬영PD" ? "촬영비" : "편집비"}
                       </span>
                       <span className={`px-2 py-0.5 rounded-lg text-[11px] font-bold ${statusStyle[s.status] || ""}`}>
                         {s.status}
@@ -488,7 +488,7 @@ function DashboardView({ dashboard, loading, selectedMonth, onMonthChange, forma
                         </span>
                       </div>
                       <span className="text-[12px] text-toss-gray-400">
-                        {formatMonth(s.settlementMonth)} · {s.role}
+                        {formatMonth(s.settlementMonth)} · {s.role === "촬영PD" ? "촬영비" : "편집비"}
                       </span>
                     </div>
                     <span className="text-[15px] font-bold text-toss-gray-900">
