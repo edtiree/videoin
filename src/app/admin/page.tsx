@@ -346,12 +346,14 @@ function SettlementsView({ settlements, selectedMonth, onMonthChange, onStatusCh
 }) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>("전체");
+  const [nameSearch, setNameSearch] = useState("");
 
   const [y, m] = selectedMonth.split("-").map(Number);
   const prevMonth = m === 1 ? `${y - 1}-12` : `${y}-${String(m - 1).padStart(2, "0")}`;
   const nextMonth = m === 12 ? `${y + 1}-01` : `${y}-${String(m + 1).padStart(2, "0")}`;
 
-  const filtered = filter === "전체" ? settlements : settlements.filter((s) => s.status === filter);
+  const filtered = (filter === "전체" ? settlements : settlements.filter((s) => s.status === filter))
+    .filter(s => !nameSearch || s.worker_name.includes(nameSearch));
 
   const statusStyle: Record<string, string> = {
     "제출됨": "bg-amber-50 text-amber-600",
@@ -371,13 +373,16 @@ function SettlementsView({ settlements, selectedMonth, onMonthChange, onStatusCh
       </div>
 
       {/* 필터 */}
-      <div className="flex gap-2">
+      <div className="flex gap-2 items-center flex-wrap">
         {["전체", "제출됨", "정산완료"].map((f) => (
           <button key={f} onClick={() => setFilter(f)}
             className={`px-3.5 py-1.5 rounded-xl text-[13px] font-semibold transition-all ${
               filter === f ? "bg-toss-gray-900 text-white" : "bg-toss-gray-100 text-toss-gray-500 hover:bg-toss-gray-200"
             }`}>{f}</button>
         ))}
+        <input value={nameSearch} onChange={e => setNameSearch(e.target.value)}
+          className="rounded-xl border border-toss-gray-200 px-3 py-1.5 text-[13px] bg-white outline-none focus:border-toss-blue w-32 placeholder:text-toss-gray-400"
+          placeholder="이름 검색" />
       </div>
 
       {filtered.length === 0 ? (
