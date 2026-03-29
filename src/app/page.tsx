@@ -7,6 +7,7 @@ import EditorForm from "@/components/EditorForm";
 import SettlementHistory from "@/components/SettlementHistory";
 import RegisterForm from "@/components/RegisterForm";
 import { getRoleLabel } from "@/lib/tax";
+import ConfirmModal from "@/components/ConfirmModal";
 
 type Page = "login" | "pin" | "register" | "register-done" | "main";
 type Tab = "write" | "history";
@@ -21,6 +22,7 @@ export default function Home() {
   const [submitted, setSubmitted] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [showBackModal, setShowBackModal] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const [phone, setPhone] = useState("");
   const [pin, setPin] = useState("");
@@ -135,20 +137,25 @@ export default function Home() {
     if (worker) fetchAllSettlements(worker.id);
   };
 
-  const handleDeleteDraft = async (draftId: string) => {
-    if (!confirm("임시저장된 정산서를 삭제하시겠어요?")) return;
-    if (!worker) return;
+  const handleDeleteDraft = (draftId: string) => {
+    setDeleteTarget(draftId);
+  };
+
+  const confirmDeleteDraft = async () => {
+    if (!deleteTarget || !worker) return;
     try {
       const res = await fetch("/api/settlements/cancel", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ settlementId: draftId, workerId: worker.id }),
+        body: JSON.stringify({ settlementId: deleteTarget, workerId: worker.id }),
       });
       if (!res.ok) throw new Error();
-      setDrafts((prev) => prev.filter((d) => d.id !== draftId));
+      setDrafts((prev) => prev.filter((d) => d.id !== deleteTarget));
       setCategory(null);
     } catch {
       alert("삭제에 실패했습니다.");
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
@@ -508,22 +515,26 @@ export default function Home() {
       </div>
 
       {showBackModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-6" onClick={() => setShowBackModal(false)}>
-          <div className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-xl" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-[18px] font-bold text-toss-gray-900 mb-2">저장하지 않은 내용이 있어요</h3>
-            <p className="text-[14px] text-toss-gray-500 mb-6">임시저장하지 않으면 작성한 내용이 사라져요.</p>
-            <div className="flex gap-3">
-              <button onClick={() => { setShowBackModal(false); setCategory(null); }}
-                className="flex-1 py-3.5 bg-toss-gray-100 text-toss-gray-700 font-semibold rounded-2xl hover:bg-toss-gray-200 active:scale-[0.98] transition-all text-[15px]">
-                저장 안 함
-              </button>
-              <button onClick={() => { setShowBackModal(false); document.getElementById("btn-draft-save")?.click(); }}
-                className="flex-1 py-3.5 bg-toss-blue text-white font-semibold rounded-2xl hover:bg-toss-blue-hover active:scale-[0.98] transition-all text-[15px]">
-                저장
-              </button>
-            </div>
-          </div>
-        </div>
+        <ConfirmModal
+          title="저장하지 않은 내용이 있어요"
+          message="임시저장하지 않으면 작성한 내용이 사라져요."
+          confirmText="저장"
+          cancelText="저장 안 함"
+          onConfirm={() => { setShowBackModal(false); document.getElementById("btn-draft-save")?.click(); }}
+          onCancel={() => { setShowBackModal(false); setCategory(null); }}
+        />
+      )}
+
+      {deleteTarget && (
+        <ConfirmModal
+          title="임시저장을 삭제할까요?"
+          message="삭제하면 복구할 수 없습니다."
+          confirmText="삭제"
+          cancelText="취소"
+          confirmColor="red"
+          onConfirm={confirmDeleteDraft}
+          onCancel={() => setDeleteTarget(null)}
+        />
       )}
     </div>
   );

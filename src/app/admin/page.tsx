@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import ConfirmModal from "@/components/ConfirmModal";
 
 interface WorkerData {
   id: string; name: string; phone: string; role: string; contract_type: string;
@@ -54,6 +55,7 @@ export default function AdminPage() {
   const [settlements, setSettlements] = useState<SettlementData[]>([]);
   const [loading, setLoading] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [deleteWorkerTarget, setDeleteWorkerTarget] = useState<string | null>(null);
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
@@ -128,13 +130,18 @@ export default function AdminPage() {
     if (res.ok) setWorkers((prev) => prev.map((w) => w.id === workerId ? { ...w, approved } : w));
   };
 
-  const handleReject = async (workerId: string) => {
-    if (!confirm("이 직원을 삭제하시겠습니까? 관련 정산서도 함께 삭제됩니다.")) return;
+  const handleReject = (workerId: string) => {
+    setDeleteWorkerTarget(workerId);
+  };
+
+  const confirmDeleteWorker = async () => {
+    if (!deleteWorkerTarget) return;
     const res = await fetch("/api/admin/delete", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ workerId }),
+      body: JSON.stringify({ workerId: deleteWorkerTarget }),
     });
-    if (res.ok) setWorkers((prev) => prev.filter((w) => w.id !== workerId));
+    if (res.ok) setWorkers((prev) => prev.filter((w) => w.id !== deleteWorkerTarget));
+    setDeleteWorkerTarget(null);
   };
 
   const formatPhone = (p: string) => {
@@ -235,6 +242,18 @@ export default function AdminPage() {
           />
         )}
       </div>
+
+      {deleteWorkerTarget && (
+        <ConfirmModal
+          title="직원을 삭제할까요?"
+          message="관련 정산서도 함께 삭제됩니다."
+          confirmText="삭제"
+          cancelText="취소"
+          confirmColor="red"
+          onConfirm={confirmDeleteWorker}
+          onCancel={() => setDeleteWorkerTarget(null)}
+        />
+      )}
     </div>
   );
 }

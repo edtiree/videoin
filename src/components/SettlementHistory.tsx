@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getRoleLabel } from "@/lib/tax";
+import ConfirmModal from "./ConfirmModal";
 
 interface SettlementRecord {
   id: string;
@@ -42,6 +43,7 @@ export default function SettlementHistory({ workerId, role, contractType, refres
   const [loading, setLoading] = useState(!initialData);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const [cancelTarget, setCancelTarget] = useState<string | null>(null);
 
   useEffect(() => {
     if (initialData) {
@@ -75,7 +77,6 @@ export default function SettlementHistory({ workerId, role, contractType, refres
   };
 
   const handleCancel = async (settlementId: string) => {
-    if (!confirm("정산서 제출을 취소하시겠어요?\n취소하면 삭제되며 복구할 수 없습니다.")) return;
     setCancellingId(settlementId);
     try {
       const res = await fetch("/api/settlements/cancel", {
@@ -182,7 +183,7 @@ export default function SettlementHistory({ workerId, role, contractType, refres
                 <div className="flex items-center justify-between">
                   {s.status === "제출됨" && (
                     <button
-                      onClick={() => handleCancel(s.id)}
+                      onClick={() => setCancelTarget(s.id)}
                       disabled={cancellingId === s.id}
                       className="px-4 py-2 text-[13px] font-semibold text-toss-red bg-red-50 rounded-xl hover:bg-red-100 disabled:opacity-50 transition">
                       {cancellingId === s.id ? "취소 중..." : "제출 취소"}
@@ -195,6 +196,18 @@ export default function SettlementHistory({ workerId, role, contractType, refres
           </div>
         );
       })}
+
+      {cancelTarget && (
+        <ConfirmModal
+          title="정산서를 취소할까요?"
+          message="취소하면 삭제되며 복구할 수 없습니다."
+          confirmText="취소하기"
+          cancelText="돌아가기"
+          confirmColor="red"
+          onConfirm={() => { handleCancel(cancelTarget); setCancelTarget(null); }}
+          onCancel={() => setCancelTarget(null)}
+        />
+      )}
     </div>
   );
 }
