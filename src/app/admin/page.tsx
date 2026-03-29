@@ -90,13 +90,12 @@ export default function AdminPage() {
     if (authed) { fetchDashboard(); fetchSettlements(); }
   }, [selectedMonth]);
 
-  // 직원/정산서 실시간 새로고침
+  // 탭 포커스 시 새로고침
   useEffect(() => {
     if (!authed) return;
     const onFocus = () => { fetchWorkers(); fetchDashboard(); fetchSettlements(); };
     window.addEventListener("focus", onFocus);
-    const interval = setInterval(fetchWorkers, 5000);
-    return () => { window.removeEventListener("focus", onFocus); clearInterval(interval); };
+    return () => window.removeEventListener("focus", onFocus);
   }, [authed]);
 
   const handleApprove = async (workerId: string, approved: boolean) => {
