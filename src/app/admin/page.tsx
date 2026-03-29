@@ -90,11 +90,13 @@ export default function AdminPage() {
     if (authed) { fetchDashboard(); fetchSettlements(); }
   }, [selectedMonth]);
 
-  // 직원 목록 자동 새로고침 (30초)
+  // 직원/정산서 실시간 새로고침
   useEffect(() => {
     if (!authed) return;
-    const interval = setInterval(fetchWorkers, 30000);
-    return () => clearInterval(interval);
+    const onFocus = () => { fetchWorkers(); fetchDashboard(); fetchSettlements(); };
+    window.addEventListener("focus", onFocus);
+    const interval = setInterval(fetchWorkers, 5000);
+    return () => { window.removeEventListener("focus", onFocus); clearInterval(interval); };
   }, [authed]);
 
   const handleApprove = async (workerId: string, approved: boolean) => {
