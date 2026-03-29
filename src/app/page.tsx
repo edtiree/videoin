@@ -69,6 +69,14 @@ export default function Home() {
         setWorker(w);
         setPage("main");
         fetchAllSettlements(w.id);
+        // 최신 카테고리 반영
+        fetch(`/api/worker/${w.id}`).then(r => r.ok ? r.json() : null).then(data => {
+          if (data?.categories) {
+            const updated = { ...w, categories: data.categories };
+            setWorker(updated);
+            localStorage.setItem("worker", JSON.stringify(updated));
+          }
+        }).catch(() => {});
       } catch {
         localStorage.removeItem("worker");
       }
