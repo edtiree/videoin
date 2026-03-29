@@ -270,6 +270,15 @@ export default function Home() {
             </div>
           )}
 
+          {loginError && (
+            <button
+              onClick={() => { setPin(""); setLoginError(""); setPage("register"); }}
+              className="w-full py-4 bg-toss-blue text-white font-semibold rounded-2xl hover:bg-toss-blue-hover active:scale-[0.98] transition-all text-[16px] mb-4"
+            >
+              회원가입
+            </button>
+          )}
+
           <button
             onClick={() => { setPin(""); setLoginError(""); setPage("login"); }}
             className="text-[14px] text-toss-gray-500 hover:text-toss-gray-700 transition"
