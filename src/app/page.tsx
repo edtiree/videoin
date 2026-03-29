@@ -302,7 +302,7 @@ export default function Home() {
                 setPin(val);
                 if (val.length === 4) setTimeout(() => doLogin(val), 150);
               }}
-              className="absolute inset-0 opacity-0 w-full h-full"
+              className="absolute inset-0 opacity-0 w-full h-full caret-transparent"
               inputMode="numeric"
             />
           </div>
