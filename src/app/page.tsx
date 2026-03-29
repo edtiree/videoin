@@ -1,65 +1,380 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useEffect, useRef } from "react";
+import { Worker } from "@/types";
+import PDForm from "@/components/PDForm";
+import EditorForm from "@/components/EditorForm";
+import SettlementHistory from "@/components/SettlementHistory";
+import RegisterForm from "@/components/RegisterForm";
+
+type Page = "login" | "pin" | "register" | "register-done" | "main";
+type Tab = "write" | "history";
+type Category = "촬영PD" | "편집자" | null;
 
 export default function Home() {
-  return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+  const [page, setPage] = useState<Page>("login");
+  const [worker, setWorker] = useState<Worker | null>(null);
+  const [tab, setTab] = useState<Tab>("write");
+  const [category, setCategory] = useState<Category>(null);
+  const [submitted, setSubmitted] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const [phone, setPhone] = useState("");
+  const [pin, setPin] = useState("");
+  const [loginError, setLoginError] = useState("");
+  const [loggingIn, setLoggingIn] = useState(false);
+  const pinRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (page === "pin") {
+      setTimeout(() => pinRef.current?.focus(), 50);
+    }
+  }, [page]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("worker");
+    if (saved) {
+      try {
+        setWorker(JSON.parse(saved));
+        setPage("main");
+      } catch {
+        localStorage.removeItem("worker");
+      }
+    }
+  }, []);
+
+  const formatPhone = (value: string) => {
+    const nums = value.replace(/\D/g, "").slice(0, 11);
+    if (nums.length <= 3) return nums;
+    if (nums.length <= 7) return `${nums.slice(0, 3)}-${nums.slice(3)}`;
+    return `${nums.slice(0, 3)}-${nums.slice(3, 7)}-${nums.slice(7)}`;
+  };
+
+  const doLogin = async (pinVal: string) => {
+    setLoggingIn(true);
+    setLoginError("");
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: phone.replace(/\D/g, ""), pin: pinVal }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setLoginError(data.error); setPin(""); return; }
+      if (!data.worker.approved) { setLoginError("관리자 승인 대기 중입니다."); setPin(""); return; }
+      const w: Worker = {
+        id: data.worker.id, name: data.worker.name, email: data.worker.phone,
+        role: data.worker.role, contractType: data.worker.contractType,
+      };
+      localStorage.setItem("worker", JSON.stringify(w));
+      setWorker(w);
+      setPage("main");
+    } catch { setLoginError("서버 연결에 실패했습니다."); setPin(""); }
+    finally { setLoggingIn(false); }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("worker");
+    setWorker(null); setPhone(""); setPin("");
+    setPage("login"); setTab("write"); setSubmitted(false);
+  };
+
+  const handleSubmitSuccess = () => { setSubmitted(true); setCategory(null); setRefreshKey((k) => k + 1); };
+
+  const handleResumeDraft = (role: string) => {
+    setTab("write");
+    setCategory(role as Category);
+  };
+
+  // ─── 로그인 1단계: 폰번호 ───
+  if (page === "login") {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center px-6">
+        <div className="w-full max-w-sm">
+          <h1 className="text-[26px] font-bold text-toss-gray-900 text-center leading-tight mb-2">
+            영상 제작팀<br />정산 관리
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="text-toss-gray-500 text-[15px] text-center mb-10">
+            휴대폰번호로 접속해 주세요
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+
+          {loginError && (
+            <div className="mb-5 px-4 py-3 bg-red-50 text-toss-red rounded-2xl text-[14px]">
+              {loginError}
+            </div>
+          )}
+
+          <div className="flex items-center bg-white border border-toss-gray-200 rounded-2xl overflow-hidden mb-4 focus-within:border-toss-blue focus-within:ring-1 focus-within:ring-toss-blue/30 transition-all">
+            <div className="flex items-center gap-1.5 px-4 py-4 text-toss-gray-600 shrink-0 select-none">
+              <span className="text-[18px]">&#x1F1F0;&#x1F1F7;</span>
+              <span className="text-[14px] font-medium">+82</span>
+            </div>
+            <div className="w-px h-6 bg-toss-gray-200" />
+            <input
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(formatPhone(e.target.value))}
+              className="flex-1 px-4 py-4 text-[16px] text-toss-gray-900 outline-none placeholder:text-toss-gray-400 bg-transparent"
+              placeholder="휴대폰번호 입력"
+              inputMode="numeric"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && phone.replace(/\D/g, "").length >= 10) {
+                  setLoginError(""); setPage("pin");
+                }
+              }}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+          </div>
+
+          <button
+            onClick={() => {
+              if (!phone || phone.replace(/\D/g, "").length < 10) {
+                setLoginError("휴대폰 번호를 정확히 입력해주세요.");
+                return;
+              }
+              setLoginError(""); setPage("pin");
+            }}
+            className="w-full py-4 bg-toss-blue text-white font-semibold rounded-2xl hover:bg-toss-blue-hover active:scale-[0.98] transition-all text-[16px]"
           >
-            Documentation
-          </a>
+            다음
+          </button>
+
+          <button
+            onClick={() => setPage("register")}
+            className="w-full mt-5 text-[14px] text-toss-gray-500 hover:text-toss-gray-700 transition"
+          >
+            처음이신가요? <span className="text-toss-blue font-semibold">회원가입</span>
+          </button>
         </div>
-      </main>
+      </div>
+    );
+  }
+
+  // ─── 로그인 2단계: PIN ───
+  if (page === "pin") {
+    return (
+      <div
+        className="min-h-screen flex flex-col items-center justify-center px-6"
+        onClick={() => pinRef.current?.focus()}
+      >
+        <div className="w-full max-w-sm text-center">
+          <h2 className="text-[22px] font-bold text-toss-gray-900 mb-2">비밀번호 입력</h2>
+          <p className="text-toss-gray-500 text-[15px] mb-10">{phone}</p>
+
+          {loginError && (
+            <div className="mb-5 px-4 py-3 bg-red-50 text-toss-red rounded-2xl text-[14px]">
+              {loginError}
+            </div>
+          )}
+
+          <div className="relative flex justify-center gap-4 mb-8">
+            {[0, 1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className={`w-[52px] h-[52px] rounded-2xl flex items-center justify-center text-xl transition-all duration-200 ${
+                  pin.length > i
+                    ? "bg-toss-blue text-white scale-105"
+                    : pin.length === i
+                    ? "bg-white border-2 border-toss-blue"
+                    : "bg-toss-gray-100 border border-toss-gray-200"
+                }`}
+              >
+                {pin[i] ? "●" : ""}
+              </div>
+            ))}
+            <input
+              ref={pinRef}
+              type="tel"
+              value={pin}
+              autoFocus
+              onChange={(e) => {
+                const val = e.target.value.replace(/\D/g, "").slice(0, 4);
+                setPin(val);
+                if (val.length === 4) setTimeout(() => doLogin(val), 150);
+              }}
+              className="absolute inset-0 opacity-0 w-full h-full"
+              inputMode="numeric"
+            />
+          </div>
+
+          {loggingIn && (
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <div className="w-5 h-5 border-2 border-toss-blue border-t-transparent rounded-full animate-spin" />
+            </div>
+          )}
+
+          <button
+            onClick={() => { setPin(""); setLoginError(""); setPage("login"); }}
+            className="text-[14px] text-toss-gray-500 hover:text-toss-gray-700 transition"
+          >
+            ← 번호 다시 입력
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── 회원가입 ───
+  if (page === "register") {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-6 py-10">
+        <RegisterForm onSuccess={() => setPage("register-done")} onBack={() => setPage("login")} />
+      </div>
+    );
+  }
+
+  // ─── 가입 완료 ───
+  if (page === "register-done") {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-6">
+        <div className="w-full max-w-sm text-center">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#30b06e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </div>
+          <h2 className="text-[22px] font-bold text-toss-gray-900 mb-2">가입이 완료되었어요</h2>
+          <p className="text-toss-gray-500 text-[15px] mb-8 leading-relaxed">
+            관리자 승인 후 이용할 수 있어요.<br />잠시만 기다려주세요.
+          </p>
+          <button
+            onClick={() => setPage("login")}
+            className="w-full py-4 bg-toss-blue text-white font-semibold rounded-2xl hover:bg-toss-blue-hover active:scale-[0.98] transition-all text-[16px]"
+          >
+            로그인 화면으로
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── 제출 완료 ───
+  if (submitted && worker) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-6">
+        <div className="w-full max-w-sm text-center">
+          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#3182f6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </div>
+          <h2 className="text-[22px] font-bold text-toss-gray-900 mb-2">정산서를 제출했어요</h2>
+          <p className="text-toss-gray-500 text-[15px] mb-8">
+            {worker.name}님의 정산서가 저장되었습니다.
+          </p>
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={() => setSubmitted(false)}
+              className="w-full py-4 bg-toss-blue text-white font-semibold rounded-2xl hover:bg-toss-blue-hover active:scale-[0.98] transition-all text-[16px]"
+            >
+              새 정산서 작성
+            </button>
+            <button
+              onClick={() => { setSubmitted(false); setTab("history"); }}
+              className="w-full py-4 bg-toss-gray-100 text-toss-gray-700 font-semibold rounded-2xl hover:bg-toss-gray-200 active:scale-[0.98] transition-all text-[16px]"
+            >
+              제출 이력 보기
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!worker) return null;
+
+  // ─── 메인 화면 ───
+  return (
+    <div className="min-h-screen pb-10">
+      {/* 헤더 */}
+      <div className="bg-white border-b border-toss-gray-100">
+        <div className="max-w-lg mx-auto px-5 py-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-[20px] font-bold text-toss-gray-900">{worker.name}</h1>
+              <div className="flex items-center gap-2 mt-1">
+                <span className={`px-2.5 py-1 rounded-lg text-[12px] font-semibold ${
+                  worker.contractType === "프리랜서"
+                    ? "bg-orange-50 text-toss-orange"
+                    : "bg-green-50 text-toss-green"
+                }`}>
+                  {worker.contractType}
+                </span>
+              </div>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="text-[13px] text-toss-gray-400 hover:text-toss-gray-600 transition px-3 py-2"
+            >
+              로그아웃
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-lg mx-auto px-5 mt-6">
+        {/* 탭 */}
+        <div className="flex bg-toss-gray-100 rounded-2xl p-1 mb-6">
+          {[
+            { key: "write" as Tab, label: "정산서 작성" },
+            { key: "history" as Tab, label: "제출 이력" },
+          ].map((t) => (
+            <button
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              className={`flex-1 py-3 text-[14px] font-semibold rounded-xl transition-all ${
+                tab === t.key
+                  ? "bg-white text-toss-gray-900 shadow-sm"
+                  : "text-toss-gray-500"
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        {tab === "write" ? (
+          category === null ? (
+            <div className="space-y-3">
+              <p className="text-[15px] text-toss-gray-600 mb-2">정산 카테고리를 선택하세요</p>
+              {[
+                { key: "촬영PD" as Category, icon: "🎬", label: "촬영비 정산", desc: "건당 200,000원" },
+                { key: "편집자" as Category, icon: "🎞️", label: "편집비 정산", desc: "분당 10,000원" },
+              ].map((c) => (
+                <button key={c.key} onClick={() => setCategory(c.key)}
+                  className="w-full flex items-center gap-4 bg-white rounded-2xl border border-toss-gray-100 p-5 hover:border-toss-blue hover:bg-blue-50/30 active:scale-[0.98] transition-all text-left shadow-sm">
+                  <span className="text-[28px]">{c.icon}</span>
+                  <div>
+                    <p className="text-[16px] font-bold text-toss-gray-900">{c.label}</p>
+                    <p className="text-[13px] text-toss-gray-500">{c.desc}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div>
+              <button onClick={() => setCategory(null)}
+                className="text-[13px] text-toss-gray-500 hover:text-toss-gray-700 transition mb-4 flex items-center gap-1">
+                ← 카테고리 다시 선택
+              </button>
+              <div className="bg-white rounded-3xl shadow-sm border border-toss-gray-100 p-6">
+                {category === "촬영PD" ? (
+                  <PDForm worker={worker} onSubmitSuccess={handleSubmitSuccess} />
+                ) : (
+                  <EditorForm worker={worker} onSubmitSuccess={handleSubmitSuccess} />
+                )}
+              </div>
+            </div>
+          )
+        ) : (
+          <SettlementHistory
+            workerId={worker.id}
+            role={"all"}
+            contractType={worker.contractType}
+            refreshKey={refreshKey}
+            onResumeDraft={handleResumeDraft}
+          />
+        )}
+      </div>
     </div>
   );
 }

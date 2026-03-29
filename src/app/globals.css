@@ -1,26 +1,64 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f7f8fa;
+  --foreground: #191f28;
+  --blue: #3182f6;
+  --blue-hover: #1b6de8;
+  --gray-50: #f9fafb;
+  --gray-100: #f2f4f6;
+  --gray-200: #e5e8eb;
+  --gray-300: #d1d6db;
+  --gray-400: #b0b8c1;
+  --gray-500: #8b95a1;
+  --gray-600: #6b7684;
+  --gray-700: #4e5968;
+  --gray-800: #333d4b;
+  --gray-900: #191f28;
+  --red: #f04452;
+  --green: #30b06e;
+  --orange: #f97316;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-toss-blue: var(--blue);
+  --color-toss-blue-hover: var(--blue-hover);
+  --color-toss-red: var(--red);
+  --color-toss-green: var(--green);
+  --color-toss-orange: var(--orange);
+  --color-toss-gray-50: var(--gray-50);
+  --color-toss-gray-100: var(--gray-100);
+  --color-toss-gray-200: var(--gray-200);
+  --color-toss-gray-300: var(--gray-300);
+  --color-toss-gray-400: var(--gray-400);
+  --color-toss-gray-500: var(--gray-500);
+  --color-toss-gray-600: var(--gray-600);
+  --color-toss-gray-700: var(--gray-700);
+  --color-toss-gray-800: var(--gray-800);
+  --color-toss-gray-900: var(--gray-900);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+input, select, button {
+  font-family: inherit;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
