@@ -16,6 +16,7 @@ interface SettlementRecord {
   status: string;
   created_at: string;
   items: SettlementItem[];
+  tax_invoice_issued?: boolean;
 }
 
 interface SettlementItem {
@@ -128,6 +129,11 @@ export default function SettlementHistory({ workerId, role, contractType, refres
                 <span className={`px-2 py-0.5 rounded-lg text-[11px] font-bold ${statusStyle[s.status] || "bg-toss-gray-100 text-toss-gray-600"}`}>
                   {s.status}
                 </span>
+                {s.contract_type === "사업자" && s.status !== "임시저장" && (
+                  <span className={`px-2 py-0.5 rounded-lg text-[11px] font-bold ${s.tax_invoice_issued ? "bg-green-50 text-green-600" : "bg-red-50 text-toss-red"}`}>
+                    {s.tax_invoice_issued ? "계산서 ✓" : "계산서 ✗"}
+                  </span>
+                )}
               </div>
               <div className="flex items-center gap-2">
                 {s.status === "임시저장" && onResumeDraft && (
@@ -155,6 +161,23 @@ export default function SettlementHistory({ workerId, role, contractType, refres
                     <span className="font-bold text-toss-blue text-[16px]">{s.final_amount.toLocaleString()}원</span>
                   </div>
                 </div>
+
+                {s.contract_type === "사업자" && s.status !== "임시저장" && (
+                  <div className="flex items-center justify-between bg-white rounded-xl p-3.5 border border-toss-gray-100">
+                    <div>
+                      <span className="text-[14px] font-semibold text-toss-gray-900">세금계산서</span>
+                      <span className="text-[12px] text-toss-gray-400 ml-2">{s.tax_invoice_issued ? "발행 완료" : "미발행"}</span>
+                    </div>
+                    <button onClick={async () => {
+                      const next = !s.tax_invoice_issued;
+                      setSettlements(prev => prev.map(x => x.id === s.id ? { ...x, tax_invoice_issued: next } : x));
+                      await fetch("/api/settlements/tax-invoice", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ settlementId: s.id, issued: next }) });
+                    }}
+                      className={`w-11 h-6 rounded-full transition-all relative ${s.tax_invoice_issued ? "bg-toss-blue" : "bg-toss-gray-200"}`}>
+                      <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all ${s.tax_invoice_issued ? "left-[22px]" : "left-0.5"}`} />
+                    </button>
+                  </div>
+                )}
 
                 <div className="space-y-2">
                   <h4 className="text-[12px] font-bold text-toss-gray-400 uppercase tracking-wider">상세 내역</h4>

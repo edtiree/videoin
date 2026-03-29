@@ -41,7 +41,7 @@ interface SettlementData {
   id: string; worker_id: string; worker_name: string; role: string;
   contract_type: string; settlement_month: string; total_amount: number;
   total_expense: number; tax: number; final_amount: number; status: string;
-  created_at: string;
+  created_at: string; tax_invoice_issued?: boolean;
   items: { performer: string; filmingDate?: string; expense?: number;
     receiptUrls?: string[]; videoLink?: string; videoDuration?: number; amount: number; }[];
 }
@@ -397,6 +397,11 @@ function SettlementsView({ settlements, selectedMonth, onMonthChange, onStatusCh
                       <span className={`px-2 py-0.5 rounded-lg text-[11px] font-bold ${statusStyle[s.status] || ""}`}>
                         {s.status}
                       </span>
+                      {s.contract_type === "사업자" && (
+                        <span className={`px-2 py-0.5 rounded-lg text-[11px] font-bold ${s.tax_invoice_issued ? "bg-green-50 text-green-600" : "bg-red-50 text-toss-red"}`}>
+                          {s.tax_invoice_issued ? "계산서 ✓" : "계산서 ✗"}
+                        </span>
+                      )}
                     </div>
                     <span className="text-[12px] text-toss-gray-400">{formatMonth(s.settlement_month)}</span>
                   </div>
