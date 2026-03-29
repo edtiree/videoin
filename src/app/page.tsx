@@ -224,7 +224,13 @@ export default function Home() {
             <input
               type="tel"
               value={phone}
-              onChange={(e) => setPhone(formatPhone(e.target.value))}
+              onChange={(e) => {
+                const formatted = formatPhone(e.target.value);
+                setPhone(formatted);
+                if (formatted.replace(/\D/g, "").length >= 11) {
+                  setTimeout(() => { setLoginError(""); setPage("pin"); }, 200);
+                }
+              }}
               className="flex-1 px-4 py-4 text-[16px] text-toss-gray-900 outline-none placeholder:text-toss-gray-400 bg-transparent"
               placeholder="휴대폰번호 입력"
               inputMode="numeric"
