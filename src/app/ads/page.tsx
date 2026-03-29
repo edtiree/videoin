@@ -92,7 +92,10 @@ export default function AdsPage() {
   });
 
   const totalAdFee = filtered.reduce((s, a) => s + (a.ad_fee || 0), 0);
+  const totalSupply = filtered.reduce((s, a) => s + (a.supply_amount || 0), 0);
+  const totalVat = filtered.reduce((s, a) => s + (a.vat_amount || 0), 0);
   const totalTotal = filtered.reduce((s, a) => s + (a.total_amount || 0), 0);
+  const totalRsCost = filtered.reduce((s, a) => s + (a.rs_cost || 0), 0);
 
   const formatDate = (d: string) => {
     if (!d) return "-";
@@ -214,6 +217,15 @@ export default function AdsPage() {
                   </tr>
                 ))}
               </tbody>
+              <tfoot>
+                <tr className="bg-toss-gray-50 border-t-2 border-toss-gray-200 text-[13px] font-bold text-toss-gray-900">
+                  <td className="px-3 py-3" colSpan={2}>개수 {filtered.length}</td>
+                  <td className="px-3 py-3" colSpan={5}></td>
+                  <td className="px-3 py-3 text-right whitespace-nowrap">합계 {totalAdFee.toLocaleString()}</td>
+                  <td className="px-3 py-3 text-right whitespace-nowrap">합계 {totalTotal.toLocaleString()}</td>
+                  <td className="px-3 py-3" colSpan={3}></td>
+                </tr>
+              </tfoot>
             </table>
           </div>
         )}
