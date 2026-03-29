@@ -131,7 +131,7 @@ export default function RegisterForm({ onSuccess, onBack }: RegisterFormProps) {
             </select>
           </Field>
           <Field label="계좌번호">
-            <input type="text" value={bankAccount} onChange={(e) => setBankAccount(e.target.value)}
+            <input type="text" value={bankAccount} onChange={(e) => setBankAccount(e.target.value.replace(/\D/g, ""))}
               className={inputClass} placeholder="- 없이 숫자만 입력" />
           </Field>
           <Field label="예금주">
