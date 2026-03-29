@@ -49,6 +49,8 @@ export default function AdsPage() {
   const [calMonth, setCalMonth] = useState(() => { const n = new Date(); return { year: n.getFullYear(), month: n.getMonth() + 1 }; });
   const [calFilter, setCalFilter] = useState<"all" | "filming" | "upload">("all");
   const [calDetail, setCalDetail] = useState<Ad | null>(null);
+  const [inlineEdit, setInlineEdit] = useState<{ id: string; field: string } | null>(null);
+  const [inlineValue, setInlineValue] = useState("");
 
   const handleAuth = (v?: string) => {
     if ((v || pin) === ADMIN_PIN) { setAuthed(true); }
@@ -456,18 +458,39 @@ export default function AdsPage() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map(a => (
+                {filtered.map(a => {
+                  const isEditing = (field: string) => inlineEdit?.id === a.id && inlineEdit?.field === field;
+                  const startEdit = (field: string, val: string) => { setInlineEdit({ id: a.id, field }); setInlineValue(val); };
+                  const commitEdit = () => { if (inlineEdit) { inlineUpdate(inlineEdit.id, inlineEdit.field, inlineValue); setInlineEdit(null); } };
+                  const selectInline = (field: string, options: string[]) => (
+                    <select autoFocus value={inlineValue} onChange={e => { inlineUpdate(a.id, field, e.target.value); setInlineEdit(null); }} onBlur={() => setInlineEdit(null)}
+                      className="w-full bg-white border border-toss-blue rounded px-1 py-0.5 text-[13px] outline-none">
+                      {options.map(o => <option key={o} value={o}>{o}</option>)}
+                    </select>
+                  );
+                  return (
                   <tr key={a.id} className="border-t border-toss-gray-50 hover:bg-toss-gray-50 transition">
-                    <td className="px-3 py-2.5 whitespace-nowrap cursor-pointer" onClick={() => cycleValue(a.id, "youtube_channel", a.youtube_channel, CHANNELS)}>{a.youtube_channel}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap font-semibold text-toss-gray-900 cursor-pointer" onClick={() => setEditAd(a)}>{a.performer}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap cursor-pointer" onClick={() => setEditAd(a)}>{a.platform}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap cursor-pointer" onClick={() => setEditAd(a)}>{formatDate(a.filming_date)}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap cursor-pointer" onClick={() => setEditAd(a)}>{formatDate(a.upload_date)}</td>
+                    <td className="px-3 py-2.5 whitespace-nowrap cursor-pointer" onClick={() => startEdit("youtube_channel", a.youtube_channel)}>
+                      {isEditing("youtube_channel") ? selectInline("youtube_channel", CHANNELS) : a.youtube_channel}
+                    </td>
+                    <td className="px-3 py-2.5 whitespace-nowrap font-semibold text-toss-gray-900 cursor-pointer" onClick={() => startEdit("performer", a.performer)}>
+                      {isEditing("performer") ? <input autoFocus value={inlineValue} onChange={e => setInlineValue(e.target.value)} onBlur={commitEdit} onKeyDown={e => e.key === "Enter" && commitEdit()}
+                        className="w-full bg-white border border-toss-blue rounded px-1 py-0.5 text-[13px] font-semibold outline-none" /> : a.performer}
+                    </td>
+                    <td className="px-3 py-2.5 whitespace-nowrap cursor-pointer" onClick={() => startEdit("platform", a.platform)}>
+                      {isEditing("platform") ? selectInline("platform", PLATFORMS) : a.platform}
+                    </td>
+                    <td className="px-3 py-2.5 whitespace-nowrap cursor-pointer" onClick={() => startEdit("filming_date", a.filming_date)}>
+                      {isEditing("filming_date") ? <input type="date" autoFocus value={inlineValue} onChange={e => { inlineUpdate(a.id, "filming_date", e.target.value); setInlineEdit(null); }} onBlur={() => setInlineEdit(null)}
+                        className="bg-white border border-toss-blue rounded px-1 py-0.5 text-[13px] outline-none" /> : formatDate(a.filming_date)}
+                    </td>
+                    <td className="px-3 py-2.5 whitespace-nowrap cursor-pointer" onClick={() => startEdit("upload_date", a.upload_date?.split(" ")[0] || "")}>
+                      {isEditing("upload_date") ? <input type="date" autoFocus value={inlineValue} onChange={e => { inlineUpdate(a.id, "upload_date", e.target.value); setInlineEdit(null); }} onBlur={() => setInlineEdit(null)}
+                        className="bg-white border border-toss-blue rounded px-1 py-0.5 text-[13px] outline-none" /> : formatDate(a.upload_date)}
+                    </td>
                     <td className="px-3 py-2.5 whitespace-nowrap">
                       <span onClick={() => cycleValue(a.id, "progress", a.progress, PROGRESS)} className={`px-2 py-0.5 rounded-lg text-[11px] font-bold cursor-pointer ${
-                        a.progress === "완료" ? "bg-green-50 text-green-600" :
-                        a.progress === "편집중" ? "bg-amber-50 text-amber-600" :
-                        "bg-red-50 text-red-600"
+                        a.progress === "완료" ? "bg-green-50 text-green-600" : a.progress === "편집중" ? "bg-amber-50 text-amber-600" : "bg-red-50 text-red-600"
                       }`}>{a.progress}</span>
                     </td>
                     <td className="px-3 py-2.5 whitespace-nowrap">
@@ -487,7 +510,8 @@ export default function AdsPage() {
                       <button onClick={() => setDeleteTarget(a.id)} className="text-toss-red text-[12px] font-semibold">삭제</button>
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
               <tfoot>
                 <tr className="bg-toss-gray-50 border-t-2 border-toss-gray-200 text-[13px] font-bold text-toss-gray-900">
