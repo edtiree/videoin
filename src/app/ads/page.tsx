@@ -252,11 +252,11 @@ export default function AdsPage() {
                 </div>
                 <div className="bg-green-50 rounded-xl p-3 text-center">
                   <p className="text-[12px] text-green-600">광고비</p>
-                  <p className="text-[18px] font-bold text-green-600 mt-1">{(monthRevenue / 10000).toLocaleString()}만</p>
+                  <p className="text-[18px] font-bold text-green-600 mt-1">{Math.floor(monthRevenue / 10000).toLocaleString()}만</p>
                 </div>
                 <div className="bg-amber-50 rounded-xl p-3 text-center">
                   <p className="text-[12px] text-amber-600">총액(VAT포함)</p>
-                  <p className="text-[18px] font-bold text-amber-600 mt-1">{(monthTotal / 10000).toLocaleString()}만</p>
+                  <p className="text-[18px] font-bold text-amber-600 mt-1">{Math.floor(monthTotal / 10000).toLocaleString()}만</p>
                 </div>
               </div>
             </div>
