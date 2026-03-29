@@ -205,7 +205,7 @@ export default function PDForm({ worker, onSubmitSuccess, onDraftSaved, onDelete
                 <input type="text" inputMode="numeric" value={item.expense ? item.expense.toLocaleString() : ""}
                   onChange={(e) => updateItem(index, { expense: Number(e.target.value.replace(/\D/g, "")) || 0 })}
                   className="w-full rounded-xl border border-toss-gray-200 px-4 py-3 text-[15px] text-toss-gray-900 focus:border-toss-blue focus:ring-1 focus:ring-toss-blue/30 outline-none transition-all bg-white placeholder:text-toss-gray-400"
-                  placeholder="없으면 비워두세요" />
+                  placeholder="0" />
               </div>
               <div className="flex items-end pb-1">
                 <p className="text-[14px] text-toss-gray-500">
