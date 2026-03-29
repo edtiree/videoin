@@ -5,6 +5,7 @@ import { Worker, PDLineItem, SettlementSubmission } from "@/types";
 import { calculateTax, PD_RATE } from "@/lib/tax";
 import MonthPicker from "./MonthPicker";
 import FileUpload from "./FileUpload";
+import DatePickerButton from "./DatePickerButton";
 import SettlementSummary from "./SettlementSummary";
 import ConfirmModal from "./ConfirmModal";
 
@@ -196,9 +197,8 @@ export default function PDForm({ worker, onSubmitSuccess, onDraftSaved, onDelete
               </div>
               <div>
                 <label className="block text-[13px] font-medium text-toss-gray-600 mb-1.5">날짜</label>
-                <input type="date" value={item.filmingDate} min="2020-01-01" max="2099-12-31"
-                  onChange={(e) => updateItem(index, { filmingDate: e.target.value })}
-                  className="w-full rounded-xl border border-toss-gray-200 px-4 py-3 text-[15px] text-toss-gray-900 focus:border-toss-blue focus:ring-1 focus:ring-toss-blue/30 outline-none transition-all bg-white" />
+                <DatePickerButton value={item.filmingDate} placeholder="날짜 선택"
+                  onChange={(v) => updateItem(index, { filmingDate: v })} />
               </div>
               <div>
                 <label className="block text-[13px] font-medium text-toss-gray-600 mb-1.5">경비 (원)</label>
