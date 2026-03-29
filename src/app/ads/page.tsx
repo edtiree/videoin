@@ -308,10 +308,10 @@ export default function AdsPage() {
                         <span className={`text-[12px] font-medium ${idx % 7 === 0 ? "text-toss-red" : idx % 7 === 6 ? "text-toss-blue" : "text-toss-gray-600"}`}>{day}</span>
                         <div className="space-y-0.5 mt-0.5">
                           {filming.slice(0, 2).map((e, i) => (
-                            <div key={`f${i}`} className="text-[10px] bg-blue-50 text-toss-blue rounded px-1 py-0.5 truncate">🎬 {e.performer}</div>
+                            <div key={`f${i}`} className="text-[10px] bg-green-50 text-green-600 rounded px-1 py-0.5 truncate">🎬 {e.performer}</div>
                           ))}
                           {upload.slice(0, 2).map((e, i) => (
-                            <div key={`u${i}`} className="text-[10px] bg-green-50 text-green-600 rounded px-1 py-0.5 truncate">📤 {e.performer}</div>
+                            <div key={`u${i}`} className="text-[10px] bg-red-50 text-red-500 rounded px-1 py-0.5 truncate">📤 {e.performer}</div>
                           ))}
                           {events.length > 4 && <div className="text-[10px] text-toss-gray-400">+{events.length - 4}</div>}
                         </div>
@@ -322,8 +322,8 @@ export default function AdsPage() {
               })}
             </div>
             <div className="px-5 py-3 flex gap-4 text-[12px] text-toss-gray-500">
-              <span className="flex items-center gap-1"><span className="w-3 h-3 bg-blue-50 rounded"></span> 촬영</span>
-              <span className="flex items-center gap-1"><span className="w-3 h-3 bg-green-50 rounded"></span> 업로드</span>
+              <span className="flex items-center gap-1"><span className="w-3 h-3 bg-green-50 rounded"></span> 촬영</span>
+              <span className="flex items-center gap-1"><span className="w-3 h-3 bg-red-50 rounded"></span> 업로드</span>
             </div>
           </div>
         );
