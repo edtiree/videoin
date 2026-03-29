@@ -472,7 +472,15 @@ export default function Home() {
             </div>
           ) : (
             <div>
-              <button onClick={() => setCategory(null)}
+              <button onClick={() => {
+                  const choice = confirm("임시저장하시겠습니까?\n\n확인 → 임시저장 후 나가기\n취소 → 저장하지 않고 나가기");
+                  if (choice) {
+                    // 임시저장 버튼 클릭을 시뮬레이션 (폼 내부에서 처리)
+                    document.getElementById("btn-draft-save")?.click();
+                  } else {
+                    setCategory(null);
+                  }
+                }}
                 className="text-[13px] text-toss-gray-500 hover:text-toss-gray-700 transition mb-4 flex items-center gap-1">
                 ← 카테고리 다시 선택
               </button>

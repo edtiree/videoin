@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Worker, PDLineItem, SettlementSubmission } from "@/types";
 import { calculateTax, PD_RATE } from "@/lib/tax";
 import MonthPicker from "./MonthPicker";
@@ -29,59 +29,26 @@ export default function PDForm({ worker, onSubmitSuccess, onDraftSaved, onDelete
   const [items, setItems] = useState<PDLineItem[]>([emptyItem()]);
   const [submitting, setSubmitting] = useState(false);
 
-  // 임시저장 & 자동저장
+  // 임시저장
   const [draftId, setDraftId] = useState<string | null>(null);
-  const [autoSavedAt, setAutoSavedAt] = useState<Date | null>(null);
   const [savingDraft, setSavingDraft] = useState(false);
   const [banner, setBanner] = useState<string | null>(null);
 
-  const readyRef = useRef(false);
-  const monthRef = useRef(month);
-  const itemsRef = useRef(items);
-  monthRef.current = month;
-  itemsRef.current = items;
-
-  const autoSaveKey = `autosave_${roleName}_${worker.id}`;
-
-  // 마운트 시 저장된 데이터 불러오기
+  // 마운트 시 임시저장 불러오기
   useEffect(() => {
-    if (!loadDraft) {
-      localStorage.removeItem(autoSaveKey);
-      setTimeout(() => { readyRef.current = true; }, 100);
-      return;
-    }
-
+    if (!loadDraft) return;
     const loadSaved = async () => {
-      // localStorage 먼저 확인
-      let restoredFromLocal = false;
-      try {
-        const raw = localStorage.getItem(autoSaveKey);
-        if (raw) {
-          const saved = JSON.parse(raw);
-          if (saved.month && saved.items?.length) {
-            setMonth(saved.month);
-            setItems(saved.items);
-            restoredFromLocal = true;
-          }
-        }
-      } catch {}
-
-      // Supabase 임시저장 확인
       try {
         const res = await fetch(`/api/draft/${worker.id}?role=${encodeURIComponent(roleName)}`);
         if (res.ok) {
           const draft = await res.json();
           if (draft) {
             setDraftId(draft.id);
-            if (!restoredFromLocal) {
-              setMonth(draft.month);
-              setItems(draft.items);
-            }
+            setMonth(draft.month);
+            setItems(draft.items);
           }
         }
       } catch {}
-
-      setTimeout(() => { readyRef.current = true; }, 500);
     };
     loadSaved();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -93,40 +60,6 @@ export default function PDForm({ worker, onSubmitSuccess, onDraftSaved, onDelete
     const timer = setTimeout(() => setBanner(null), 4000);
     return () => clearTimeout(timer);
   }, [banner]);
-
-  // localStorage 자동저장 (3초 디바운스)
-  useEffect(() => {
-    if (!readyRef.current) return;
-    const timer = setTimeout(() => {
-      try {
-        localStorage.setItem(
-          autoSaveKey,
-          JSON.stringify({ month, items, savedAt: new Date().toISOString() })
-        );
-        setAutoSavedAt(new Date());
-      } catch {}
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, [month, items, autoSaveKey]);
-
-  // 페이지 이탈 시 즉시 저장
-  useEffect(() => {
-    const handler = () => {
-      if (!readyRef.current) return;
-      try {
-        localStorage.setItem(
-          autoSaveKey,
-          JSON.stringify({
-            month: monthRef.current,
-            items: itemsRef.current,
-            savedAt: new Date().toISOString(),
-          })
-        );
-      } catch {}
-    };
-    window.addEventListener("beforeunload", handler);
-    return () => window.removeEventListener("beforeunload", handler);
-  }, [autoSaveKey]);
 
   const updateItem = (index: number, updates: Partial<PDLineItem>) => {
     setItems((prev) =>
@@ -182,7 +115,6 @@ export default function PDForm({ worker, onSubmitSuccess, onDraftSaved, onDelete
       if (!res.ok) throw new Error();
       const data = await res.json();
       setDraftId(data.id);
-      localStorage.removeItem(autoSaveKey);
       if (onDraftSaved) {
         onDraftSaved();
         return;
@@ -212,7 +144,6 @@ export default function PDForm({ worker, onSubmitSuccess, onDraftSaved, onDelete
         body: JSON.stringify(submission),
       });
       if (!res.ok) { const data = await res.json(); throw new Error(data.error || "제출 실패"); }
-      localStorage.removeItem(autoSaveKey);
       onSubmitSuccess();
     } catch (err) {
       alert(err instanceof Error ? err.message : "제출 중 오류가 발생했습니다.");
@@ -299,15 +230,9 @@ export default function PDForm({ worker, onSubmitSuccess, onDraftSaved, onDelete
           contractType={worker.contractType} itemCount={items.length} role={roleName} />
       )}
 
-      {autoSavedAt && (
-        <p className="text-[12px] text-toss-gray-400 text-center">
-          자동 저장됨 {autoSavedAt.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })}
-        </p>
-      )}
-
       <div className="space-y-3">
         <div className="flex gap-3">
-          <button type="button" onClick={handleSaveDraft} disabled={savingDraft || !hasContent}
+          <button id="btn-draft-save" type="button" onClick={handleSaveDraft} disabled={savingDraft || !hasContent}
             className="flex-1 py-4 bg-toss-gray-100 text-toss-gray-700 font-semibold rounded-2xl hover:bg-toss-gray-200 disabled:opacity-50 active:scale-[0.98] transition-all text-[16px]">
             {savingDraft ? "저장 중..." : "임시저장"}
           </button>
@@ -317,7 +242,7 @@ export default function PDForm({ worker, onSubmitSuccess, onDraftSaved, onDelete
           </button>
         </div>
         {draftId && onDeleteDraft && (
-          <button type="button" onClick={() => { localStorage.removeItem(autoSaveKey); onDeleteDraft(draftId); }}
+          <button type="button" onClick={() => onDeleteDraft(draftId)}
             className="w-full py-4 bg-red-50 text-toss-red font-semibold rounded-2xl hover:bg-red-100 active:scale-[0.98] transition-all text-[16px]">
             임시저장 삭제
           </button>
