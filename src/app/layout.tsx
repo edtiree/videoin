@@ -17,6 +17,13 @@ export const metadata: Metadata = {
   description: "유튜브 채널 인건비 정산 시스템",
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{

@@ -471,26 +471,26 @@ export default function Home() {
                   <p className="text-[15px] font-bold text-toss-gray-900 mb-3">작성 중인 정산서</p>
                   <div className="space-y-2">
                     {drafts.map((d) => {
-                      const monthParts = d.month.split("-");
-                      const monthLabel = monthParts.length >= 3
-                        ? `${monthParts[0]}년 ${parseInt(monthParts[1])}월 ${parseInt(monthParts[2])}일`
-                        : `${monthParts[0]}년 ${parseInt(monthParts[1])}월`;
+                      const mp = d.month.split("-");
+                      const shortDate = mp.length >= 3
+                        ? `${mp[0].slice(2)}.${mp[1]}.${mp[2]}`
+                        : `${mp[0].slice(2)}.${mp[1]}`;
+                      const catName: Record<string, string> = { "촬영비": "유튜브 촬영", "편집비": "유튜브 롱폼 편집", "숏폼": "쇼츠·릴스 편집", "카드뉴스": "인스타 카드뉴스" };
                       return (
                         <button key={d.id} onClick={() => { setLoadDraft(true); setCategory(d.role as Category); }}
                           className="w-full flex items-center justify-between bg-white rounded-2xl border border-amber-200 bg-amber-50/50 p-4 hover:border-toss-blue hover:bg-blue-50/30 active:scale-[0.98] transition-all text-left shadow-sm">
                           <div className="flex items-center gap-3">
-                            <span className="text-[22px]">{{ "촬영비": "🎬", "숏폼": "📱", "카드뉴스": "📰", "편집비": "🎞️" }[d.role] || "📋"}</span>
+                            <span className="text-[22px]">{{ "촬영비": "📹", "숏폼": "🎞️", "카드뉴스": "📰", "편집비": "🎬" }[d.role] || "📋"}</span>
                             <div>
                               <div className="flex items-center gap-2">
                                 <p className="text-[15px] font-bold text-toss-gray-900">
-                                  {monthLabel} {getRoleLabel(d.role)}
+                                  {shortDate} {catName[d.role] || d.role}
                                 </p>
                                 <span className="px-1.5 py-0.5 bg-amber-100 text-amber-600 rounded text-[11px] font-bold">임시저장</span>
                               </div>
                               <p className="text-[13px] text-toss-gray-500">{d.itemCount}건</p>
                             </div>
                           </div>
-                          <span className="text-[14px] font-bold text-toss-blue">{d.final_amount.toLocaleString()}원</span>
                         </button>
                       );
                     })}
