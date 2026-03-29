@@ -8,6 +8,9 @@ export interface Worker {
   role: Role;
   contractType: ContractType;
   categories?: string[];
+  bankName?: string | null;
+  bankAccount?: string | null;
+  accountHolder?: string | null;
 }
 
 export interface PDLineItem {

@@ -28,6 +28,9 @@ export default function Home() {
   const [pinForm, setPinForm] = useState({ current: "", newPin: "", confirm: "" });
   const [pinError, setPinError] = useState("");
   const [pinChanging, setPinChanging] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const [profileForm, setProfileForm] = useState({ contractType: "", bankName: "", bankAccount: "", accountHolder: "" });
+  const [profileSaving, setProfileSaving] = useState(false);
 
   const [phone, setPhone] = useState("");
   const [pin, setPin] = useState("");
@@ -79,8 +82,8 @@ export default function Home() {
         fetchAllSettlements(w.id);
         // 최신 카테고리 반영
         fetch(`/api/worker/${w.id}`).then(r => r.ok ? r.json() : null).then(data => {
-          if (data?.categories) {
-            const updated = { ...w, categories: data.categories };
+          if (data) {
+            const updated = { ...w, categories: data.categories, bankName: data.bankName, bankAccount: data.bankAccount, accountHolder: data.accountHolder, contractType: data.contractType };
             setWorker(updated);
             localStorage.setItem("worker", JSON.stringify(updated));
           }
@@ -114,6 +117,8 @@ export default function Home() {
         id: data.worker.id, name: data.worker.name, email: data.worker.phone,
         role: data.worker.role, contractType: data.worker.contractType,
         categories: data.worker.categories || ["촬영비", "숏폼", "카드뉴스", "편집비"],
+        bankName: data.worker.bankName, bankAccount: data.worker.bankAccount,
+        accountHolder: data.worker.accountHolder,
       };
       localStorage.setItem("worker", JSON.stringify(w));
       setWorker(w);
@@ -188,6 +193,35 @@ export default function Home() {
       setAlertMsg("PIN이 변경되었습니다.");
     } catch { setPinError("서버 연결에 실패했습니다."); }
     finally { setPinChanging(false); }
+  };
+
+  const handleOpenProfile = () => {
+    if (!worker) return;
+    setProfileForm({
+      contractType: worker.contractType,
+      bankName: worker.bankName || "",
+      bankAccount: worker.bankAccount || "",
+      accountHolder: worker.accountHolder || "",
+    });
+    setShowProfile(true);
+  };
+
+  const handleSaveProfile = async () => {
+    if (!worker) return;
+    setProfileSaving(true);
+    try {
+      const res = await fetch("/api/worker/update", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workerId: worker.id, ...profileForm }),
+      });
+      if (!res.ok) throw new Error();
+      const updated = { ...worker, contractType: profileForm.contractType as "프리랜서" | "사업자", bankName: profileForm.bankName, bankAccount: profileForm.bankAccount, accountHolder: profileForm.accountHolder };
+      setWorker(updated);
+      localStorage.setItem("worker", JSON.stringify(updated));
+      setShowProfile(false);
+      setAlertMsg("정보가 수정되었습니다.");
+    } catch { setAlertMsg("수정에 실패했습니다."); }
+    finally { setProfileSaving(false); }
   };
 
   const handleResumeDraft = (role: string) => {
@@ -428,9 +462,9 @@ export default function Home() {
               </div>
             </div>
             <div className="flex items-center gap-1">
-              <button onClick={() => { setShowPinChange(true); setPinForm({ current: "", newPin: "", confirm: "" }); setPinError(""); }}
+              <button onClick={handleOpenProfile}
                 className="text-[13px] text-toss-gray-400 hover:text-toss-gray-600 transition px-2 py-2">
-                PIN변경
+                내 정보
               </button>
               <span className="text-toss-gray-200">|</span>
               <button onClick={handleLogout}
@@ -552,6 +586,73 @@ export default function Home() {
 
       {alertMsg && (
         <ConfirmModal title="알림" message={alertMsg} confirmText="확인" onConfirm={() => setAlertMsg(null)} />
+      )}
+
+      {showProfile && (
+        <div className="fixed inset-0 bg-black/40 flex items-end justify-center z-50" onClick={() => setShowProfile(false)}>
+          <div className="bg-white w-full max-w-lg rounded-t-3xl shadow-xl animate-slide-up" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 pt-6 pb-4">
+              <h3 className="text-[18px] font-bold text-toss-gray-900">내 정보</h3>
+              <button type="button" onClick={() => setShowProfile(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-toss-gray-100 transition text-toss-gray-400 text-[20px]">✕</button>
+            </div>
+            <div className="px-6 space-y-4">
+              <div>
+                <label className="block text-[13px] font-medium text-toss-gray-600 mb-1.5">이름</label>
+                <p className="px-4 py-3 bg-toss-gray-50 rounded-xl text-[15px] text-toss-gray-900">{worker?.name}</p>
+              </div>
+              <div>
+                <label className="block text-[13px] font-medium text-toss-gray-600 mb-1.5">휴대폰</label>
+                <p className="px-4 py-3 bg-toss-gray-50 rounded-xl text-[15px] text-toss-gray-900">{worker?.email}</p>
+              </div>
+              <div>
+                <label className="block text-[13px] font-medium text-toss-gray-600 mb-1.5">계약 유형</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {(["프리랜서", "사업자"] as const).map((c) => (
+                    <button key={c} type="button" onClick={() => setProfileForm({ ...profileForm, contractType: c })}
+                      className={`py-3 rounded-xl text-[14px] font-semibold border-2 transition-all ${
+                        profileForm.contractType === c ? "bg-toss-blue text-white border-toss-blue" : "bg-white text-toss-gray-600 border-toss-gray-200"
+                      }`}>{c}</button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="block text-[13px] font-medium text-toss-gray-600 mb-1.5">은행</label>
+                <select value={profileForm.bankName} onChange={(e) => setProfileForm({ ...profileForm, bankName: e.target.value })}
+                  className="w-full rounded-xl border border-toss-gray-200 px-4 py-3 text-[15px] text-toss-gray-900 focus:border-toss-blue focus:ring-1 focus:ring-toss-blue/30 outline-none transition-all bg-white">
+                  <option value="">선택하세요</option>
+                  {["카카오뱅크", "토스뱅크", "국민은행", "신한은행", "하나은행", "우리은행", "농협은행", "기업은행", "SC제일은행", "대구은행", "부산은행", "경남은행", "광주은행", "전북은행", "제주은행", "수협은행", "새마을금고", "신협", "우체국"].map((b) => (
+                    <option key={b} value={b}>{b}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-[13px] font-medium text-toss-gray-600 mb-1.5">계좌번호</label>
+                <input type="text" value={profileForm.bankAccount} inputMode="numeric"
+                  onChange={(e) => setProfileForm({ ...profileForm, bankAccount: e.target.value.replace(/\D/g, "") })}
+                  className="w-full rounded-xl border border-toss-gray-200 px-4 py-3 text-[15px] text-toss-gray-900 focus:border-toss-blue focus:ring-1 focus:ring-toss-blue/30 outline-none transition-all bg-white"
+                  placeholder="- 없이 숫자만 입력" />
+              </div>
+              <div>
+                <label className="block text-[13px] font-medium text-toss-gray-600 mb-1.5">예금주</label>
+                <input type="text" value={profileForm.accountHolder}
+                  onChange={(e) => setProfileForm({ ...profileForm, accountHolder: e.target.value })}
+                  className="w-full rounded-xl border border-toss-gray-200 px-4 py-3 text-[15px] text-toss-gray-900 focus:border-toss-blue focus:ring-1 focus:ring-toss-blue/30 outline-none transition-all bg-white"
+                  placeholder="예금주명" />
+              </div>
+            </div>
+            <div className="px-6 pt-4 pb-8 flex gap-3">
+              <button onClick={() => { setShowPinChange(true); setPinForm({ current: "", newPin: "", confirm: "" }); setPinError(""); setShowProfile(false); }}
+                className="flex-1 py-3.5 bg-toss-gray-100 text-toss-gray-700 font-semibold rounded-2xl hover:bg-toss-gray-200 active:scale-[0.98] transition-all text-[15px]">
+                PIN 변경
+              </button>
+              <button onClick={handleSaveProfile} disabled={profileSaving}
+                className="flex-1 py-3.5 bg-toss-blue text-white font-semibold rounded-2xl hover:bg-toss-blue-hover disabled:opacity-50 active:scale-[0.98] transition-all text-[15px]">
+                {profileSaving ? "저장 중..." : "저장"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {showPinChange && (
