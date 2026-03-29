@@ -33,22 +33,28 @@ interface SettlementHistoryProps {
   contractType: string;
   refreshKey: number;
   onResumeDraft?: (role: string) => void;
+  initialData?: SettlementRecord[] | null;
 }
 
-export default function SettlementHistory({ workerId, role, contractType, refreshKey, onResumeDraft }: SettlementHistoryProps) {
-  const [settlements, setSettlements] = useState<SettlementRecord[]>([]);
-  const [loading, setLoading] = useState(true);
+export default function SettlementHistory({ workerId, role, contractType, refreshKey, onResumeDraft, initialData }: SettlementHistoryProps) {
+  const [settlements, setSettlements] = useState<SettlementRecord[]>(initialData || []);
+  const [loading, setLoading] = useState(!initialData);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
 
   useEffect(() => {
+    if (initialData) {
+      setSettlements(initialData);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     fetch(`/api/settlements/${workerId}`)
       .then((res) => res.ok ? res.json() : [])
       .then((data: SettlementRecord[]) => setSettlements(data.filter((s) => s.status !== "임시저장")))
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [workerId, refreshKey]);
+  }, [workerId, refreshKey, initialData]);
 
   const formatMonth = (dateStr: string) => {
     const d = new Date(dateStr);

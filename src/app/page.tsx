@@ -28,6 +28,8 @@ export default function Home() {
   interface Draft { id: string; month: string; role: string; itemCount: number; final_amount: number; created_at: string; }
   const [drafts, setDrafts] = useState<Draft[]>([]);
   const [draftsKey, setDraftsKey] = useState(0);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [cachedSettlements, setCachedSettlements] = useState<any[] | null>(null);
   const pinRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -36,11 +38,12 @@ export default function Home() {
     }
   }, [page]);
 
-  const fetchDrafts = async (wId: string) => {
+  const fetchAllSettlements = async (wId: string) => {
     try {
       const res = await fetch(`/api/settlements/${wId}`);
       if (!res.ok) return;
       const all = await res.json();
+      // 임시저장 목록
       const draftList = (all || [])
         .filter((s: { status: string }) => s.status === "임시저장")
         .map((s: { id: string; settlement_month: string; role: string; items: unknown[]; final_amount: number; created_at: string }) => ({
@@ -52,6 +55,8 @@ export default function Home() {
           created_at: s.created_at,
         }));
       setDrafts(draftList);
+      // 제출 이력 캐시
+      setCachedSettlements((all || []).filter((s: { status: string }) => s.status !== "임시저장"));
     } catch {}
   };
 
@@ -62,7 +67,7 @@ export default function Home() {
         const w = JSON.parse(saved);
         setWorker(w);
         setPage("main");
-        fetchDrafts(w.id);
+        fetchAllSettlements(w.id);
       } catch {
         localStorage.removeItem("worker");
       }
@@ -95,15 +100,15 @@ export default function Home() {
       localStorage.setItem("worker", JSON.stringify(w));
       setWorker(w);
       setPage("main");
-      fetchDrafts(w.id);
+      fetchAllSettlements(w.id);
     } catch { setLoginError("서버 연결에 실패했습니다."); setPin(""); }
     finally { setLoggingIn(false); }
   };
 
-  // draftsKey 변경 시 임시저장 목록 새로고침
+  // draftsKey 변경 시 전체 새로고침
   useEffect(() => {
     if (draftsKey === 0 || !worker) return;
-    fetchDrafts(worker.id);
+    fetchAllSettlements(worker.id);
   }, [draftsKey, worker]);
 
   const handleLogout = () => {
@@ -112,7 +117,12 @@ export default function Home() {
     setPage("login"); setTab("write"); setSubmitted(false);
   };
 
-  const handleSubmitSuccess = () => { setSubmitted(true); setCategory(null); setRefreshKey((k) => k + 1); };
+  const handleSubmitSuccess = () => {
+    setSubmitted(true);
+    setCategory(null);
+    setRefreshKey((k) => k + 1);
+    if (worker) fetchAllSettlements(worker.id);
+  };
 
   const handleDraftSaved = () => {
     setCategory(null);
@@ -444,6 +454,7 @@ export default function Home() {
             contractType={worker.contractType}
             refreshKey={refreshKey}
             onResumeDraft={handleResumeDraft}
+            initialData={cachedSettlements}
           />
         )}
       </div>
