@@ -464,24 +464,24 @@ export default function AdsPage() {
                     <td className="px-3 py-2.5 whitespace-nowrap cursor-pointer hover:text-toss-blue" onClick={() => setPicker({ id: a.id, field: "platform", title: "플랫폼", options: PLATFORMS, type: "select", value: a.platform })}>{a.platform}</td>
                     <td className="px-3 py-2.5 whitespace-nowrap cursor-pointer hover:text-toss-blue" onClick={() => setPicker({ id: a.id, field: "filming_date", title: "촬영 일정", type: "date", value: a.filming_date })}>{formatDate(a.filming_date)}</td>
                     <td className="px-3 py-2.5 whitespace-nowrap cursor-pointer hover:text-toss-blue" onClick={() => setPicker({ id: a.id, field: "upload_date", title: "업로드 일정", type: "date", value: a.upload_date?.split(" ")[0] || "" })}>{formatDate(a.upload_date)}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap">
-                      <span onClick={() => cycleValue(a.id, "progress", a.progress, PROGRESS)} className={`px-2 py-0.5 rounded-lg text-[11px] font-bold cursor-pointer ${
+                    <td className="px-3 py-2.5 whitespace-nowrap cursor-pointer" onClick={() => setPicker({ id: a.id, field: "progress", title: "진행 상황", options: PROGRESS, type: "select", value: a.progress })}>
+                      <span className={`px-2 py-0.5 rounded-lg text-[11px] font-bold ${
                         a.progress === "완료" ? "bg-green-50 text-green-600" : a.progress === "편집중" ? "bg-amber-50 text-amber-600" : "bg-red-50 text-red-600"
                       }`}>{a.progress}</span>
                     </td>
-                    <td className="px-3 py-2.5 whitespace-nowrap">
-                      <span onClick={() => cycleValue(a.id, "filming_fee_status", a.filming_fee_status, FEE_STATUS)} className={`px-2 py-0.5 rounded-lg text-[11px] font-bold cursor-pointer ${
+                    <td className="px-3 py-2.5 whitespace-nowrap cursor-pointer" onClick={() => setPicker({ id: a.id, field: "filming_fee_status", title: "촬영비 정산", options: FEE_STATUS, type: "select", value: a.filming_fee_status })}>
+                      <span className={`px-2 py-0.5 rounded-lg text-[11px] font-bold ${
                         a.filming_fee_status === "정산 완료" ? "bg-green-50 text-green-600" : "bg-toss-gray-100 text-toss-gray-500"
                       }`}>{a.filming_fee_status}</span>
                     </td>
-                    <td className="px-3 py-2.5 whitespace-nowrap text-right cursor-pointer" onClick={() => setEditAd(a)}>{a.ad_fee ? `${a.ad_fee.toLocaleString()}` : "-"}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap text-right font-semibold cursor-pointer" onClick={() => setEditAd(a)}>{a.total_amount ? `${a.total_amount.toLocaleString()}` : "-"}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap">
-                      <span onClick={() => cycleValue(a.id, "tax_invoice", a.tax_invoice, TAX_INVOICE)} className={`px-2 py-0.5 rounded-lg text-[11px] font-bold cursor-pointer ${
+                    <td className="px-3 py-2.5 whitespace-nowrap text-right cursor-pointer hover:text-toss-blue" onClick={() => setPicker({ id: a.id, field: "ad_fee", title: "광고비", type: "number" as "text", value: String(a.ad_fee || "") })}>{a.ad_fee ? `${a.ad_fee.toLocaleString()}` : "-"}</td>
+                    <td className="px-3 py-2.5 whitespace-nowrap text-right font-semibold cursor-pointer hover:text-toss-blue" onClick={() => setPicker({ id: a.id, field: "total_amount", title: "총액", type: "number" as "text", value: String(a.total_amount || "") })}>{a.total_amount ? `${a.total_amount.toLocaleString()}` : "-"}</td>
+                    <td className="px-3 py-2.5 whitespace-nowrap cursor-pointer" onClick={() => setPicker({ id: a.id, field: "tax_invoice", title: "세금 계산서", options: TAX_INVOICE, type: "select", value: a.tax_invoice })}>
+                      <span className={`px-2 py-0.5 rounded-lg text-[11px] font-bold ${
                         a.tax_invoice === "발행 완료" ? "bg-green-50 text-green-600" : "bg-toss-gray-100 text-toss-gray-500"
                       }`}>{a.tax_invoice}</span>
                     </td>
-                    <td className="px-3 py-2.5 whitespace-nowrap cursor-pointer" onClick={() => setEditAd(a)}>{a.rs_rate}%</td>
+                    <td className="px-3 py-2.5 whitespace-nowrap cursor-pointer hover:text-toss-blue" onClick={() => setPicker({ id: a.id, field: "rs_rate", title: "RS 비율 (%)", type: "number" as "text", value: String(a.rs_rate || "") })}>{a.rs_rate}%</td>
                     <td className="px-3 py-2.5 whitespace-nowrap">
                       <button onClick={() => setDeleteTarget(a.id)} className="text-toss-red text-[12px] font-semibold">삭제</button>
                     </td>
@@ -631,9 +631,17 @@ export default function AdsPage() {
               )}
               {picker.type === "text" && (
                 <div>
-                  <input autoFocus value={picker.value} onChange={e => setPicker({ ...picker, value: e.target.value })}
+                  <input autoFocus value={picker.value}
+                    inputMode={["ad_fee","total_amount","supply_amount","vat_amount","rs_rate","rs_cost"].includes(picker.field) ? "numeric" : "text"}
+                    onChange={e => {
+                      const isNum = ["ad_fee","total_amount","supply_amount","vat_amount","rs_rate","rs_cost"].includes(picker.field);
+                      setPicker({ ...picker, value: isNum ? e.target.value.replace(/\D/g, "") : e.target.value });
+                    }}
                     className="w-full rounded-xl border border-toss-gray-200 px-4 py-3 text-[15px] text-toss-gray-900 focus:border-toss-blue focus:ring-1 focus:ring-toss-blue/30 outline-none bg-white mb-4" />
-                  <button onClick={() => { inlineUpdate(picker.id, picker.field, picker.value); setPicker(null); }}
+                  <button onClick={() => {
+                    const isNum = ["ad_fee","total_amount","supply_amount","vat_amount","rs_rate","rs_cost"].includes(picker.field);
+                    inlineUpdate(picker.id, picker.field, isNum ? Number(picker.value) || 0 : picker.value); setPicker(null);
+                  }}
                     className="w-full py-4 bg-toss-blue text-white font-semibold rounded-2xl hover:bg-toss-blue-hover active:scale-[0.98] transition-all text-[16px]">확인</button>
                 </div>
               )}
