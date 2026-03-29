@@ -74,8 +74,11 @@ export default function MonthPicker({ value, onChange }: DatePickerProps) {
     <div>
       <label className="block text-[13px] font-medium text-toss-gray-600 mb-1.5">정산일정</label>
       <button type="button" onClick={handleOpen}
-        className="w-full rounded-xl border border-toss-gray-200 px-4 py-3 text-left text-[15px] text-toss-gray-900 focus:border-toss-blue focus:ring-1 focus:ring-toss-blue/30 outline-none transition-all bg-white">
-        {displayValue || <span className="text-toss-gray-400">정산일정을 선택하세요</span>}
+        className="w-full rounded-xl border border-toss-gray-200 px-4 py-3 text-left text-[15px] text-toss-gray-900 focus:border-toss-blue focus:ring-1 focus:ring-toss-blue/30 outline-none transition-all bg-white flex items-center justify-between">
+        <span>{displayValue || <span className="text-toss-gray-400">정산일정을 선택하세요</span>}</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-toss-gray-400">
+          <rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" />
+        </svg>
       </button>
 
       {open && (
