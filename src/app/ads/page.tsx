@@ -295,17 +295,34 @@ export default function AdsPage() {
         const y = calMonth.year, m = calMonth.month;
         const daysInMonth = new Date(y, m, 0).getDate();
         const firstDay = new Date(y, m - 1, 1).getDay();
-        const calDays: (number | null)[] = [];
-        for (let i = 0; i < firstDay; i++) calDays.push(null);
-        for (let d = 1; d <= daysInMonth; d++) calDays.push(d);
+        const calDays: { day: number; current: boolean }[] = [];
+        // 이전 달 빈칸
+        const prevMonthDays = new Date(y, m - 1, 0).getDate();
+        for (let i = firstDay - 1; i >= 0; i--) calDays.push({ day: prevMonthDays - i, current: false });
+        // 현재 달
+        for (let d = 1; d <= daysInMonth; d++) calDays.push({ day: d, current: true });
+        // 다음 달 채우기 (7의 배수)
+        const remaining = 7 - (calDays.length % 7);
+        if (remaining < 7) for (let d = 1; d <= remaining; d++) calDays.push({ day: d, current: false });
+
         const today = new Date();
         const isToday = (d: number) => today.getFullYear() === y && today.getMonth() + 1 === m && today.getDate() === d;
 
         const makeDateStr = (d: number) => `${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+        const makeNextDateStr = (d: number) => {
+          const nm = m === 12 ? 1 : m + 1;
+          const ny = m === 12 ? y + 1 : y;
+          return `${ny}-${String(nm).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+        };
+        const makePrevDateStr = (d: number) => {
+          const pm = m === 1 ? 12 : m - 1;
+          const py = m === 1 ? y - 1 : y;
+          return `${py}-${String(pm).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+        };
 
         const channelFilter = (a: Ad) => calChannels.includes(a.youtube_channel);
-        const getFilming = (day: number) => ads.filter(a => a.filming_date === makeDateStr(day) && channelFilter(a));
-        const getUpload = (day: number) => ads.filter(a => a.upload_date?.startsWith(makeDateStr(day)) && channelFilter(a));
+        const getFilmingFor = (dateStr: string) => ads.filter(a => a.filming_date === dateStr && channelFilter(a));
+        const getUploadFor = (dateStr: string) => ads.filter(a => a.upload_date?.startsWith(dateStr) && channelFilter(a));
 
         const prevMo = () => setCalMonth(p => p.month === 1 ? { year: p.year - 1, month: 12 } : { ...p, month: p.month - 1 });
         const nextMo = () => setCalMonth(p => p.month === 12 ? { year: p.year + 1, month: 1 } : { ...p, month: p.month + 1 });
@@ -344,24 +361,22 @@ export default function AdsPage() {
                 {["일","월","화","수","목","금","토"].map((l, i) => (
                   <div key={l} className={`text-center py-2 text-[12px] font-semibold border-b border-toss-gray-100 ${i === 0 ? "text-toss-red" : i === 6 ? "text-toss-blue" : "text-toss-gray-400"}`}>{l}</div>
                 ))}
-                {calDays.map((day, idx) => {
-                  const filming = day && calFilter !== "upload" ? getFilming(day) : [];
-                  const upload = day && calFilter !== "filming" ? getUpload(day) : [];
+                {calDays.map((cell, idx) => {
+                  const dateStr = cell.current ? makeDateStr(cell.day) : (idx < 7 ? makePrevDateStr(cell.day) : makeNextDateStr(cell.day));
+                  const filming = calFilter !== "upload" ? getFilmingFor(dateStr) : [];
+                  const upload = calFilter !== "filming" ? getUploadFor(dateStr) : [];
                   const allEvents = [...filming.map(e => ({...e, type: "filming" as const})), ...upload.map(e => ({...e, type: "upload" as const}))];
                   return (
                     <div key={idx}
-                      onDragOver={e => { if (day) e.preventDefault(); }}
+                      onDragOver={e => e.preventDefault()}
                       onDrop={e => {
-                        if (!day) return;
                         const data = e.dataTransfer.getData("text/plain");
                         if (!data) return;
                         const { id, field } = JSON.parse(data);
-                        handleDrop(id, field, makeDateStr(day));
+                        handleDrop(id, field, dateStr);
                       }}
-                      className={`min-h-[100px] border-b border-r border-toss-gray-50 p-1 ${!day ? "bg-toss-gray-50/50" : ""} ${day && isToday(day) ? "bg-blue-50/60 ring-2 ring-toss-blue ring-inset" : ""}`}>
-                      {day && (
-                        <>
-                          <span className={`text-[12px] font-medium ${isToday(day) ? "bg-toss-blue text-white rounded-full w-5 h-5 inline-flex items-center justify-center" : idx % 7 === 0 ? "text-toss-red" : idx % 7 === 6 ? "text-toss-blue" : "text-toss-gray-600"}`}>{day}</span>
+                      className={`min-h-[100px] border-b border-r border-toss-gray-50 p-1 ${!cell.current ? "opacity-40" : ""} ${cell.current && isToday(cell.day) ? "bg-blue-50/60 ring-2 ring-toss-blue ring-inset" : ""}`}>
+                          <span className={`text-[12px] font-medium ${cell.current && isToday(cell.day) ? "bg-toss-blue text-white rounded-full w-5 h-5 inline-flex items-center justify-center" : idx % 7 === 0 ? "text-toss-red" : idx % 7 === 6 ? "text-toss-blue" : "text-toss-gray-600"}`}>{cell.day}</span>
                           <div className="space-y-0.5 mt-0.5">
                             {allEvents.slice(0, 4).map((ev, i) => (
                               <div key={i}
@@ -382,8 +397,6 @@ export default function AdsPage() {
                             ))}
                             {allEvents.length > 4 && <div className="text-[10px] text-toss-gray-400">+{allEvents.length - 4}</div>}
                           </div>
-                        </>
-                      )}
                     </div>
                   );
                 })}
