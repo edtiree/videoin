@@ -36,12 +36,33 @@ export default function Home() {
     }
   }, [page]);
 
+  const fetchDrafts = async (wId: string) => {
+    try {
+      const res = await fetch(`/api/settlements/${wId}`);
+      if (!res.ok) return;
+      const all = await res.json();
+      const draftList = (all || [])
+        .filter((s: { status: string }) => s.status === "임시저장")
+        .map((s: { id: string; settlement_month: string; role: string; items: unknown[]; final_amount: number; created_at: string }) => ({
+          id: s.id,
+          month: s.settlement_month.slice(0, 10),
+          role: s.role,
+          itemCount: s.items?.length || 0,
+          final_amount: s.final_amount,
+          created_at: s.created_at,
+        }));
+      setDrafts(draftList);
+    } catch {}
+  };
+
   useEffect(() => {
     const saved = localStorage.getItem("worker");
     if (saved) {
       try {
-        setWorker(JSON.parse(saved));
+        const w = JSON.parse(saved);
+        setWorker(w);
         setPage("main");
+        fetchDrafts(w.id);
       } catch {
         localStorage.removeItem("worker");
       }
@@ -74,33 +95,16 @@ export default function Home() {
       localStorage.setItem("worker", JSON.stringify(w));
       setWorker(w);
       setPage("main");
+      fetchDrafts(w.id);
     } catch { setLoginError("서버 연결에 실패했습니다."); setPin(""); }
     finally { setLoggingIn(false); }
   };
 
-  // 임시저장 목록 가져오기
+  // draftsKey 변경 시 임시저장 목록 새로고침
   useEffect(() => {
-    if (page !== "main" || !worker) return;
-    const fetchDrafts = async () => {
-      try {
-        const res = await fetch(`/api/settlements/${worker.id}`);
-        if (!res.ok) return;
-        const all = await res.json();
-        const draftList = (all || [])
-          .filter((s: { status: string }) => s.status === "임시저장")
-          .map((s: { id: string; settlement_month: string; role: string; items: unknown[]; final_amount: number; created_at: string }) => ({
-            id: s.id,
-            month: s.settlement_month.slice(0, 7),
-            role: s.role,
-            itemCount: s.items?.length || 0,
-            final_amount: s.final_amount,
-            created_at: s.created_at,
-          }));
-        setDrafts(draftList);
-      } catch {}
-    };
-    fetchDrafts();
-  }, [page, worker, draftsKey]);
+    if (draftsKey === 0 || !worker) return;
+    fetchDrafts(worker.id);
+  }, [draftsKey, worker]);
 
   const handleLogout = () => {
     localStorage.removeItem("worker");
