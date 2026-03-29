@@ -49,8 +49,7 @@ export default function AdsPage() {
   const [calMonth, setCalMonth] = useState(() => { const n = new Date(); return { year: n.getFullYear(), month: n.getMonth() + 1 }; });
   const [calFilter, setCalFilter] = useState<"all" | "filming" | "upload">("all");
   const [calDetail, setCalDetail] = useState<Ad | null>(null);
-  const [inlineEdit, setInlineEdit] = useState<{ id: string; field: string } | null>(null);
-  const [inlineValue, setInlineValue] = useState("");
+  const [picker, setPicker] = useState<{ id: string; field: string; title: string; options?: string[]; type: "select" | "text" | "date"; value: string } | null>(null);
 
   const handleAuth = (v?: string) => {
     if ((v || pin) === ADMIN_PIN) { setAuthed(true); }
@@ -458,36 +457,13 @@ export default function AdsPage() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map(a => {
-                  const isEditing = (field: string) => inlineEdit?.id === a.id && inlineEdit?.field === field;
-                  const startEdit = (field: string, val: string) => { setInlineEdit({ id: a.id, field }); setInlineValue(val); };
-                  const commitEdit = () => { if (inlineEdit) { inlineUpdate(inlineEdit.id, inlineEdit.field, inlineValue); setInlineEdit(null); } };
-                  const selectInline = (field: string, options: string[]) => (
-                    <select autoFocus value={inlineValue} onChange={e => { inlineUpdate(a.id, field, e.target.value); setInlineEdit(null); }} onBlur={() => setInlineEdit(null)}
-                      className="w-full bg-white border border-toss-blue rounded px-1 py-0.5 text-[13px] outline-none">
-                      {options.map(o => <option key={o} value={o}>{o}</option>)}
-                    </select>
-                  );
-                  return (
+                {filtered.map(a => (
                   <tr key={a.id} className="border-t border-toss-gray-50 hover:bg-toss-gray-50 transition">
-                    <td className="px-3 py-2.5 whitespace-nowrap cursor-pointer" onClick={() => startEdit("youtube_channel", a.youtube_channel)}>
-                      {isEditing("youtube_channel") ? selectInline("youtube_channel", CHANNELS) : a.youtube_channel}
-                    </td>
-                    <td className="px-3 py-2.5 whitespace-nowrap font-semibold text-toss-gray-900 cursor-pointer" onClick={() => startEdit("performer", a.performer)}>
-                      {isEditing("performer") ? <input autoFocus value={inlineValue} onChange={e => setInlineValue(e.target.value)} onBlur={commitEdit} onKeyDown={e => e.key === "Enter" && commitEdit()}
-                        className="w-full bg-white border border-toss-blue rounded px-1 py-0.5 text-[13px] font-semibold outline-none" /> : a.performer}
-                    </td>
-                    <td className="px-3 py-2.5 whitespace-nowrap cursor-pointer" onClick={() => startEdit("platform", a.platform)}>
-                      {isEditing("platform") ? selectInline("platform", PLATFORMS) : a.platform}
-                    </td>
-                    <td className="px-3 py-2.5 whitespace-nowrap cursor-pointer" onClick={() => startEdit("filming_date", a.filming_date)}>
-                      {isEditing("filming_date") ? <input type="date" autoFocus value={inlineValue} onChange={e => { inlineUpdate(a.id, "filming_date", e.target.value); setInlineEdit(null); }} onBlur={() => setInlineEdit(null)}
-                        className="bg-white border border-toss-blue rounded px-1 py-0.5 text-[13px] outline-none" /> : formatDate(a.filming_date)}
-                    </td>
-                    <td className="px-3 py-2.5 whitespace-nowrap cursor-pointer" onClick={() => startEdit("upload_date", a.upload_date?.split(" ")[0] || "")}>
-                      {isEditing("upload_date") ? <input type="date" autoFocus value={inlineValue} onChange={e => { inlineUpdate(a.id, "upload_date", e.target.value); setInlineEdit(null); }} onBlur={() => setInlineEdit(null)}
-                        className="bg-white border border-toss-blue rounded px-1 py-0.5 text-[13px] outline-none" /> : formatDate(a.upload_date)}
-                    </td>
+                    <td className="px-3 py-2.5 whitespace-nowrap cursor-pointer hover:text-toss-blue" onClick={() => setPicker({ id: a.id, field: "youtube_channel", title: "유튜브 채널", options: CHANNELS, type: "select", value: a.youtube_channel })}>{a.youtube_channel}</td>
+                    <td className="px-3 py-2.5 whitespace-nowrap font-semibold text-toss-gray-900 cursor-pointer hover:text-toss-blue" onClick={() => setPicker({ id: a.id, field: "performer", title: "출연자명", type: "text", value: a.performer })}>{a.performer}</td>
+                    <td className="px-3 py-2.5 whitespace-nowrap cursor-pointer hover:text-toss-blue" onClick={() => setPicker({ id: a.id, field: "platform", title: "플랫폼", options: PLATFORMS, type: "select", value: a.platform })}>{a.platform}</td>
+                    <td className="px-3 py-2.5 whitespace-nowrap cursor-pointer hover:text-toss-blue" onClick={() => setPicker({ id: a.id, field: "filming_date", title: "촬영 일정", type: "date", value: a.filming_date })}>{formatDate(a.filming_date)}</td>
+                    <td className="px-3 py-2.5 whitespace-nowrap cursor-pointer hover:text-toss-blue" onClick={() => setPicker({ id: a.id, field: "upload_date", title: "업로드 일정", type: "date", value: a.upload_date?.split(" ")[0] || "" })}>{formatDate(a.upload_date)}</td>
                     <td className="px-3 py-2.5 whitespace-nowrap">
                       <span onClick={() => cycleValue(a.id, "progress", a.progress, PROGRESS)} className={`px-2 py-0.5 rounded-lg text-[11px] font-bold cursor-pointer ${
                         a.progress === "완료" ? "bg-green-50 text-green-600" : a.progress === "편집중" ? "bg-amber-50 text-amber-600" : "bg-red-50 text-red-600"
@@ -510,8 +486,7 @@ export default function AdsPage() {
                       <button onClick={() => setDeleteTarget(a.id)} className="text-toss-red text-[12px] font-semibold">삭제</button>
                     </td>
                   </tr>
-                  );
-                })}
+                ))}
               </tbody>
               <tfoot>
                 <tr className="bg-toss-gray-50 border-t-2 border-toss-gray-200 text-[13px] font-bold text-toss-gray-900">
@@ -630,6 +605,46 @@ export default function AdsPage() {
                 className="w-full py-4 bg-toss-blue text-white font-semibold rounded-2xl hover:bg-toss-blue-hover disabled:bg-toss-gray-200 active:scale-[0.98] transition-all text-[16px]">
                 {saving ? "저장 중..." : "저장"}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 인라인 편집 모달 */}
+      {picker && (
+        <div className="fixed inset-0 bg-black/40 flex items-end justify-center z-50" onClick={() => setPicker(null)}>
+          <div className="bg-white w-full max-w-lg rounded-t-3xl shadow-xl animate-slide-up" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 pt-6 pb-4">
+              <h3 className="text-[18px] font-bold text-toss-gray-900">{picker.title}</h3>
+              <button onClick={() => setPicker(null)} className="text-toss-gray-400 text-[20px]">✕</button>
+            </div>
+            <div className="px-6 pb-8">
+              {picker.type === "select" && picker.options && (
+                <div className="space-y-1 max-h-[50vh] overflow-y-auto">
+                  {picker.options.map(o => (
+                    <button key={o} onClick={() => { inlineUpdate(picker.id, picker.field, o); setPicker(null); }}
+                      className={`w-full text-left px-4 py-3.5 rounded-xl text-[15px] transition-all ${
+                        o === picker.value ? "bg-toss-blue text-white font-semibold" : "hover:bg-toss-gray-100 text-toss-gray-900"
+                      }`}>{o}</button>
+                  ))}
+                </div>
+              )}
+              {picker.type === "text" && (
+                <div>
+                  <input autoFocus value={picker.value} onChange={e => setPicker({ ...picker, value: e.target.value })}
+                    className="w-full rounded-xl border border-toss-gray-200 px-4 py-3 text-[15px] text-toss-gray-900 focus:border-toss-blue focus:ring-1 focus:ring-toss-blue/30 outline-none bg-white mb-4" />
+                  <button onClick={() => { inlineUpdate(picker.id, picker.field, picker.value); setPicker(null); }}
+                    className="w-full py-4 bg-toss-blue text-white font-semibold rounded-2xl hover:bg-toss-blue-hover active:scale-[0.98] transition-all text-[16px]">확인</button>
+                </div>
+              )}
+              {picker.type === "date" && (
+                <div>
+                  <input type="date" autoFocus value={picker.value} onChange={e => setPicker({ ...picker, value: e.target.value })}
+                    className="w-full rounded-xl border border-toss-gray-200 px-4 py-3 text-[15px] text-toss-gray-900 focus:border-toss-blue focus:ring-1 focus:ring-toss-blue/30 outline-none bg-white mb-4" />
+                  <button onClick={() => { inlineUpdate(picker.id, picker.field, picker.value); setPicker(null); }}
+                    className="w-full py-4 bg-toss-blue text-white font-semibold rounded-2xl hover:bg-toss-blue-hover active:scale-[0.98] transition-all text-[16px]">확인</button>
+                </div>
+              )}
             </div>
           </div>
         </div>
