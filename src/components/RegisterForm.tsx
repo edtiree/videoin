@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { ContractType } from "@/types";
-import FileUpload from "./FileUpload";
 
 interface RegisterFormProps {
   onSuccess: () => void;
@@ -19,7 +18,6 @@ export default function RegisterForm({ onSuccess, onBack }: RegisterFormProps) {
   const [bankName, setBankName] = useState("");
   const [bankAccount, setBankAccount] = useState("");
   const [accountHolder, setAccountHolder] = useState("");
-  const [businessRegUrl, setBusinessRegUrl] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -52,7 +50,7 @@ export default function RegisterForm({ onSuccess, onBack }: RegisterFormProps) {
         body: JSON.stringify({
           phone: phone.replace(/\D/g, ""), pin, name: name.trim(), contractType,
           bankName: bankName || undefined, bankAccount: bankAccount || undefined,
-          accountHolder: accountHolder || undefined, businessRegistrationUrl: businessRegUrl || undefined,
+          accountHolder: accountHolder || undefined,
         }),
       });
       const data = await res.json();
@@ -140,13 +138,6 @@ export default function RegisterForm({ onSuccess, onBack }: RegisterFormProps) {
             <input type="text" value={accountHolder} onChange={(e) => setAccountHolder(e.target.value)}
               className={inputClass} placeholder="예금주명" />
           </Field>
-
-          {contractType === "사업자" && (
-            <Field label="사업자등록증 첨부">
-              <FileUpload currentUrls={businessRegUrl ? [businessRegUrl] : []}
-                onUpload={(urls) => setBusinessRegUrl(urls[0] || "")} />
-            </Field>
-          )}
 
           <button type="button" onClick={handleSubmit} disabled={submitting}
             className="w-full py-4 bg-toss-blue text-white font-semibold rounded-2xl hover:bg-toss-blue-hover disabled:bg-toss-gray-300 active:scale-[0.98] transition-all text-[16px] mt-2">
