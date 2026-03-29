@@ -34,7 +34,7 @@ interface DashboardData {
   }[];
 }
 
-const ADMIN_PIN = "0000";
+const ADMIN_PIN = "0123";
 type Tab = "dashboard" | "settlements" | "workers";
 
 interface SettlementData {
@@ -63,10 +63,12 @@ export default function AdminPage() {
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   });
 
+  const [loginError, setLoginError] = useState("");
+
   const handleAuth = (pinVal?: string) => {
     const p = pinVal || pin;
     if (p === ADMIN_PIN) { setAuthed(true); fetchAll(); }
-    else { setAlertMsg("PIN이 일치하지 않습니다."); setPin(""); }
+    else { setLoginError("PIN이 일치하지 않습니다."); setPin(""); }
   };
 
   const fetchAll = () => { fetchWorkers(); fetchDashboard(); fetchSettlements(); };
@@ -165,6 +167,12 @@ export default function AdminPage() {
           <h2 className="text-[22px] font-bold text-toss-gray-900 mb-2">관리자 PIN 입력</h2>
           <p className="text-toss-gray-500 text-[15px] mb-10">4자리 비밀번호를 입력하세요</p>
 
+          {loginError && (
+            <div className="mb-5 px-4 py-3 bg-red-50 text-toss-red rounded-2xl text-[14px]">
+              {loginError}
+            </div>
+          )}
+
           <div className="relative flex justify-center gap-4 mb-8">
             {[0, 1, 2, 3].map((i) => (
               <div key={i}
@@ -188,10 +196,6 @@ export default function AdminPage() {
               inputMode="numeric" />
           </div>
         </div>
-
-        {alertMsg && (
-          <ConfirmModal title="알림" message={alertMsg} confirmText="확인" onConfirm={() => { setAlertMsg(null); setPin(""); }} />
-        )}
       </div>
     );
   }
