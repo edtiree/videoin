@@ -354,18 +354,18 @@ export default function AdsPage() {
                         <>
                           <span className={`text-[12px] font-medium ${isToday(day) ? "bg-toss-blue text-white rounded-full w-5 h-5 inline-flex items-center justify-center" : idx % 7 === 0 ? "text-toss-red" : idx % 7 === 6 ? "text-toss-blue" : "text-toss-gray-600"}`}>{day}</span>
                           <div className="space-y-0.5 mt-0.5">
-                            {allEvents.slice(0, 3).map((ev, i) => (
+                            {allEvents.slice(0, 4).map((ev, i) => (
                               <div key={i}
                                 draggable
                                 onDragStart={e => e.dataTransfer.setData("text/plain", JSON.stringify({ id: ev.id, field: ev.type === "filming" ? "filming_date" : "upload_date" }))}
                                 onClick={() => setCalDetail(ev)}
-                                className={`text-[10px] rounded px-1 py-0.5 truncate cursor-pointer hover:opacity-80 ${
-                                  ev.type === "filming" ? "bg-green-50 text-green-600" : "bg-red-50 text-red-500"
+                                className={`text-[10px] rounded px-1 py-0.5 cursor-pointer hover:opacity-80 leading-tight ${
+                                  ev.type === "filming" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"
                                 }`}>
-                                {ev.type === "filming" ? "🎬" : "📤"} {ev.performer}
+                                {ev.performer}
                               </div>
                             ))}
-                            {allEvents.length > 3 && <div className="text-[10px] text-toss-gray-400">+{allEvents.length - 3}</div>}
+                            {allEvents.length > 4 && <div className="text-[10px] text-toss-gray-400">+{allEvents.length - 4}</div>}
                           </div>
                         </>
                       )}
@@ -376,7 +376,6 @@ export default function AdsPage() {
               <div className="px-5 py-3 flex gap-4 text-[12px] text-toss-gray-500">
                 <span className="flex items-center gap-1"><span className="w-3 h-3 bg-green-100 rounded"></span> 촬영</span>
                 <span className="flex items-center gap-1"><span className="w-3 h-3 bg-red-100 rounded"></span> 업로드</span>
-                <span className="text-toss-gray-300 ml-2">일정을 드래그하여 날짜를 이동할 수 있습니다</span>
               </div>
             </div>
           </div>
