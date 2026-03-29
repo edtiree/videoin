@@ -196,7 +196,7 @@ export default function PDForm({ worker, onSubmitSuccess, onDraftSaved, onDelete
               </div>
               <div>
                 <label className="block text-[13px] font-medium text-toss-gray-600 mb-1.5">날짜</label>
-                <input type="date" value={item.filmingDate}
+                <input type="date" value={item.filmingDate} min="2020-01-01" max="2099-12-31"
                   onChange={(e) => updateItem(index, { filmingDate: e.target.value })}
                   className="w-full rounded-xl border border-toss-gray-200 px-4 py-3 text-[15px] text-toss-gray-900 focus:border-toss-blue focus:ring-1 focus:ring-toss-blue/30 outline-none transition-all bg-white" />
               </div>
