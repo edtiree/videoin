@@ -566,7 +566,6 @@ function WorkerCard({ worker, expanded, onToggle, onApprove, onReject, onRevoke,
         className="w-full px-5 py-4 flex items-center justify-between text-left hover:bg-toss-gray-50 transition">
         <div className="flex items-center gap-2.5">
           <span className="text-[15px] font-bold text-toss-gray-900">{worker.name}</span>
-          <span className="px-2 py-0.5 bg-blue-50 text-toss-blue rounded-lg text-[11px] font-bold">{worker.role}</span>
           <span className={`px-2 py-0.5 rounded-lg text-[11px] font-bold ${
             worker.contract_type === "프리랜서" ? "bg-orange-50 text-toss-orange" : "bg-green-50 text-toss-green"
           }`}>{worker.contract_type}</span>
