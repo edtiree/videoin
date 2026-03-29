@@ -23,6 +23,10 @@ export default function Home() {
   const [pin, setPin] = useState("");
   const [loginError, setLoginError] = useState("");
   const [loggingIn, setLoggingIn] = useState(false);
+
+  interface Draft { id: string; month: string; role: string; itemCount: number; final_amount: number; created_at: string; }
+  const [drafts, setDrafts] = useState<Draft[]>([]);
+  const [draftsKey, setDraftsKey] = useState(0);
   const pinRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -73,6 +77,30 @@ export default function Home() {
     finally { setLoggingIn(false); }
   };
 
+  // 임시저장 목록 가져오기
+  useEffect(() => {
+    if (page !== "main" || !worker) return;
+    const fetchDrafts = async () => {
+      try {
+        const res = await fetch(`/api/settlements/${worker.id}`);
+        if (!res.ok) return;
+        const all = await res.json();
+        const draftList = (all || [])
+          .filter((s: { status: string }) => s.status === "임시저장")
+          .map((s: { id: string; settlement_month: string; role: string; items: unknown[]; final_amount: number; created_at: string }) => ({
+            id: s.id,
+            month: s.settlement_month.slice(0, 7),
+            role: s.role,
+            itemCount: s.items?.length || 0,
+            final_amount: s.final_amount,
+            created_at: s.created_at,
+          }));
+        setDrafts(draftList);
+      } catch {}
+    };
+    fetchDrafts();
+  }, [page, worker, draftsKey]);
+
   const handleLogout = () => {
     localStorage.removeItem("worker");
     setWorker(null); setPhone(""); setPin("");
@@ -81,9 +109,15 @@ export default function Home() {
 
   const handleSubmitSuccess = () => { setSubmitted(true); setCategory(null); setRefreshKey((k) => k + 1); };
 
+  const handleDraftSaved = () => {
+    setCategory(null);
+    setDraftsKey((k) => k + 1);
+  };
+
   const handleResumeDraft = (role: string) => {
     setTab("write");
     setCategory(role as Category);
+    setDraftsKey((k) => k + 1);
   };
 
   // ─── 로그인 1단계: 폰번호 ───
@@ -335,6 +369,35 @@ export default function Home() {
         {tab === "write" ? (
           category === null ? (
             <div className="space-y-3">
+              {drafts.length > 0 && (
+                <div className="mb-4">
+                  <p className="text-[15px] font-bold text-toss-gray-900 mb-3">작성 중인 정산서</p>
+                  <div className="space-y-2">
+                    {drafts.map((d) => {
+                      const monthParts = d.month.split("-");
+                      const monthLabel = `${monthParts[0]}년 ${parseInt(monthParts[1])}월`;
+                      return (
+                        <button key={d.id} onClick={() => setCategory(d.role as Category)}
+                          className="w-full flex items-center justify-between bg-white rounded-2xl border border-amber-200 bg-amber-50/50 p-4 hover:border-toss-blue hover:bg-blue-50/30 active:scale-[0.98] transition-all text-left shadow-sm">
+                          <div className="flex items-center gap-3">
+                            <span className="text-[22px]">{d.role === "촬영PD" ? "🎬" : "🎞️"}</span>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <p className="text-[15px] font-bold text-toss-gray-900">
+                                  {monthLabel} {d.role === "촬영PD" ? "촬영비" : "편집비"}
+                                </p>
+                                <span className="px-1.5 py-0.5 bg-amber-100 text-amber-600 rounded text-[11px] font-bold">임시저장</span>
+                              </div>
+                              <p className="text-[13px] text-toss-gray-500">{d.itemCount}건</p>
+                            </div>
+                          </div>
+                          <span className="text-[14px] font-bold text-toss-blue">{d.final_amount.toLocaleString()}원</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
               <p className="text-[15px] text-toss-gray-600 mb-2">정산 카테고리를 선택하세요</p>
               {[
                 { key: "촬영PD" as Category, icon: "🎬", label: "촬영비 정산", desc: "건당 200,000원" },
@@ -358,9 +421,9 @@ export default function Home() {
               </button>
               <div className="bg-white rounded-3xl shadow-sm border border-toss-gray-100 p-6">
                 {category === "촬영PD" ? (
-                  <PDForm worker={worker} onSubmitSuccess={handleSubmitSuccess} />
+                  <PDForm worker={worker} onSubmitSuccess={handleSubmitSuccess} onDraftSaved={handleDraftSaved} />
                 ) : (
-                  <EditorForm worker={worker} onSubmitSuccess={handleSubmitSuccess} />
+                  <EditorForm worker={worker} onSubmitSuccess={handleSubmitSuccess} onDraftSaved={handleDraftSaved} />
                 )}
               </div>
             </div>

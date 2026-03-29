@@ -10,6 +10,7 @@ import SettlementSummary from "./SettlementSummary";
 interface PDFormProps {
   worker: Worker;
   onSubmitSuccess: () => void;
+  onDraftSaved?: () => void;
 }
 
 const emptyItem = (): PDLineItem => ({
@@ -20,7 +21,7 @@ const emptyItem = (): PDLineItem => ({
   amount: PD_RATE,
 });
 
-export default function PDForm({ worker, onSubmitSuccess }: PDFormProps) {
+export default function PDForm({ worker, onSubmitSuccess, onDraftSaved }: PDFormProps) {
   const [month, setMonth] = useState(() => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
@@ -187,6 +188,11 @@ export default function PDForm({ worker, onSubmitSuccess }: PDFormProps) {
       if (!res.ok) throw new Error();
       const data = await res.json();
       setDraftId(data.id);
+      localStorage.removeItem(autoSaveKey);
+      if (onDraftSaved) {
+        onDraftSaved();
+        return;
+      }
       setBanner("임시저장되었어요");
     } catch {
       alert("임시저장에 실패했습니다.");
