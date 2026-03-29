@@ -65,7 +65,7 @@ export default function EditorForm({ worker, onSubmitSuccess, onDraftSaved, onDe
 
       // Supabase 임시저장 확인
       try {
-        const res = await fetch(`/api/draft/${worker.id}?role=편집자`);
+        const res = await fetch(`/api/draft/${worker.id}?role=편집비`);
         if (res.ok) {
           const draft = await res.json();
           if (draft) {
@@ -168,7 +168,7 @@ export default function EditorForm({ worker, onSubmitSuccess, onDraftSaved, onDe
           draftId,
           workerId: worker.id,
           workerName: worker.name,
-          role: "편집자",
+          role: "편집비",
           contractType: worker.contractType,
           settlementMonth: month,
           items,
@@ -287,7 +287,7 @@ export default function EditorForm({ worker, onSubmitSuccess, onDraftSaved, onDe
       </div>
 
       <SettlementSummary totalWork={totalWork} totalExpense={0}
-        contractType={worker.contractType} itemCount={items.length} role="편집자" totalDuration={totalDuration} />
+        contractType={worker.contractType} itemCount={items.length} role="편집비" totalDuration={totalDuration} />
 
       {autoSavedAt && (
         <p className="text-[12px] text-toss-gray-400 text-center">

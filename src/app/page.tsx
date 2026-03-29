@@ -10,7 +10,7 @@ import { getRoleLabel } from "@/lib/tax";
 
 type Page = "login" | "pin" | "register" | "register-done" | "main";
 type Tab = "write" | "history";
-type Category = "촬영PD" | "숏폼" | "카드뉴스" | "편집자" | null;
+type Category = "촬영비" | "숏폼" | "카드뉴스" | "편집비" | null;
 
 export default function Home() {
   const [page, setPage] = useState<Page>("login");
@@ -97,7 +97,7 @@ export default function Home() {
       const w: Worker = {
         id: data.worker.id, name: data.worker.name, email: data.worker.phone,
         role: data.worker.role, contractType: data.worker.contractType,
-        categories: data.worker.categories || ["촬영PD", "편집자"],
+        categories: data.worker.categories || ["촬영비", "편집비"],
       };
       localStorage.setItem("worker", JSON.stringify(w));
       setWorker(w);
@@ -427,7 +427,7 @@ export default function Home() {
                         <button key={d.id} onClick={() => { setLoadDraft(true); setCategory(d.role as Category); }}
                           className="w-full flex items-center justify-between bg-white rounded-2xl border border-amber-200 bg-amber-50/50 p-4 hover:border-toss-blue hover:bg-blue-50/30 active:scale-[0.98] transition-all text-left shadow-sm">
                           <div className="flex items-center gap-3">
-                            <span className="text-[22px]">{{ "촬영PD": "🎬", "숏폼": "📱", "카드뉴스": "📰", "편집자": "🎞️" }[d.role] || "📋"}</span>
+                            <span className="text-[22px]">{{ "촬영비": "🎬", "숏폼": "📱", "카드뉴스": "📰", "편집비": "🎞️" }[d.role] || "📋"}</span>
                             <div>
                               <div className="flex items-center gap-2">
                                 <p className="text-[15px] font-bold text-toss-gray-900">
@@ -447,11 +447,11 @@ export default function Home() {
               )}
               <p className="text-[15px] text-toss-gray-600 mb-2">정산 카테고리를 선택하세요</p>
               {[
-                { key: "촬영PD" as Category, icon: "🎬", label: "촬영비 정산", desc: "건당 200,000원" },
+                { key: "촬영비" as Category, icon: "🎬", label: "촬영비 정산", desc: "건당 200,000원" },
                 { key: "숏폼" as Category, icon: "📱", label: "숏폼 정산", desc: "건당 10,000원" },
                 { key: "카드뉴스" as Category, icon: "📰", label: "카드뉴스 정산", desc: "건당 10,000원" },
-                { key: "편집자" as Category, icon: "🎞️", label: "편집비 정산", desc: "분당 10,000원" },
-              ].filter((c) => (worker.categories || ["촬영PD", "편집자"]).includes(c.key!)).map((c) => (
+                { key: "편집비" as Category, icon: "🎞️", label: "편집비 정산", desc: "분당 10,000원" },
+              ].filter((c) => (worker.categories || ["촬영비", "편집비"]).includes(c.key!)).map((c) => (
                 <button key={c.key} onClick={() => { setLoadDraft(false); setCategory(c.key); }}
                   className="w-full flex items-center gap-4 bg-white rounded-2xl border border-toss-gray-100 p-5 hover:border-toss-blue hover:bg-blue-50/30 active:scale-[0.98] transition-all text-left shadow-sm">
                   <span className="text-[28px]">{c.icon}</span>
@@ -469,7 +469,7 @@ export default function Home() {
                 ← 카테고리 다시 선택
               </button>
               <div className="bg-white rounded-3xl shadow-sm border border-toss-gray-100 p-6">
-                {category === "촬영PD" ? (
+                {category === "촬영비" ? (
                   <PDForm worker={worker} onSubmitSuccess={handleSubmitSuccess} onDraftSaved={handleDraftSaved} onDeleteDraft={handleDeleteDraft} loadDraft={loadDraft} />
                 ) : category === "숏폼" ? (
                   <PDForm worker={worker} onSubmitSuccess={handleSubmitSuccess} onDraftSaved={handleDraftSaved} onDeleteDraft={handleDeleteDraft} loadDraft={loadDraft} rate={10000} roleName="숏폼" formTitle="숏폼 내역" />

@@ -153,7 +153,7 @@ export default function SubmitPage() {
         {/* 탭 내용 */}
         {tab === "write" ? (
           <div className="bg-white rounded-2xl shadow-sm border p-6">
-            {worker.role === "촬영PD" ? (
+            {worker.role === "촬영비" ? (
               <PDForm worker={worker} onSubmitSuccess={handleSubmitSuccess} />
             ) : (
               <EditorForm worker={worker} onSubmitSuccess={handleSubmitSuccess} />

@@ -25,7 +25,7 @@ export default function SettlementSummary({
 
       <div className="space-y-3 text-[14px]">
         <Row label={`${getRoleLabel(role)} 건수`} value={`${itemCount}건`} />
-        {role === "편집자" && totalDuration !== undefined && (
+        {role === "편집비" && totalDuration !== undefined && (
           <Row label="총 영상 길이" value={`${totalDuration}분`} />
         )}
         <Row label={getRoleLabel(role)} value={`${totalWork.toLocaleString()}원`} />

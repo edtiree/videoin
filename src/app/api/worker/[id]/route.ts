@@ -25,6 +25,6 @@ export async function GET(
     name: data.name,
     role: data.role,
     contractType: data.contract_type,
-    categories: data.categories || ["촬영PD", "편집자"],
+    categories: data.categories || ["촬영비", "편집비"],
   });
 }

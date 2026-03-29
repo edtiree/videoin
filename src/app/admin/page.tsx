@@ -10,10 +10,10 @@ interface WorkerData {
 }
 
 const ALL_CATEGORIES = [
-  { key: "촬영PD", label: "촬영비" },
+  { key: "촬영비", label: "촬영비" },
   { key: "숏폼", label: "숏폼" },
   { key: "카드뉴스", label: "카드뉴스" },
-  { key: "편집자", label: "편집비" },
+  { key: "편집비", label: "편집비" },
 ];
 
 interface DashboardData {
@@ -109,7 +109,7 @@ export default function AdminPage() {
   const handleCategoryToggle = async (workerId: string, category: string) => {
     const worker = workers.find((w) => w.id === workerId);
     if (!worker) return;
-    const current = worker.categories || ["촬영PD", "편집자"];
+    const current = worker.categories || ["촬영비", "편집비"];
     const updated = current.includes(category)
       ? current.filter((c) => c !== category)
       : [...current, category];
@@ -299,7 +299,7 @@ function SettlementsView({ settlements, selectedMonth, onMonthChange, onStatusCh
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-[15px] font-bold text-toss-gray-900">{s.worker_name}</span>
                       <span className="px-1.5 py-0.5 bg-toss-gray-100 text-toss-gray-600 rounded text-[11px] font-bold">
-                        {s.role === "촬영PD" ? "촬영비" : s.role === "편집자" ? "편집비" : s.role}
+                        {s.role === "촬영비" ? "촬영비" : s.role === "편집비" ? "편집비" : s.role}
                       </span>
                       <span className={`px-2 py-0.5 rounded-lg text-[11px] font-bold ${statusStyle[s.status] || ""}`}>
                         {s.status}
@@ -313,7 +313,7 @@ function SettlementsView({ settlements, selectedMonth, onMonthChange, onStatusCh
                 {isExpanded && (
                   <div className="border-t border-toss-gray-100 px-5 py-5 bg-toss-gray-50 space-y-4">
                     <div className="space-y-2.5 text-[14px]">
-                      <SRow label={s.role === "촬영PD" ? "촬영비" : s.role === "편집자" ? "편집비" : s.role} value={`${(s.total_amount - s.total_expense).toLocaleString()}원`} />
+                      <SRow label={s.role === "촬영비" ? "촬영비" : s.role === "편집비" ? "편집비" : s.role} value={`${(s.total_amount - s.total_expense).toLocaleString()}원`} />
                       {s.total_expense > 0 && <SRow label="경비" value={`${s.total_expense.toLocaleString()}원`} />}
                       <SRow label="총액" value={`${s.total_amount.toLocaleString()}원`} />
                       <SRow label={isFreelancer ? "원천징수(3.3%)" : "부가세(10%)"}
@@ -334,12 +334,12 @@ function SettlementsView({ settlements, selectedMonth, onMonthChange, onStatusCh
                             <span className="font-semibold text-toss-gray-900 text-[14px]">{item.performer}</span>
                             <span className="font-bold text-toss-gray-800 text-[14px]">{item.amount.toLocaleString()}원</span>
                           </div>
-                          {s.role === "촬영PD" && item.filmingDate && (
+                          {s.role === "촬영비" && item.filmingDate && (
                             <p className="text-[12px] text-toss-gray-500 mt-1">
                               {item.filmingDate}{item.expense && item.expense > 0 ? ` · 경비 ${item.expense.toLocaleString()}원` : ""}
                             </p>
                           )}
-                          {s.role === "편집자" && (
+                          {s.role === "편집비" && (
                             <p className="text-[12px] text-toss-gray-500 mt-1">
                               {item.videoDuration}분
                               {item.videoLink && <> · <a href={item.videoLink} target="_blank" rel="noopener noreferrer" className="text-toss-blue hover:underline">영상 링크</a></>}
@@ -511,7 +511,7 @@ function DashboardView({ dashboard, loading, selectedMonth, onMonthChange, forma
                         </span>
                       </div>
                       <span className="text-[12px] text-toss-gray-400">
-                        {formatMonth(s.settlementMonth)} · {s.role === "촬영PD" ? "촬영비" : s.role === "편집자" ? "편집비" : s.role}
+                        {formatMonth(s.settlementMonth)} · {s.role === "촬영비" ? "촬영비" : s.role === "편집비" ? "편집비" : s.role}
                       </span>
                     </div>
                     <span className="text-[15px] font-bold text-toss-gray-900">
@@ -595,7 +595,7 @@ function WorkerCard({ worker, expanded, onToggle, onApprove, onReject, onRevoke,
   onCategoryToggle?: (category: string) => void;
   formatPhone: (p: string) => string; formatDate: (d: string) => string;
 }) {
-  const categories = worker.categories || ["촬영PD", "편집자"];
+  const categories = worker.categories || ["촬영비", "편집비"];
   return (
     <div className="bg-white border border-toss-gray-100 rounded-2xl overflow-hidden shadow-sm">
       <button onClick={onToggle}

@@ -1,4 +1,4 @@
-export type Role = "촬영PD" | "편집자";
+export type Role = "촬영비" | "편집비";
 export type ContractType = "프리랜서" | "사업자";
 
 export interface Worker {

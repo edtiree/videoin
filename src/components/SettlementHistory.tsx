@@ -162,12 +162,12 @@ export default function SettlementHistory({ workerId, role, contractType, refres
                         <span className="font-semibold text-toss-gray-900 text-[14px]">{item.performer}</span>
                         <span className="font-bold text-toss-gray-800 text-[14px]">{item.amount.toLocaleString()}원</span>
                       </div>
-                      {s.role === "촬영PD" && item.filmingDate && (
+                      {s.role === "촬영비" && item.filmingDate && (
                         <p className="text-[12px] text-toss-gray-500 mt-1">
                           {item.filmingDate}{item.expense && item.expense > 0 ? ` · 경비 ${item.expense.toLocaleString()}원` : ""}
                         </p>
                       )}
-                      {s.role === "편집자" && (
+                      {s.role === "편집비" && (
                         <p className="text-[12px] text-toss-gray-500 mt-1">
                           {item.videoDuration}분
                           {item.videoLink && (
