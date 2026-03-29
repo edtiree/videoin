@@ -114,9 +114,6 @@ export default function SubmitPage() {
           <h1 className="text-xl font-bold text-gray-800 mb-1">정산서</h1>
           <div className="flex items-center gap-2 text-sm">
             <span className="font-medium text-gray-700">{worker.name}</span>
-            <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
-              {worker.role}
-            </span>
             <span
               className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                 worker.contractType === "프리랜서"

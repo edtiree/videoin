@@ -18,7 +18,7 @@ interface PDFormProps {
   formTitle?: string;
 }
 
-export default function PDForm({ worker, onSubmitSuccess, onDraftSaved, onDeleteDraft, loadDraft = true, rate = PD_RATE, roleName = "촬영PD", formTitle = "롱폼 내역" }: PDFormProps) {
+export default function PDForm({ worker, onSubmitSuccess, onDraftSaved, onDeleteDraft, loadDraft = true, rate = PD_RATE, roleName = "촬영PD", formTitle = "촬영 내역" }: PDFormProps) {
   const emptyItem = (): PDLineItem => ({
     performer: "", filmingDate: "", expense: 0, receiptUrls: [], amount: rate,
   });

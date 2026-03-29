@@ -447,7 +447,7 @@ export default function Home() {
               )}
               <p className="text-[15px] text-toss-gray-600 mb-2">정산 카테고리를 선택하세요</p>
               {[
-                { key: "촬영PD" as Category, icon: "🎬", label: "롱폼 정산", desc: "건당 200,000원" },
+                { key: "촬영PD" as Category, icon: "🎬", label: "촬영비 정산", desc: "건당 200,000원" },
                 { key: "숏폼" as Category, icon: "📱", label: "숏폼 정산", desc: "건당 10,000원" },
                 { key: "카드뉴스" as Category, icon: "📰", label: "카드뉴스 정산", desc: "건당 10,000원" },
                 { key: "편집자" as Category, icon: "🎞️", label: "편집비 정산", desc: "분당 10,000원" },
