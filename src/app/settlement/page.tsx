@@ -42,6 +42,8 @@ export default function Home() {
   const [draftsKey, setDraftsKey] = useState(0);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [cachedSettlements, setCachedSettlements] = useState<any[] | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [cachedDrafts, setCachedDrafts] = useState<any[]>([]);
   const pinRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -67,6 +69,8 @@ export default function Home() {
           created_at: s.created_at,
         }));
       setDrafts(draftList);
+      // 임시저장 전체 데이터 캐시 (items 포함)
+      setCachedDrafts((all || []).filter((s: { status: string }) => s.status === "임시저장"));
       // 제출 이력 캐시
       setCachedSettlements((all || []).filter((s: { status: string }) => s.status !== "임시저장"));
     } catch {}
@@ -562,13 +566,13 @@ export default function Home() {
               </button>
               <div className="bg-white rounded-3xl shadow-sm border border-toss-gray-100 p-6">
                 {category === "촬영비" ? (
-                  <PDForm worker={worker} onSubmitSuccess={handleSubmitSuccess} onDraftSaved={handleDraftSaved} onDeleteDraft={handleDeleteDraft} loadDraft={loadDraft} />
+                  <PDForm worker={worker} onSubmitSuccess={handleSubmitSuccess} onDraftSaved={handleDraftSaved} onDeleteDraft={handleDeleteDraft} loadDraft={loadDraft} initialDraft={loadDraft ? cachedDrafts.find(d => d.role === "촬영비") : undefined} />
                 ) : category === "숏폼" ? (
-                  <PDForm worker={worker} onSubmitSuccess={handleSubmitSuccess} onDraftSaved={handleDraftSaved} onDeleteDraft={handleDeleteDraft} loadDraft={loadDraft} rate={10000} roleName="숏폼" formTitle="숏폼 내역" />
+                  <PDForm worker={worker} onSubmitSuccess={handleSubmitSuccess} onDraftSaved={handleDraftSaved} onDeleteDraft={handleDeleteDraft} loadDraft={loadDraft} rate={10000} roleName="숏폼" formTitle="숏폼 내역" initialDraft={loadDraft ? cachedDrafts.find(d => d.role === "숏폼") : undefined} />
                 ) : category === "카드뉴스" ? (
-                  <PDForm worker={worker} onSubmitSuccess={handleSubmitSuccess} onDraftSaved={handleDraftSaved} onDeleteDraft={handleDeleteDraft} loadDraft={loadDraft} rate={10000} roleName="카드뉴스" formTitle="카드뉴스 내역" />
+                  <PDForm worker={worker} onSubmitSuccess={handleSubmitSuccess} onDraftSaved={handleDraftSaved} onDeleteDraft={handleDeleteDraft} loadDraft={loadDraft} rate={10000} roleName="카드뉴스" formTitle="카드뉴스 내역" initialDraft={loadDraft ? cachedDrafts.find(d => d.role === "카드뉴스") : undefined} />
                 ) : (
-                  <EditorForm worker={worker} onSubmitSuccess={handleSubmitSuccess} onDraftSaved={handleDraftSaved} onDeleteDraft={handleDeleteDraft} loadDraft={loadDraft} />
+                  <EditorForm worker={worker} onSubmitSuccess={handleSubmitSuccess} onDraftSaved={handleDraftSaved} onDeleteDraft={handleDeleteDraft} loadDraft={loadDraft} initialDraft={loadDraft ? cachedDrafts.find(d => d.role === "편집비") : undefined} />
                 )}
               </div>
             </div>

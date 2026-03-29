@@ -18,9 +18,11 @@ interface PDFormProps {
   rate?: number;
   roleName?: string;
   formTitle?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  initialDraft?: any;
 }
 
-export default function PDForm({ worker, onSubmitSuccess, onDraftSaved, onDeleteDraft, loadDraft = true, rate = PD_RATE, roleName = "촬영비", formTitle = "촬영 내역" }: PDFormProps) {
+export default function PDForm({ worker, onSubmitSuccess, onDraftSaved, onDeleteDraft, loadDraft = true, rate = PD_RATE, roleName = "촬영비", formTitle = "촬영 내역", initialDraft }: PDFormProps) {
   const emptyItem = (): PDLineItem => ({
     performer: "", filmingDate: "", expense: 0, receiptUrls: [], amount: rate,
   });
@@ -41,16 +43,20 @@ export default function PDForm({ worker, onSubmitSuccess, onDraftSaved, onDelete
   // 마운트 시 임시저장 불러오기
   useEffect(() => {
     if (!loadDraft) return;
+    // 캐시된 데이터가 있으면 즉시 사용
+    if (initialDraft) {
+      setDraftId(initialDraft.id);
+      setMonth(initialDraft.settlement_month?.slice(0, 10) || initialDraft.month || "");
+      setItems(initialDraft.items || []);
+      return;
+    }
+    // 없으면 API 호출
     const loadSaved = async () => {
       try {
         const res = await fetch(`/api/draft/${worker.id}?role=${encodeURIComponent(roleName)}`);
         if (res.ok) {
           const draft = await res.json();
-          if (draft) {
-            setDraftId(draft.id);
-            setMonth(draft.month);
-            setItems(draft.items);
-          }
+          if (draft) { setDraftId(draft.id); setMonth(draft.month); setItems(draft.items); }
         }
       } catch {}
     };

@@ -13,13 +13,15 @@ interface EditorFormProps {
   onDraftSaved?: () => void;
   onDeleteDraft?: (draftId: string) => void;
   loadDraft?: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  initialDraft?: any;
 }
 
 const emptyItem = (): EditorLineItem => ({
   performer: "", videoLink: "", videoDuration: 0, amount: 0,
 });
 
-export default function EditorForm({ worker, onSubmitSuccess, onDraftSaved, onDeleteDraft, loadDraft = true }: EditorFormProps) {
+export default function EditorForm({ worker, onSubmitSuccess, onDraftSaved, onDeleteDraft, loadDraft = true, initialDraft }: EditorFormProps) {
   const [month, setMonth] = useState(() => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
@@ -37,16 +39,18 @@ export default function EditorForm({ worker, onSubmitSuccess, onDraftSaved, onDe
   // 마운트 시 임시저장 불러오기
   useEffect(() => {
     if (!loadDraft) return;
+    if (initialDraft) {
+      setDraftId(initialDraft.id);
+      setMonth(initialDraft.settlement_month?.slice(0, 10) || initialDraft.month || "");
+      setItems(initialDraft.items || []);
+      return;
+    }
     const loadSaved = async () => {
       try {
         const res = await fetch(`/api/draft/${worker.id}?role=편집비`);
         if (res.ok) {
           const draft = await res.json();
-          if (draft) {
-            setDraftId(draft.id);
-            setMonth(draft.month);
-            setItems(draft.items);
-          }
+          if (draft) { setDraftId(draft.id); setMonth(draft.month); setItems(draft.items); }
         }
       } catch {}
     };
