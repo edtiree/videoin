@@ -114,7 +114,7 @@ export default function AdminPage() {
   };
 
   const formatDate = (d: string) => { const dt = new Date(d); return `${dt.getFullYear()}.${dt.getMonth() + 1}.${dt.getDate()}`; };
-  const formatMonth = (d: string) => { const dt = new Date(d); return `${dt.getFullYear()}년 ${dt.getMonth() + 1}월`; };
+  const formatMonth = (d: string) => { const dt = new Date(d); return `${dt.getFullYear()}년 ${dt.getMonth() + 1}월 ${dt.getDate()}일`; };
 
   // ─── 로그인 ───
   if (!authed) {
