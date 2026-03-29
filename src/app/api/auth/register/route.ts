@@ -56,7 +56,7 @@ export async function POST(request: Request) {
         phone,
         pin: hashedPin,
         name,
-        role: role || null,
+        role: role || "촬영PD",
         contract_type: contractType,
         bank_name: bankName || null,
         bank_account: bankAccount || null,

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ContractType, Role } from "@/types";
+import { ContractType } from "@/types";
 import FileUpload from "./FileUpload";
 
 interface RegisterFormProps {
@@ -15,7 +15,6 @@ export default function RegisterForm({ onSuccess, onBack }: RegisterFormProps) {
   const [pin, setPin] = useState("");
   const [pinConfirm, setPinConfirm] = useState("");
   const [name, setName] = useState("");
-  const [role, setRole] = useState<Role>("촬영PD");
   const [contractType, setContractType] = useState<ContractType>("프리랜서");
   const [bankName, setBankName] = useState("");
   const [bankAccount, setBankAccount] = useState("");
@@ -51,7 +50,7 @@ export default function RegisterForm({ onSuccess, onBack }: RegisterFormProps) {
       const res = await fetch("/api/auth/register", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          phone: phone.replace(/\D/g, ""), pin, name: name.trim(), role, contractType,
+          phone: phone.replace(/\D/g, ""), pin, name: name.trim(), contractType,
           bankName: bankName || undefined, bankAccount: bankAccount || undefined,
           accountHolder: accountHolder || undefined, businessRegistrationUrl: businessRegUrl || undefined,
         }),
@@ -100,17 +99,6 @@ export default function RegisterForm({ onSuccess, onBack }: RegisterFormProps) {
           <Field label="PIN 확인">
             <input type="password" value={pinConfirm} onChange={(e) => setPinConfirm(e.target.value.replace(/\D/g, "").slice(0, 4))}
               className={inputClass} placeholder="다시 입력하세요" inputMode="numeric" />
-          </Field>
-
-          <Field label="직무">
-            <div className="grid grid-cols-2 gap-2">
-              {(["촬영PD", "편집자"] as Role[]).map((r) => (
-                <button key={r} type="button" onClick={() => setRole(r)}
-                  className={`py-3 rounded-xl text-[14px] font-semibold border-2 transition-all ${
-                    role === r ? "bg-toss-blue text-white border-toss-blue" : "bg-white text-toss-gray-600 border-toss-gray-200 hover:border-toss-blue"
-                  }`}>{r}</button>
-              ))}
-            </div>
           </Field>
 
           <Field label="계약 유형">
