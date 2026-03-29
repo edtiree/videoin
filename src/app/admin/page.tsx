@@ -90,6 +90,13 @@ export default function AdminPage() {
     if (authed) { fetchDashboard(); fetchSettlements(); }
   }, [selectedMonth]);
 
+  // 직원 목록 자동 새로고침 (30초)
+  useEffect(() => {
+    if (!authed) return;
+    const interval = setInterval(fetchWorkers, 30000);
+    return () => clearInterval(interval);
+  }, [authed]);
+
   const handleApprove = async (workerId: string, approved: boolean) => {
     const res = await fetch("/api/admin/approve", {
       method: "POST", headers: { "Content-Type": "application/json" },
