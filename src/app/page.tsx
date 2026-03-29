@@ -342,6 +342,7 @@ export default function Home() {
                 setPin(val);
                 if (val.length === 4) setTimeout(() => doLogin(val), 150);
               }}
+              autoComplete="off"
               className="absolute inset-0 opacity-0 w-full h-full caret-transparent"
               inputMode="numeric"
             />

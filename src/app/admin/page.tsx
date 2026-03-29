@@ -192,6 +192,7 @@ export default function AdminPage() {
                 setPin(val);
                 if (val.length === 4) setTimeout(() => handleAuth(val), 150);
               }}
+              autoComplete="off"
               className="absolute inset-0 opacity-0 w-full h-full caret-transparent"
               inputMode="numeric" />
           </div>

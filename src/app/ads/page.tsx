@@ -152,7 +152,7 @@ export default function AdsPage() {
                 pin.length > i ? "bg-toss-blue text-white scale-105" : pin.length === i ? "bg-white border-2 border-toss-blue" : "bg-toss-gray-100 border border-toss-gray-200"
               }`}>{pin[i] ? "●" : ""}</div>
             ))}
-            <input id="ads-pin" type="tel" value={pin} autoFocus
+            <input id="ads-pin" type="tel" value={pin} autoFocus autoComplete="off"
               onChange={e => { const v = e.target.value.replace(/\D/g,"").slice(0,4); setPin(v); if (v.length===4) setTimeout(()=>handleAuth(v),150); }}
               className="absolute inset-0 opacity-0 w-full h-full caret-transparent" inputMode="numeric" />
           </div>
