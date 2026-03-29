@@ -295,6 +295,10 @@ export default function AdminPage() {
             selectedMonth={selectedMonth}
             onMonthChange={setSelectedMonth}
             onStatusChange={handleStatusChange}
+            onTaxInvoiceToggle={async (id, issued) => {
+              setSettlements(prev => prev.map(x => x.id === id ? { ...x, tax_invoice_issued: issued } : x));
+              await fetch("/api/settlements/tax-invoice", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ settlementId: id, issued }) });
+            }}
             formatMonth={formatMonth}
             formatDate={formatDate}
           />
@@ -333,10 +337,11 @@ export default function AdminPage() {
 }
 
 // ─── 정산서 관리 ───
-function SettlementsView({ settlements, selectedMonth, onMonthChange, onStatusChange, formatMonth, formatDate }: {
+function SettlementsView({ settlements, selectedMonth, onMonthChange, onStatusChange, onTaxInvoiceToggle, formatMonth, formatDate }: {
   settlements: SettlementData[]; selectedMonth: string;
   onMonthChange: (m: string) => void;
   onStatusChange: (id: string, status: string) => void;
+  onTaxInvoiceToggle: (id: string, issued: boolean) => void;
   formatMonth: (d: string) => string; formatDate: (d: string) => string;
 }) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -456,6 +461,19 @@ function SettlementsView({ settlements, selectedMonth, onMonthChange, onStatusCh
                         </div>
                       ))}
                     </div>
+
+                    {s.contract_type === "사업자" && (
+                      <div className="flex items-center justify-between bg-white rounded-xl p-3.5 border border-toss-gray-100">
+                        <div>
+                          <span className="text-[14px] font-semibold text-toss-gray-900">세금계산서</span>
+                          <span className="text-[12px] text-toss-gray-400 ml-2">{s.tax_invoice_issued ? "발행 완료" : "미발행"}</span>
+                        </div>
+                        <button onClick={() => onTaxInvoiceToggle(s.id, !s.tax_invoice_issued)}
+                          className={`w-11 h-6 rounded-full transition-all relative ${s.tax_invoice_issued ? "bg-toss-blue" : "bg-toss-gray-200"}`}>
+                          <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all ${s.tax_invoice_issued ? "left-[22px]" : "left-0.5"}`} />
+                        </button>
+                      </div>
+                    )}
 
                     <p className="text-[12px] text-toss-gray-400 text-right">제출 {formatDate(s.created_at)}</p>
 
