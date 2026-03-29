@@ -45,6 +45,8 @@ export default function AdsPage() {
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [alertMsg, setAlertMsg] = useState<string | null>(null);
+  const [tab, setTab] = useState<"dashboard" | "db" | "calendar">("dashboard");
+  const [calMonth, setCalMonth] = useState(() => { const n = new Date(); return { year: n.getFullYear(), month: n.getMonth() + 1 }; });
 
   const handleAuth = (v?: string) => {
     if ((v || pin) === ADMIN_PIN) { setAuthed(true); }
@@ -148,15 +150,187 @@ export default function AdsPage() {
     <div className="min-h-screen bg-gray-50 pb-10">
       <div className="bg-white border-b border-toss-gray-100">
         <div className="max-w-6xl mx-auto px-5 py-4 flex items-center justify-between">
-          <h1 className="text-[20px] font-bold text-toss-gray-900">광고 DB</h1>
-          <button onClick={() => setEditAd({ youtube_channel: "돈벌쥐", progress: "완료", filming_fee_status: "정산 전", vat_method: "부가세 별도", tax_invoice: "발행 전", rs_settlement: "시작 전", ad_fee: 0, supply_amount: 0, vat_amount: 0, total_amount: 0, rs_rate: 0, rs_cost: 0 })}
-            className="px-4 py-2 bg-toss-blue text-white text-[14px] font-semibold rounded-xl hover:bg-toss-blue-hover active:scale-[0.98] transition-all">
-            + 새 광고
-          </button>
+          <h1 className="text-[20px] font-bold text-toss-gray-900">광고 관리</h1>
+          {tab === "db" && (
+            <button onClick={() => setEditAd({ youtube_channel: "돈벌쥐", progress: "완료", filming_fee_status: "정산 전", vat_method: "부가세 별도", tax_invoice: "발행 전", rs_settlement: "시작 전", ad_fee: 0, supply_amount: 0, vat_amount: 0, total_amount: 0, rs_rate: 0, rs_cost: 0 })}
+              className="px-4 py-2 bg-toss-blue text-white text-[14px] font-semibold rounded-xl hover:bg-toss-blue-hover active:scale-[0.98] transition-all">
+              + 새 광고
+            </button>
+          )}
+        </div>
+        <div className="max-w-6xl mx-auto px-5">
+          <div className="flex gap-1 bg-toss-gray-100 rounded-xl p-1">
+            {([["dashboard","정산현황"],["db","광고 DB"],["calendar","캘린더"]] as const).map(([k,l]) => (
+              <button key={k} onClick={() => setTab(k)}
+                className={`flex-1 py-2.5 text-[14px] font-semibold rounded-lg transition-all ${tab === k ? "bg-white text-toss-gray-900 shadow-sm" : "text-toss-gray-500"}`}>
+                {l}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
       <div className="max-w-6xl mx-auto px-5 mt-4">
+
+      {/* ─── 대시보드 ─── */}
+      {tab === "dashboard" && (() => {
+        const unsettledFee = ads.filter(a => a.filming_fee_status === "정산 전");
+        const unsettledRS = ads.filter(a => a.rs_rate > 0 && a.rs_settlement === "시작 전");
+        const unpaidInvoice = ads.filter(a => a.tax_invoice === "발행 전" && a.ad_fee > 0);
+        const inProgress = ads.filter(a => a.progress !== "완료");
+        return (
+          <div className="space-y-4">
+            {/* 요약 카드 */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {[
+                { label: "전체 광고", value: `${ads.length}건`, color: "text-toss-blue" },
+                { label: "촬영비 미정산", value: `${unsettledFee.length}건`, color: unsettledFee.length > 0 ? "text-toss-red" : "text-toss-green" },
+                { label: "RS 미정산", value: `${unsettledRS.length}건`, color: unsettledRS.length > 0 ? "text-toss-red" : "text-toss-green" },
+                { label: "세금계산서 미발행", value: `${unpaidInvoice.length}건`, color: unpaidInvoice.length > 0 ? "text-amber-600" : "text-toss-green" },
+              ].map((c, i) => (
+                <div key={i} className="bg-white rounded-2xl border border-toss-gray-100 p-4 shadow-sm">
+                  <p className="text-[13px] text-toss-gray-500">{c.label}</p>
+                  <p className={`text-[22px] font-bold mt-1 ${c.color}`}>{c.value}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* 촬영비 미정산 */}
+            {unsettledFee.length > 0 && (
+              <div className="bg-white rounded-2xl border border-toss-gray-100 p-5 shadow-sm">
+                <h3 className="text-[16px] font-bold text-toss-gray-900 mb-3">촬영비 미정산 ({unsettledFee.length}건)</h3>
+                <div className="space-y-2">
+                  {unsettledFee.map(a => (
+                    <div key={a.id} className="flex items-center justify-between py-2 border-b border-toss-gray-50 last:border-0">
+                      <div>
+                        <span className="text-[14px] font-semibold text-toss-gray-900">{a.performer}</span>
+                        <span className="text-[12px] text-toss-gray-400 ml-2">{a.platform} · {formatDate(a.filming_date)}</span>
+                      </div>
+                      <span className="text-[13px] font-bold text-toss-red">{a.ad_fee ? `${a.ad_fee.toLocaleString()}원` : "미정"}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* RS 미정산 */}
+            {unsettledRS.length > 0 && (
+              <div className="bg-white rounded-2xl border border-toss-gray-100 p-5 shadow-sm">
+                <h3 className="text-[16px] font-bold text-toss-gray-900 mb-3">RS 미정산 ({unsettledRS.length}건)</h3>
+                <div className="space-y-2">
+                  {unsettledRS.map(a => (
+                    <div key={a.id} className="flex items-center justify-between py-2 border-b border-toss-gray-50 last:border-0">
+                      <div>
+                        <span className="text-[14px] font-semibold text-toss-gray-900">{a.performer}</span>
+                        <span className="text-[12px] text-toss-gray-400 ml-2">{a.platform} · RS {a.rs_rate}%</span>
+                      </div>
+                      <span className="text-[13px] font-bold text-amber-600">{a.rs_cost ? `${a.rs_cost.toLocaleString()}원` : "미산정"}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 진행 중 */}
+            {inProgress.length > 0 && (
+              <div className="bg-white rounded-2xl border border-toss-gray-100 p-5 shadow-sm">
+                <h3 className="text-[16px] font-bold text-toss-gray-900 mb-3">진행 중 ({inProgress.length}건)</h3>
+                <div className="space-y-2">
+                  {inProgress.map(a => (
+                    <div key={a.id} className="flex items-center justify-between py-2 border-b border-toss-gray-50 last:border-0">
+                      <div>
+                        <span className="text-[14px] font-semibold text-toss-gray-900">{a.performer}</span>
+                        <span className="text-[12px] text-toss-gray-400 ml-2">{a.youtube_channel} · {a.platform}</span>
+                      </div>
+                      <span className={`px-2 py-0.5 rounded-lg text-[11px] font-bold ${a.progress === "편집중" ? "bg-amber-50 text-amber-600" : "bg-red-50 text-red-600"}`}>{a.progress}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 세금계산서 미발행 */}
+            {unpaidInvoice.length > 0 && (
+              <div className="bg-white rounded-2xl border border-toss-gray-100 p-5 shadow-sm">
+                <h3 className="text-[16px] font-bold text-toss-gray-900 mb-3">세금계산서 미발행 ({unpaidInvoice.length}건)</h3>
+                <div className="space-y-2">
+                  {unpaidInvoice.map(a => (
+                    <div key={a.id} className="flex items-center justify-between py-2 border-b border-toss-gray-50 last:border-0">
+                      <div>
+                        <span className="text-[14px] font-semibold text-toss-gray-900">{a.performer}</span>
+                        <span className="text-[12px] text-toss-gray-400 ml-2">{a.platform} · {a.total_amount.toLocaleString()}원</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ─── 캘린더 ─── */}
+      {tab === "calendar" && (() => {
+        const y = calMonth.year, m = calMonth.month;
+        const daysInMonth = new Date(y, m, 0).getDate();
+        const firstDay = new Date(y, m - 1, 1).getDay();
+        const days: (number | null)[] = [];
+        for (let i = 0; i < firstDay; i++) days.push(null);
+        for (let d = 1; d <= daysInMonth; d++) days.push(d);
+
+        const getEvents = (day: number) => {
+          const dateStr = `${y}-${String(m).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+          return ads.filter(a => a.filming_date === dateStr || a.upload_date?.startsWith(dateStr));
+        };
+
+        const prevMonth = () => setCalMonth(p => p.month === 1 ? { year: p.year - 1, month: 12 } : { ...p, month: p.month - 1 });
+        const nextMonth = () => setCalMonth(p => p.month === 12 ? { year: p.year + 1, month: 1 } : { ...p, month: p.month + 1 });
+
+        return (
+          <div className="bg-white rounded-2xl border border-toss-gray-100 shadow-sm overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-4">
+              <button onClick={prevMonth} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-toss-gray-100 text-toss-blue font-bold">‹</button>
+              <h2 className="text-[17px] font-bold text-toss-gray-900">{y}년 {m}월</h2>
+              <button onClick={nextMonth} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-toss-gray-100 text-toss-blue font-bold">›</button>
+            </div>
+            <div className="grid grid-cols-7 border-t border-toss-gray-100">
+              {["일","월","화","수","목","금","토"].map((l, i) => (
+                <div key={l} className={`text-center py-2 text-[12px] font-semibold border-b border-toss-gray-100 ${i === 0 ? "text-toss-red" : i === 6 ? "text-toss-blue" : "text-toss-gray-400"}`}>{l}</div>
+              ))}
+              {days.map((day, idx) => {
+                const events = day ? getEvents(day) : [];
+                const filming = events.filter(e => e.filming_date === `${y}-${String(m).padStart(2,"0")}-${String(day).padStart(2,"0")}`);
+                const upload = events.filter(e => e.upload_date?.startsWith(`${y}-${String(m).padStart(2,"0")}-${String(day).padStart(2,"0")}`));
+                return (
+                  <div key={idx} className={`min-h-[80px] border-b border-r border-toss-gray-50 p-1 ${!day ? "bg-toss-gray-50/50" : ""}`}>
+                    {day && (
+                      <>
+                        <span className={`text-[12px] font-medium ${idx % 7 === 0 ? "text-toss-red" : idx % 7 === 6 ? "text-toss-blue" : "text-toss-gray-600"}`}>{day}</span>
+                        <div className="space-y-0.5 mt-0.5">
+                          {filming.slice(0, 2).map((e, i) => (
+                            <div key={`f${i}`} className="text-[10px] bg-blue-50 text-toss-blue rounded px-1 py-0.5 truncate">🎬 {e.performer}</div>
+                          ))}
+                          {upload.slice(0, 2).map((e, i) => (
+                            <div key={`u${i}`} className="text-[10px] bg-green-50 text-green-600 rounded px-1 py-0.5 truncate">📤 {e.performer}</div>
+                          ))}
+                          {events.length > 4 && <div className="text-[10px] text-toss-gray-400">+{events.length - 4}</div>}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            <div className="px-5 py-3 flex gap-4 text-[12px] text-toss-gray-500">
+              <span className="flex items-center gap-1"><span className="w-3 h-3 bg-blue-50 rounded"></span> 촬영</span>
+              <span className="flex items-center gap-1"><span className="w-3 h-3 bg-green-50 rounded"></span> 업로드</span>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ─── 광고 DB ─── */}
+      {tab === "db" && (<>
         {/* 필터 */}
         <div className="flex flex-wrap gap-2 mb-4">
           {[
@@ -256,7 +430,7 @@ export default function AdsPage() {
             </table>
           </div>
         )}
-      </div>
+      </>)}
 
       {/* 수정/추가 모달 */}
       {editAd && (
@@ -373,6 +547,7 @@ export default function AdsPage() {
       {alertMsg && (
         <ConfirmModal title="알림" message={alertMsg} confirmText="확인" onConfirm={() => setAlertMsg(null)} />
       )}
+      </div>
     </div>
   );
 }
