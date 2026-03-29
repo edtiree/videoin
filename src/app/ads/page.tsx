@@ -39,7 +39,8 @@ export default function AdsPage() {
   const [loginError, setLoginError] = useState("");
   const [ads, setAds] = useState<Ad[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState({ channel: "", progress: "", month: "" });
+  const [filter, setFilter] = useState({ channel: "", progress: "", month: "", platform: "", filming_fee_status: "", tax_invoice: "", rs_settlement: "" });
+  const [sort, setSort] = useState<{ key: string; asc: boolean }>({ key: "filming_date", asc: false });
   const [editAd, setEditAd] = useState<Partial<Ad> | null>(null);
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
@@ -84,11 +85,25 @@ export default function AdsPage() {
     setDeleteTarget(null);
   };
 
+  const toggleSort = (key: string) => {
+    setSort(prev => prev.key === key ? { key, asc: !prev.asc } : { key, asc: true });
+  };
+
   const filtered = ads.filter(a => {
     if (filter.channel && a.youtube_channel !== filter.channel) return false;
     if (filter.progress && a.progress !== filter.progress) return false;
     if (filter.month && !a.filming_date?.startsWith(filter.month)) return false;
+    if (filter.platform && a.platform !== filter.platform) return false;
+    if (filter.filming_fee_status && a.filming_fee_status !== filter.filming_fee_status) return false;
+    if (filter.tax_invoice && a.tax_invoice !== filter.tax_invoice) return false;
+    if (filter.rs_settlement && a.rs_settlement !== filter.rs_settlement) return false;
     return true;
+  }).sort((a, b) => {
+    const key = sort.key as keyof Ad;
+    const av = a[key] ?? "";
+    const bv = b[key] ?? "";
+    const cmp = typeof av === "number" && typeof bv === "number" ? av - bv : String(av).localeCompare(String(bv));
+    return sort.asc ? cmp : -cmp;
   });
 
   const totalAdFee = filtered.reduce((s, a) => s + (a.ad_fee || 0), 0);
@@ -144,21 +159,26 @@ export default function AdsPage() {
       <div className="max-w-6xl mx-auto px-5 mt-4">
         {/* 필터 */}
         <div className="flex flex-wrap gap-2 mb-4">
-          <select value={filter.channel} onChange={e => setFilter({...filter, channel: e.target.value})}
-            className="rounded-xl border border-toss-gray-200 px-3 py-2 text-[13px] bg-white">
-            <option value="">전체 채널</option>
-            {CHANNELS.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
-          <select value={filter.progress} onChange={e => setFilter({...filter, progress: e.target.value})}
-            className="rounded-xl border border-toss-gray-200 px-3 py-2 text-[13px] bg-white">
-            <option value="">전체 상태</option>
-            {PROGRESS.map(p => <option key={p} value={p}>{p}</option>)}
-          </select>
+          {[
+            { key: "channel", label: "채널", options: CHANNELS, value: filter.channel },
+            { key: "platform", label: "플랫폼", options: PLATFORMS, value: filter.platform },
+            { key: "progress", label: "진행상황", options: PROGRESS, value: filter.progress },
+            { key: "filming_fee_status", label: "촬영비정산", options: FEE_STATUS, value: filter.filming_fee_status },
+            { key: "tax_invoice", label: "세금계산서", options: TAX_INVOICE, value: filter.tax_invoice },
+            { key: "rs_settlement", label: "RS정산", options: RS_SETTLEMENT, value: filter.rs_settlement },
+          ].map(f => (
+            <select key={f.key} value={f.value} onChange={e => setFilter({...filter, [f.key]: e.target.value})}
+              className={`rounded-xl border px-3 py-2 text-[13px] bg-white ${f.value ? "border-toss-blue text-toss-blue font-semibold" : "border-toss-gray-200"}`}>
+              <option value="">{f.label}</option>
+              {f.options.map(o => <option key={o} value={o}>{o}</option>)}
+            </select>
+          ))}
           <input type="month" value={filter.month} onChange={e => setFilter({...filter, month: e.target.value})}
-            className="rounded-xl border border-toss-gray-200 px-3 py-2 text-[13px] bg-white" />
-          <span className="flex items-center text-[13px] text-toss-gray-500 ml-2">
-            {filtered.length}건 · 광고비 {totalAdFee.toLocaleString()}원 · 총액 {totalTotal.toLocaleString()}원
-          </span>
+            className={`rounded-xl border px-3 py-2 text-[13px] bg-white ${filter.month ? "border-toss-blue text-toss-blue font-semibold" : "border-toss-gray-200"}`} />
+          {Object.values(filter).some(v => v) && (
+            <button onClick={() => setFilter({ channel: "", progress: "", month: "", platform: "", filming_fee_status: "", tax_invoice: "", rs_settlement: "" })}
+              className="rounded-xl border border-toss-gray-200 px-3 py-2 text-[13px] text-toss-red hover:bg-red-50">초기화</button>
+          )}
         </div>
 
         {loading ? (
@@ -168,18 +188,25 @@ export default function AdsPage() {
             <table className="w-full text-[13px]">
               <thead>
                 <tr className="bg-toss-gray-50 text-toss-gray-600 text-left">
-                  <th className="px-3 py-3 font-semibold whitespace-nowrap">채널</th>
-                  <th className="px-3 py-3 font-semibold whitespace-nowrap">출연자</th>
-                  <th className="px-3 py-3 font-semibold whitespace-nowrap">플랫폼</th>
-                  <th className="px-3 py-3 font-semibold whitespace-nowrap">촬영일</th>
-                  <th className="px-3 py-3 font-semibold whitespace-nowrap">업로드일</th>
-                  <th className="px-3 py-3 font-semibold whitespace-nowrap">상태</th>
-                  <th className="px-3 py-3 font-semibold whitespace-nowrap">촬영비</th>
-                  <th className="px-3 py-3 font-semibold whitespace-nowrap">광고비</th>
-                  <th className="px-3 py-3 font-semibold whitespace-nowrap">총액</th>
-                  <th className="px-3 py-3 font-semibold whitespace-nowrap">세금계산서</th>
-                  <th className="px-3 py-3 font-semibold whitespace-nowrap">RS</th>
-                  <th className="px-3 py-3 font-semibold whitespace-nowrap"></th>
+                  {[
+                    { key: "youtube_channel", label: "채널" },
+                    { key: "performer", label: "출연자" },
+                    { key: "platform", label: "플랫폼" },
+                    { key: "filming_date", label: "촬영일" },
+                    { key: "upload_date", label: "업로드일" },
+                    { key: "progress", label: "상태" },
+                    { key: "filming_fee_status", label: "촬영비" },
+                    { key: "ad_fee", label: "광고비" },
+                    { key: "total_amount", label: "총액" },
+                    { key: "tax_invoice", label: "세금계산서" },
+                    { key: "rs_rate", label: "RS" },
+                  ].map(h => (
+                    <th key={h.key} className="px-3 py-3 font-semibold whitespace-nowrap cursor-pointer hover:text-toss-blue transition select-none"
+                      onClick={() => toggleSort(h.key)}>
+                      {h.label}{sort.key === h.key ? (sort.asc ? " ↑" : " ↓") : ""}
+                    </th>
+                  ))}
+                  <th className="px-3 py-3"></th>
                 </tr>
               </thead>
               <tbody>
