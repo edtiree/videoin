@@ -109,7 +109,7 @@ export default function AdminPage() {
   const handleCategoryToggle = async (workerId: string, category: string) => {
     const worker = workers.find((w) => w.id === workerId);
     if (!worker) return;
-    const current = worker.categories || ["촬영비", "편집비"];
+    const current = worker.categories || ["촬영비", "숏폼", "카드뉴스", "편집비"];
     const updated = current.includes(category)
       ? current.filter((c) => c !== category)
       : [...current, category];
@@ -595,7 +595,7 @@ function WorkerCard({ worker, expanded, onToggle, onApprove, onReject, onRevoke,
   onCategoryToggle?: (category: string) => void;
   formatPhone: (p: string) => string; formatDate: (d: string) => string;
 }) {
-  const categories = worker.categories || ["촬영비", "편집비"];
+  const categories = worker.categories || ["촬영비", "숏폼", "카드뉴스", "편집비"];
   return (
     <div className="bg-white border border-toss-gray-100 rounded-2xl overflow-hidden shadow-sm">
       <button onClick={onToggle}

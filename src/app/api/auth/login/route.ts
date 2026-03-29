@@ -48,7 +48,7 @@ export async function POST(request: Request) {
         bankAccount: data.bank_account,
         accountHolder: data.account_holder,
         approved: data.approved,
-        categories: data.categories || ["촬영비", "편집비"],
+        categories: data.categories || ["촬영비", "숏폼", "카드뉴스", "편집비"],
       },
     });
   } catch (error) {
