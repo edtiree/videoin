@@ -34,12 +34,7 @@ const RS_SETTLEMENT = ["시작 전", "정산 완료"];
 const ADMIN_PIN = "0123";
 
 export default function AdsPage() {
-  const [authed, setAuthed] = useState(() => {
-    if (typeof window !== "undefined") {
-      return new URLSearchParams(window.location.search).get("authed") === "1" || sessionStorage.getItem("ads_authed") === "1";
-    }
-    return false;
-  });
+  const [authed, setAuthed] = useState<boolean | null>(null);
   const [pin, setPin] = useState("");
   const [loginError, setLoginError] = useState("");
   const [ads, setAds] = useState<Ad[]>([]);
@@ -64,15 +59,17 @@ export default function AdsPage() {
     fetch("/api/ads").then(r => r.json()).then(setAds).finally(() => setLoading(false));
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    const fromAdmin = new URLSearchParams(window.location.search).get("authed") === "1" || sessionStorage.getItem("ads_authed") === "1";
+    if (fromAdmin) { setAuthed(true); fetchAds(); }
+    else setAuthed(false);
+  }, []);
+
   const handleAuth = (v?: string) => {
     if ((v || pin) === ADMIN_PIN) { setAuthed(true); sessionStorage.setItem("ads_authed", "1"); fetchAds(); }
     else { setLoginError("PIN이 일치하지 않습니다."); setPin(""); }
   };
-
-  useEffect(() => {
-    if (!authed) return;
-    if (ads.length === 0) fetchAds();
-  }, [authed]);
 
   const handleSave = async () => {
     if (!editAd) return;
@@ -149,6 +146,8 @@ export default function AdsPage() {
 
   const inputCls = "w-full rounded-xl border border-toss-gray-200 px-3 py-2.5 text-[14px] text-toss-gray-900 focus:border-toss-blue focus:ring-1 focus:ring-toss-blue/30 outline-none bg-white";
   const selectCls = inputCls;
+
+  if (authed === null) return <div className="min-h-screen"></div>;
 
   if (!authed) {
     return (
