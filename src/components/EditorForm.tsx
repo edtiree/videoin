@@ -10,13 +10,14 @@ interface EditorFormProps {
   worker: Worker;
   onSubmitSuccess: () => void;
   onDraftSaved?: () => void;
+  loadDraft?: boolean;
 }
 
 const emptyItem = (): EditorLineItem => ({
   performer: "", videoLink: "", videoDuration: 0, amount: 0,
 });
 
-export default function EditorForm({ worker, onSubmitSuccess, onDraftSaved }: EditorFormProps) {
+export default function EditorForm({ worker, onSubmitSuccess, onDraftSaved, loadDraft = true }: EditorFormProps) {
   const [month, setMonth] = useState(() => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
@@ -40,10 +41,15 @@ export default function EditorForm({ worker, onSubmitSuccess, onDraftSaved }: Ed
 
   // 마운트 시 저장된 데이터 불러오기
   useEffect(() => {
-    const loadSaved = async () => {
-      let restoredFromLocal = false;
+    if (!loadDraft) {
+      localStorage.removeItem(autoSaveKey);
+      setTimeout(() => { readyRef.current = true; }, 100);
+      return;
+    }
 
+    const loadSaved = async () => {
       // localStorage 먼저 확인
+      let restoredFromLocal = false;
       try {
         const raw = localStorage.getItem(autoSaveKey);
         if (raw) {
@@ -66,25 +72,12 @@ export default function EditorForm({ worker, onSubmitSuccess, onDraftSaved }: Ed
             if (!restoredFromLocal) {
               setMonth(draft.month);
               setItems(draft.items);
-              setBanner("임시저장된 정산서를 불러왔어요");
-            } else {
-              setBanner("이전에 작성 중이던 내용이 복원되었어요");
             }
-          } else if (restoredFromLocal) {
-            setBanner("이전에 작성 중이던 내용이 복원되었어요");
           }
-        } else if (restoredFromLocal) {
-          setBanner("이전에 작성 중이던 내용이 복원되었어요");
         }
-      } catch {
-        if (restoredFromLocal) {
-          setBanner("이전에 작성 중이던 내용이 복원되었어요");
-        }
-      }
+      } catch {}
 
-      setTimeout(() => {
-        readyRef.current = true;
-      }, 500);
+      setTimeout(() => { readyRef.current = true; }, 500);
     };
     loadSaved();
     // eslint-disable-next-line react-hooks/exhaustive-deps

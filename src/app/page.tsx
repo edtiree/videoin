@@ -16,6 +16,7 @@ export default function Home() {
   const [worker, setWorker] = useState<Worker | null>(null);
   const [tab, setTab] = useState<Tab>("write");
   const [category, setCategory] = useState<Category>(null);
+  const [loadDraft, setLoadDraft] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -111,11 +112,13 @@ export default function Home() {
 
   const handleDraftSaved = () => {
     setCategory(null);
+    setLoadDraft(false);
     setDraftsKey((k) => k + 1);
   };
 
   const handleResumeDraft = (role: string) => {
     setTab("write");
+    setLoadDraft(true);
     setCategory(role as Category);
     setDraftsKey((k) => k + 1);
   };
@@ -377,7 +380,7 @@ export default function Home() {
                       const monthParts = d.month.split("-");
                       const monthLabel = `${monthParts[0]}년 ${parseInt(monthParts[1])}월`;
                       return (
-                        <button key={d.id} onClick={() => setCategory(d.role as Category)}
+                        <button key={d.id} onClick={() => { setLoadDraft(true); setCategory(d.role as Category); }}
                           className="w-full flex items-center justify-between bg-white rounded-2xl border border-amber-200 bg-amber-50/50 p-4 hover:border-toss-blue hover:bg-blue-50/30 active:scale-[0.98] transition-all text-left shadow-sm">
                           <div className="flex items-center gap-3">
                             <span className="text-[22px]">{d.role === "촬영PD" ? "🎬" : "🎞️"}</span>
@@ -403,7 +406,7 @@ export default function Home() {
                 { key: "촬영PD" as Category, icon: "🎬", label: "촬영비 정산", desc: "건당 200,000원" },
                 { key: "편집자" as Category, icon: "🎞️", label: "편집비 정산", desc: "분당 10,000원" },
               ].map((c) => (
-                <button key={c.key} onClick={() => setCategory(c.key)}
+                <button key={c.key} onClick={() => { setLoadDraft(false); setCategory(c.key); }}
                   className="w-full flex items-center gap-4 bg-white rounded-2xl border border-toss-gray-100 p-5 hover:border-toss-blue hover:bg-blue-50/30 active:scale-[0.98] transition-all text-left shadow-sm">
                   <span className="text-[28px]">{c.icon}</span>
                   <div>
@@ -421,9 +424,9 @@ export default function Home() {
               </button>
               <div className="bg-white rounded-3xl shadow-sm border border-toss-gray-100 p-6">
                 {category === "촬영PD" ? (
-                  <PDForm worker={worker} onSubmitSuccess={handleSubmitSuccess} onDraftSaved={handleDraftSaved} />
+                  <PDForm worker={worker} onSubmitSuccess={handleSubmitSuccess} onDraftSaved={handleDraftSaved} loadDraft={loadDraft} />
                 ) : (
-                  <EditorForm worker={worker} onSubmitSuccess={handleSubmitSuccess} onDraftSaved={handleDraftSaved} />
+                  <EditorForm worker={worker} onSubmitSuccess={handleSubmitSuccess} onDraftSaved={handleDraftSaved} loadDraft={loadDraft} />
                 )}
               </div>
             </div>
