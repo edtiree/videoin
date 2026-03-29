@@ -25,7 +25,7 @@ const emptyItem = (): PDLineItem => ({
 export default function PDForm({ worker, onSubmitSuccess, onDraftSaved, loadDraft = true }: PDFormProps) {
   const [month, setMonth] = useState(() => {
     const now = new Date();
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
   });
   const [items, setItems] = useState<PDLineItem[]>([emptyItem()]);
   const [submitting, setSubmitting] = useState(false);

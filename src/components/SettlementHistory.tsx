@@ -52,7 +52,7 @@ export default function SettlementHistory({ workerId, role, contractType, refres
 
   const formatMonth = (dateStr: string) => {
     const d = new Date(dateStr);
-    return `${d.getFullYear()}년 ${d.getMonth() + 1}월`;
+    return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일`;
   };
 
   const formatDate = (dateStr: string) => {

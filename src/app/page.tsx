@@ -378,7 +378,9 @@ export default function Home() {
                   <div className="space-y-2">
                     {drafts.map((d) => {
                       const monthParts = d.month.split("-");
-                      const monthLabel = `${monthParts[0]}년 ${parseInt(monthParts[1])}월`;
+                      const monthLabel = monthParts.length >= 3
+                        ? `${monthParts[0]}년 ${parseInt(monthParts[1])}월 ${parseInt(monthParts[2])}일`
+                        : `${monthParts[0]}년 ${parseInt(monthParts[1])}월`;
                       return (
                         <button key={d.id} onClick={() => { setLoadDraft(true); setCategory(d.role as Category); }}
                           className="w-full flex items-center justify-between bg-white rounded-2xl border border-amber-200 bg-amber-50/50 p-4 hover:border-toss-blue hover:bg-blue-50/30 active:scale-[0.98] transition-all text-left shadow-sm">

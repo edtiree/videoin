@@ -11,7 +11,7 @@ export async function POST(request: Request) {
       const { error: updateError } = await supabase
         .from("settlements")
         .update({
-          settlement_month: `${data.settlementMonth}-01`,
+          settlement_month: data.settlementMonth,
           total_amount: data.totalAmount,
           total_expense: data.totalExpense || 0,
           tax: data.tax,
@@ -65,7 +65,7 @@ export async function POST(request: Request) {
         worker_name: data.workerName,
         role: data.role,
         contract_type: data.contractType,
-        settlement_month: `${data.settlementMonth}-01`,
+        settlement_month: data.settlementMonth,
         total_amount: data.totalAmount,
         total_expense: data.totalExpense || 0,
         tax: data.tax,

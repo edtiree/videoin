@@ -2,8 +2,8 @@
 
 import { useState, useRef, useEffect } from "react";
 
-interface MonthPickerProps {
-  value: string;
+interface DatePickerProps {
+  value: string; // "YYYY-MM-DD"
   onChange: (value: string) => void;
 }
 
@@ -17,14 +17,16 @@ function getFirstDayOfMonth(year: number, month: number) {
   return new Date(year, month - 1, 1).getDay();
 }
 
-export default function MonthPicker({ value, onChange }: MonthPickerProps) {
+export default function MonthPicker({ value, onChange }: DatePickerProps) {
   const [open, setOpen] = useState(false);
   const [year, setYear] = useState(() => value ? parseInt(value.split("-")[0]) : new Date().getFullYear());
   const [viewMonth, setViewMonth] = useState<number | null>(() => value ? parseInt(value.split("-")[1]) : null);
   const ref = useRef<HTMLDivElement>(null);
 
-  const selectedMonth = value ? parseInt(value.split("-")[1]) : null;
-  const selectedYear = value ? parseInt(value.split("-")[0]) : null;
+  const parts = value ? value.split("-") : [];
+  const selectedYear = parts.length >= 1 ? parseInt(parts[0]) : null;
+  const selectedMonth = parts.length >= 2 ? parseInt(parts[1]) : null;
+  const selectedDay = parts.length >= 3 ? parseInt(parts[2]) : null;
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -34,23 +36,23 @@ export default function MonthPicker({ value, onChange }: MonthPickerProps) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleConfirm = () => {
-    if (viewMonth) {
-      onChange(`${year}-${String(viewMonth).padStart(2, "0")}`);
-      setOpen(false);
-    }
+  const handleDayClick = (day: number) => {
+    if (!viewMonth) return;
+    const val = `${year}-${String(viewMonth).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    onChange(val);
+    setOpen(false);
   };
 
-  const displayValue = value && selectedYear && selectedMonth
-    ? `${selectedYear}년 ${selectedMonth}월 1일 ~ ${getDaysInMonth(selectedYear, selectedMonth)}일`
+  const displayValue = value && selectedYear && selectedMonth && selectedDay
+    ? `${selectedYear}년 ${selectedMonth}월 ${selectedDay}일`
     : "";
 
   return (
     <div ref={ref} className="relative">
-      <label className="block text-[13px] font-medium text-toss-gray-600 mb-1.5">정산월</label>
+      <label className="block text-[13px] font-medium text-toss-gray-600 mb-1.5">정산일정</label>
       <button type="button" onClick={() => { setOpen(!open); if (!open) setViewMonth(null); }}
         className="w-full rounded-xl border border-toss-gray-200 px-4 py-3 text-left text-[15px] text-toss-gray-900 focus:border-toss-blue focus:ring-1 focus:ring-toss-blue/30 outline-none transition-all bg-white">
-        {displayValue || <span className="text-toss-gray-400">정산월을 선택하세요</span>}
+        {displayValue || <span className="text-toss-gray-400">정산일정을 선택하세요</span>}
       </button>
 
       {open && (
@@ -85,19 +87,26 @@ export default function MonthPicker({ value, onChange }: MonthPickerProps) {
                   for (let i = 0; i < getFirstDayOfMonth(year, viewMonth); i++) days.push(null);
                   for (let d = 1; d <= getDaysInMonth(year, viewMonth); d++) days.push(d);
                   const today = new Date();
-                  const isCurrentMonth = today.getFullYear() === year && today.getMonth() + 1 === viewMonth;
+                  const isToday = (d: number) => today.getFullYear() === year && today.getMonth() + 1 === viewMonth && today.getDate() === d;
+                  const isSelected = (d: number) => selectedYear === year && selectedMonth === viewMonth && selectedDay === d;
                   return days.map((day, idx) => (
-                    <div key={idx} className={`text-center py-1.5 text-[13px] rounded-lg ${
-                      day === null ? "" : isCurrentMonth && day === today.getDate()
-                        ? "bg-toss-blue text-white font-bold" : "text-toss-gray-700"
-                    }`}>{day ?? ""}</div>
+                    day === null ? (
+                      <div key={idx} />
+                    ) : (
+                      <button key={idx} type="button" onClick={() => handleDayClick(day)}
+                        className={`text-center py-1.5 text-[13px] rounded-lg transition-all ${
+                          isSelected(day)
+                            ? "bg-toss-blue text-white font-bold"
+                            : isToday(day)
+                            ? "bg-blue-50 text-toss-blue font-bold"
+                            : "text-toss-gray-700 hover:bg-toss-gray-100"
+                        }`}>
+                        {day}
+                      </button>
+                    )
                   ));
                 })()}
               </div>
-              <button type="button" onClick={handleConfirm}
-                className="w-full mt-4 py-3 bg-toss-blue text-white rounded-xl text-[14px] font-semibold hover:bg-toss-blue-hover active:scale-[0.98] transition-all">
-                {year}년 {viewMonth}월 선택
-              </button>
             </>
           ) : (
             <div className="grid grid-cols-4 gap-2">

@@ -39,7 +39,7 @@ export async function GET(
 
   return NextResponse.json({
     id: settlement.id,
-    month: settlement.settlement_month.slice(0, 7),
+    month: settlement.settlement_month.slice(0, 10),
     items: items || [],
     created_at: settlement.created_at,
   });
