@@ -47,6 +47,8 @@ export default function AdsPage() {
   const [alertMsg, setAlertMsg] = useState<string | null>(null);
   const [tab, setTab] = useState<"dashboard" | "db" | "calendar">("dashboard");
   const [calMonth, setCalMonth] = useState(() => { const n = new Date(); return { year: n.getFullYear(), month: n.getMonth() + 1 }; });
+  const [calFilter, setCalFilter] = useState<"all" | "filming" | "upload">("all");
+  const [calDetail, setCalDetail] = useState<Ad | null>(null);
 
   const handleAuth = (v?: string) => {
     if ((v || pin) === ADMIN_PIN) { setAuthed(true); }
@@ -285,60 +287,119 @@ export default function AdsPage() {
         const y = calMonth.year, m = calMonth.month;
         const daysInMonth = new Date(y, m, 0).getDate();
         const firstDay = new Date(y, m - 1, 1).getDay();
-        const days: (number | null)[] = [];
-        for (let i = 0; i < firstDay; i++) days.push(null);
-        for (let d = 1; d <= daysInMonth; d++) days.push(d);
+        const calDays: (number | null)[] = [];
+        for (let i = 0; i < firstDay; i++) calDays.push(null);
+        for (let d = 1; d <= daysInMonth; d++) calDays.push(d);
+        const today = new Date();
+        const isToday = (d: number) => today.getFullYear() === y && today.getMonth() + 1 === m && today.getDate() === d;
 
-        const getEvents = (day: number) => {
-          const dateStr = `${y}-${String(m).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
-          return ads.filter(a => a.filming_date === dateStr || a.upload_date?.startsWith(dateStr));
+        const makeDateStr = (d: number) => `${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+
+        const getFilming = (day: number) => ads.filter(a => a.filming_date === makeDateStr(day));
+        const getUpload = (day: number) => ads.filter(a => a.upload_date?.startsWith(makeDateStr(day)));
+
+        const prevMo = () => setCalMonth(p => p.month === 1 ? { year: p.year - 1, month: 12 } : { ...p, month: p.month - 1 });
+        const nextMo = () => setCalMonth(p => p.month === 12 ? { year: p.year + 1, month: 1 } : { ...p, month: p.month + 1 });
+
+        const handleDrop = async (adId: string, field: "filming_date" | "upload_date", newDate: string) => {
+          setAds(prev => prev.map(a => a.id === adId ? { ...a, [field]: newDate } as Ad : a));
+          await fetch("/api/ads", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: adId, [field]: newDate }) });
         };
 
-        const prevMonth = () => setCalMonth(p => p.month === 1 ? { year: p.year - 1, month: 12 } : { ...p, month: p.month - 1 });
-        const nextMonth = () => setCalMonth(p => p.month === 12 ? { year: p.year + 1, month: 1 } : { ...p, month: p.month + 1 });
-
         return (
-          <div className="bg-white rounded-2xl border border-toss-gray-100 shadow-sm overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-4">
-              <button onClick={prevMonth} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-toss-gray-100 text-toss-blue font-bold">‹</button>
-              <h2 className="text-[17px] font-bold text-toss-gray-900">{y}년 {m}월</h2>
-              <button onClick={nextMonth} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-toss-gray-100 text-toss-blue font-bold">›</button>
-            </div>
-            <div className="grid grid-cols-7 border-t border-toss-gray-100">
-              {["일","월","화","수","목","금","토"].map((l, i) => (
-                <div key={l} className={`text-center py-2 text-[12px] font-semibold border-b border-toss-gray-100 ${i === 0 ? "text-toss-red" : i === 6 ? "text-toss-blue" : "text-toss-gray-400"}`}>{l}</div>
+          <div className="space-y-3">
+            {/* 필터 */}
+            <div className="flex gap-2">
+              {([["all","전체"],["filming","촬영만"],["upload","업로드만"]] as const).map(([k,l]) => (
+                <button key={k} onClick={() => setCalFilter(k)}
+                  className={`px-4 py-2 rounded-xl text-[13px] font-semibold transition-all ${calFilter === k ? "bg-toss-blue text-white" : "bg-white border border-toss-gray-200 text-toss-gray-600"}`}>
+                  {l}
+                </button>
               ))}
-              {days.map((day, idx) => {
-                const events = day ? getEvents(day) : [];
-                const filming = events.filter(e => e.filming_date === `${y}-${String(m).padStart(2,"0")}-${String(day).padStart(2,"0")}`);
-                const upload = events.filter(e => e.upload_date?.startsWith(`${y}-${String(m).padStart(2,"0")}-${String(day).padStart(2,"0")}`));
-                return (
-                  <div key={idx} className={`min-h-[80px] border-b border-r border-toss-gray-50 p-1 ${!day ? "bg-toss-gray-50/50" : ""}`}>
-                    {day && (
-                      <>
-                        <span className={`text-[12px] font-medium ${idx % 7 === 0 ? "text-toss-red" : idx % 7 === 6 ? "text-toss-blue" : "text-toss-gray-600"}`}>{day}</span>
-                        <div className="space-y-0.5 mt-0.5">
-                          {filming.slice(0, 2).map((e, i) => (
-                            <div key={`f${i}`} className="text-[10px] bg-green-50 text-green-600 rounded px-1 py-0.5 truncate">🎬 {e.performer}</div>
-                          ))}
-                          {upload.slice(0, 2).map((e, i) => (
-                            <div key={`u${i}`} className="text-[10px] bg-red-50 text-red-500 rounded px-1 py-0.5 truncate">📤 {e.performer}</div>
-                          ))}
-                          {events.length > 4 && <div className="text-[10px] text-toss-gray-400">+{events.length - 4}</div>}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                );
-              })}
             </div>
-            <div className="px-5 py-3 flex gap-4 text-[12px] text-toss-gray-500">
-              <span className="flex items-center gap-1"><span className="w-3 h-3 bg-green-50 rounded"></span> 촬영</span>
-              <span className="flex items-center gap-1"><span className="w-3 h-3 bg-red-50 rounded"></span> 업로드</span>
+
+            <div className="bg-white rounded-2xl border border-toss-gray-100 shadow-sm overflow-hidden">
+              <div className="flex items-center justify-between px-5 py-4">
+                <button onClick={prevMo} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-toss-gray-100 text-toss-blue font-bold">‹</button>
+                <h2 className="text-[17px] font-bold text-toss-gray-900">{y}년 {m}월</h2>
+                <button onClick={nextMo} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-toss-gray-100 text-toss-blue font-bold">›</button>
+              </div>
+              <div className="grid grid-cols-7 border-t border-toss-gray-100">
+                {["일","월","화","수","목","금","토"].map((l, i) => (
+                  <div key={l} className={`text-center py-2 text-[12px] font-semibold border-b border-toss-gray-100 ${i === 0 ? "text-toss-red" : i === 6 ? "text-toss-blue" : "text-toss-gray-400"}`}>{l}</div>
+                ))}
+                {calDays.map((day, idx) => {
+                  const filming = day && calFilter !== "upload" ? getFilming(day) : [];
+                  const upload = day && calFilter !== "filming" ? getUpload(day) : [];
+                  const allEvents = [...filming.map(e => ({...e, type: "filming" as const})), ...upload.map(e => ({...e, type: "upload" as const}))];
+                  return (
+                    <div key={idx}
+                      onDragOver={e => { if (day) e.preventDefault(); }}
+                      onDrop={e => {
+                        if (!day) return;
+                        const data = e.dataTransfer.getData("text/plain");
+                        if (!data) return;
+                        const { id, field } = JSON.parse(data);
+                        handleDrop(id, field, makeDateStr(day));
+                      }}
+                      className={`min-h-[80px] border-b border-r border-toss-gray-50 p-1 ${!day ? "bg-toss-gray-50/50" : ""} ${day && isToday(day) ? "bg-blue-50/60 ring-2 ring-toss-blue ring-inset" : ""}`}>
+                      {day && (
+                        <>
+                          <span className={`text-[12px] font-medium ${isToday(day) ? "bg-toss-blue text-white rounded-full w-5 h-5 inline-flex items-center justify-center" : idx % 7 === 0 ? "text-toss-red" : idx % 7 === 6 ? "text-toss-blue" : "text-toss-gray-600"}`}>{day}</span>
+                          <div className="space-y-0.5 mt-0.5">
+                            {allEvents.slice(0, 3).map((ev, i) => (
+                              <div key={i}
+                                draggable
+                                onDragStart={e => e.dataTransfer.setData("text/plain", JSON.stringify({ id: ev.id, field: ev.type === "filming" ? "filming_date" : "upload_date" }))}
+                                onClick={() => setCalDetail(ev)}
+                                className={`text-[10px] rounded px-1 py-0.5 truncate cursor-pointer hover:opacity-80 ${
+                                  ev.type === "filming" ? "bg-green-50 text-green-600" : "bg-red-50 text-red-500"
+                                }`}>
+                                {ev.type === "filming" ? "🎬" : "📤"} {ev.performer}
+                              </div>
+                            ))}
+                            {allEvents.length > 3 && <div className="text-[10px] text-toss-gray-400">+{allEvents.length - 3}</div>}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="px-5 py-3 flex gap-4 text-[12px] text-toss-gray-500">
+                <span className="flex items-center gap-1"><span className="w-3 h-3 bg-green-100 rounded"></span> 촬영</span>
+                <span className="flex items-center gap-1"><span className="w-3 h-3 bg-red-100 rounded"></span> 업로드</span>
+                <span className="text-toss-gray-300 ml-2">일정을 드래그하여 날짜를 이동할 수 있습니다</span>
+              </div>
             </div>
           </div>
         );
       })()}
+
+      {/* 캘린더 상세 모달 */}
+      {calDetail && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-6" onClick={() => setCalDetail(null)}>
+          <div className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-xl" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-[18px] font-bold text-toss-gray-900">{calDetail.performer}</h3>
+              <button onClick={() => setCalDetail(null)} className="text-toss-gray-400 text-[20px]">✕</button>
+            </div>
+            <div className="space-y-2.5 text-[14px]">
+              <div className="flex justify-between"><span className="text-toss-gray-500">채널</span><span className="font-semibold">{calDetail.youtube_channel}</span></div>
+              <div className="flex justify-between"><span className="text-toss-gray-500">플랫폼</span><span className="font-semibold">{calDetail.platform}</span></div>
+              <div className="flex justify-between"><span className="text-toss-gray-500">촬영일</span><span className="font-semibold">{formatDate(calDetail.filming_date)}</span></div>
+              <div className="flex justify-between"><span className="text-toss-gray-500">업로드일</span><span className="font-semibold">{formatDate(calDetail.upload_date)}</span></div>
+              <div className="flex justify-between"><span className="text-toss-gray-500">상태</span><span className={`px-2 py-0.5 rounded-lg text-[11px] font-bold ${calDetail.progress === "완료" ? "bg-green-50 text-green-600" : calDetail.progress === "편집중" ? "bg-amber-50 text-amber-600" : "bg-red-50 text-red-600"}`}>{calDetail.progress}</span></div>
+              <div className="flex justify-between"><span className="text-toss-gray-500">광고비</span><span className="font-semibold">{calDetail.ad_fee ? `${calDetail.ad_fee.toLocaleString()}원` : "-"}</span></div>
+              <div className="flex justify-between"><span className="text-toss-gray-500">총액</span><span className="font-bold text-toss-blue">{calDetail.total_amount ? `${calDetail.total_amount.toLocaleString()}원` : "-"}</span></div>
+            </div>
+            <button onClick={() => { setEditAd(calDetail); setCalDetail(null); }}
+              className="w-full mt-5 py-3.5 bg-toss-blue text-white font-semibold rounded-2xl hover:bg-toss-blue-hover active:scale-[0.98] transition-all text-[15px]">
+              수정
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ─── 광고 DB ─── */}
       {tab === "db" && (<>
