@@ -80,6 +80,17 @@ export default function AdsPage() {
     finally { setSaving(false); }
   };
 
+  const inlineUpdate = async (id: string, field: string, value: string | number) => {
+    setAds(prev => prev.map(a => a.id === id ? { ...a, [field]: value } as Ad : a));
+    await fetch("/api/ads", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, [field]: value }) });
+  };
+
+  const cycleValue = (id: string, field: string, current: string, options: string[]) => {
+    const idx = options.indexOf(current);
+    const next = options[(idx + 1) % options.length];
+    inlineUpdate(id, field, next);
+  };
+
   const handleDelete = async () => {
     if (!deleteTarget) return;
     await fetch("/api/ads", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: deleteTarget }) });
@@ -386,33 +397,32 @@ export default function AdsPage() {
               <tbody>
                 {filtered.map(a => (
                   <tr key={a.id} className="border-t border-toss-gray-50 hover:bg-toss-gray-50 transition">
-                    <td className="px-3 py-2.5 whitespace-nowrap">{a.youtube_channel}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap font-semibold text-toss-gray-900">{a.performer}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap">{a.platform}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap">{formatDate(a.filming_date)}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap">{formatDate(a.upload_date)}</td>
+                    <td className="px-3 py-2.5 whitespace-nowrap cursor-pointer" onClick={() => cycleValue(a.id, "youtube_channel", a.youtube_channel, CHANNELS)}>{a.youtube_channel}</td>
+                    <td className="px-3 py-2.5 whitespace-nowrap font-semibold text-toss-gray-900 cursor-pointer" onClick={() => setEditAd(a)}>{a.performer}</td>
+                    <td className="px-3 py-2.5 whitespace-nowrap cursor-pointer" onClick={() => setEditAd(a)}>{a.platform}</td>
+                    <td className="px-3 py-2.5 whitespace-nowrap cursor-pointer" onClick={() => setEditAd(a)}>{formatDate(a.filming_date)}</td>
+                    <td className="px-3 py-2.5 whitespace-nowrap cursor-pointer" onClick={() => setEditAd(a)}>{formatDate(a.upload_date)}</td>
                     <td className="px-3 py-2.5 whitespace-nowrap">
-                      <span className={`px-2 py-0.5 rounded-lg text-[11px] font-bold ${
+                      <span onClick={() => cycleValue(a.id, "progress", a.progress, PROGRESS)} className={`px-2 py-0.5 rounded-lg text-[11px] font-bold cursor-pointer ${
                         a.progress === "완료" ? "bg-green-50 text-green-600" :
                         a.progress === "편집중" ? "bg-amber-50 text-amber-600" :
                         "bg-red-50 text-red-600"
                       }`}>{a.progress}</span>
                     </td>
                     <td className="px-3 py-2.5 whitespace-nowrap">
-                      <span className={`px-2 py-0.5 rounded-lg text-[11px] font-bold ${
+                      <span onClick={() => cycleValue(a.id, "filming_fee_status", a.filming_fee_status, FEE_STATUS)} className={`px-2 py-0.5 rounded-lg text-[11px] font-bold cursor-pointer ${
                         a.filming_fee_status === "정산 완료" ? "bg-green-50 text-green-600" : "bg-toss-gray-100 text-toss-gray-500"
                       }`}>{a.filming_fee_status}</span>
                     </td>
-                    <td className="px-3 py-2.5 whitespace-nowrap text-right">{a.ad_fee ? `${a.ad_fee.toLocaleString()}` : "-"}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap text-right font-semibold">{a.total_amount ? `${a.total_amount.toLocaleString()}` : "-"}</td>
+                    <td className="px-3 py-2.5 whitespace-nowrap text-right cursor-pointer" onClick={() => setEditAd(a)}>{a.ad_fee ? `${a.ad_fee.toLocaleString()}` : "-"}</td>
+                    <td className="px-3 py-2.5 whitespace-nowrap text-right font-semibold cursor-pointer" onClick={() => setEditAd(a)}>{a.total_amount ? `${a.total_amount.toLocaleString()}` : "-"}</td>
                     <td className="px-3 py-2.5 whitespace-nowrap">
-                      <span className={`px-2 py-0.5 rounded-lg text-[11px] font-bold ${
+                      <span onClick={() => cycleValue(a.id, "tax_invoice", a.tax_invoice, TAX_INVOICE)} className={`px-2 py-0.5 rounded-lg text-[11px] font-bold cursor-pointer ${
                         a.tax_invoice === "발행 완료" ? "bg-green-50 text-green-600" : "bg-toss-gray-100 text-toss-gray-500"
                       }`}>{a.tax_invoice}</span>
                     </td>
-                    <td className="px-3 py-2.5 whitespace-nowrap">{a.rs_rate}%</td>
+                    <td className="px-3 py-2.5 whitespace-nowrap cursor-pointer" onClick={() => setEditAd(a)}>{a.rs_rate}%</td>
                     <td className="px-3 py-2.5 whitespace-nowrap">
-                      <button onClick={() => setEditAd(a)} className="text-toss-blue text-[12px] font-semibold mr-2">수정</button>
                       <button onClick={() => setDeleteTarget(a.id)} className="text-toss-red text-[12px] font-semibold">삭제</button>
                     </td>
                   </tr>
