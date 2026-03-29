@@ -13,17 +13,15 @@ interface PDFormProps {
   onDraftSaved?: () => void;
   onDeleteDraft?: (draftId: string) => void;
   loadDraft?: boolean;
+  rate?: number;
+  roleName?: string;
+  formTitle?: string;
 }
 
-const emptyItem = (): PDLineItem => ({
-  performer: "",
-  filmingDate: "",
-  expense: 0,
-  receiptUrls: [],
-  amount: PD_RATE,
-});
-
-export default function PDForm({ worker, onSubmitSuccess, onDraftSaved, onDeleteDraft, loadDraft = true }: PDFormProps) {
+export default function PDForm({ worker, onSubmitSuccess, onDraftSaved, onDeleteDraft, loadDraft = true, rate = PD_RATE, roleName = "촬영PD", formTitle = "롱폼 내역" }: PDFormProps) {
+  const emptyItem = (): PDLineItem => ({
+    performer: "", filmingDate: "", expense: 0, receiptUrls: [], amount: rate,
+  });
   const [month, setMonth] = useState(() => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
@@ -43,7 +41,7 @@ export default function PDForm({ worker, onSubmitSuccess, onDraftSaved, onDelete
   monthRef.current = month;
   itemsRef.current = items;
 
-  const autoSaveKey = `autosave_pd_${worker.id}`;
+  const autoSaveKey = `autosave_${roleName}_${worker.id}`;
 
   // 마운트 시 저장된 데이터 불러오기
   useEffect(() => {
@@ -70,7 +68,7 @@ export default function PDForm({ worker, onSubmitSuccess, onDraftSaved, onDelete
 
       // Supabase 임시저장 확인
       try {
-        const res = await fetch(`/api/draft/${worker.id}?role=촬영PD`);
+        const res = await fetch(`/api/draft/${worker.id}?role=${encodeURIComponent(roleName)}`);
         if (res.ok) {
           const draft = await res.json();
           if (draft) {
@@ -142,7 +140,7 @@ export default function PDForm({ worker, onSubmitSuccess, onDraftSaved, onDelete
     setItems((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const totalWork = items.length * PD_RATE;
+  const totalWork = items.length * rate;
   const totalExpense = items.reduce((sum, item) => sum + (item.expense || 0), 0);
   const grandTotal = totalWork + totalExpense;
   const taxResult = calculateTax(grandTotal, worker.contractType);
@@ -169,7 +167,7 @@ export default function PDForm({ worker, onSubmitSuccess, onDraftSaved, onDelete
           draftId,
           workerId: worker.id,
           workerName: worker.name,
-          role: "촬영PD",
+          role: roleName,
           contractType: worker.contractType,
           settlementMonth: month,
           items,
@@ -232,8 +230,8 @@ export default function PDForm({ worker, onSubmitSuccess, onDraftSaved, onDelete
 
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-[16px] font-bold text-toss-gray-900">촬영 내역</h3>
-          <span className="text-[13px] text-toss-gray-500">건당 {PD_RATE.toLocaleString()}원</span>
+          <h3 className="text-[16px] font-bold text-toss-gray-900">{formTitle}</h3>
+          <span className="text-[13px] text-toss-gray-500">건당 {rate.toLocaleString()}원</span>
         </div>
 
         {items.map((item, index) => (
@@ -271,7 +269,7 @@ export default function PDForm({ worker, onSubmitSuccess, onDraftSaved, onDelete
               </div>
               <div className="flex items-end pb-1">
                 <p className="text-[14px] text-toss-gray-500">
-                  금액 <span className="font-bold text-toss-gray-900 text-[16px] ml-1">{PD_RATE.toLocaleString()}원</span>
+                  금액 <span className="font-bold text-toss-gray-900 text-[16px] ml-1">{rate.toLocaleString()}원</span>
                 </p>
               </div>
             </div>
@@ -290,12 +288,12 @@ export default function PDForm({ worker, onSubmitSuccess, onDraftSaved, onDelete
 
         <button type="button" onClick={addItem}
           className="w-full py-3.5 border-2 border-dashed border-toss-gray-200 rounded-2xl text-toss-gray-400 hover:border-toss-blue hover:text-toss-blue transition-all text-[14px] font-medium">
-          + 촬영 건 추가
+          + 건 추가
         </button>
       </div>
 
       <SettlementSummary totalWork={totalWork} totalExpense={totalExpense}
-        contractType={worker.contractType} itemCount={items.length} role="촬영PD" />
+        contractType={worker.contractType} itemCount={items.length} role={roleName} />
 
       {autoSavedAt && (
         <p className="text-[12px] text-toss-gray-400 text-center">

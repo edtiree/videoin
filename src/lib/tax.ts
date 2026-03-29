@@ -26,5 +26,18 @@ export function calculateTax(
   }
 }
 
-export const PD_RATE = 200000; // 건당 20만원
-export const EDITOR_RATE = 10000; // 분당 1만원
+export const PD_RATE = 200000; // 롱폼 건당 20만원
+export const SHORTFORM_RATE = 10000; // 숏폼 건당 1만원
+export const CARDNEWS_RATE = 10000; // 카드뉴스 건당 1만원
+export const EDITOR_RATE = 10000; // 편집 분당 1만원
+
+// role → 표시 라벨
+export function getRoleLabel(role: string): string {
+  const map: Record<string, string> = {
+    "촬영PD": "롱폼",
+    "숏폼": "숏폼",
+    "카드뉴스": "카드뉴스",
+    "편집자": "편집비",
+  };
+  return map[role] || role;
+}

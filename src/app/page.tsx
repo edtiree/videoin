@@ -6,10 +6,11 @@ import PDForm from "@/components/PDForm";
 import EditorForm from "@/components/EditorForm";
 import SettlementHistory from "@/components/SettlementHistory";
 import RegisterForm from "@/components/RegisterForm";
+import { getRoleLabel } from "@/lib/tax";
 
 type Page = "login" | "pin" | "register" | "register-done" | "main";
 type Tab = "write" | "history";
-type Category = "촬영PD" | "편집자" | null;
+type Category = "촬영PD" | "숏폼" | "카드뉴스" | "편집자" | null;
 
 export default function Home() {
   const [page, setPage] = useState<Page>("login");
@@ -425,11 +426,11 @@ export default function Home() {
                         <button key={d.id} onClick={() => { setLoadDraft(true); setCategory(d.role as Category); }}
                           className="w-full flex items-center justify-between bg-white rounded-2xl border border-amber-200 bg-amber-50/50 p-4 hover:border-toss-blue hover:bg-blue-50/30 active:scale-[0.98] transition-all text-left shadow-sm">
                           <div className="flex items-center gap-3">
-                            <span className="text-[22px]">{d.role === "촬영PD" ? "🎬" : "🎞️"}</span>
+                            <span className="text-[22px]">{{ "촬영PD": "🎬", "숏폼": "📱", "카드뉴스": "📰", "편집자": "🎞️" }[d.role] || "📋"}</span>
                             <div>
                               <div className="flex items-center gap-2">
                                 <p className="text-[15px] font-bold text-toss-gray-900">
-                                  {monthLabel} {d.role === "촬영PD" ? "촬영비" : "편집비"}
+                                  {monthLabel} {getRoleLabel(d.role)}
                                 </p>
                                 <span className="px-1.5 py-0.5 bg-amber-100 text-amber-600 rounded text-[11px] font-bold">임시저장</span>
                               </div>
@@ -445,7 +446,9 @@ export default function Home() {
               )}
               <p className="text-[15px] text-toss-gray-600 mb-2">정산 카테고리를 선택하세요</p>
               {[
-                { key: "촬영PD" as Category, icon: "🎬", label: "촬영비 정산", desc: "건당 200,000원" },
+                { key: "촬영PD" as Category, icon: "🎬", label: "롱폼 정산", desc: "건당 200,000원" },
+                { key: "숏폼" as Category, icon: "📱", label: "숏폼 정산", desc: "건당 10,000원" },
+                { key: "카드뉴스" as Category, icon: "📰", label: "카드뉴스 정산", desc: "건당 10,000원" },
                 { key: "편집자" as Category, icon: "🎞️", label: "편집비 정산", desc: "분당 10,000원" },
               ].map((c) => (
                 <button key={c.key} onClick={() => { setLoadDraft(false); setCategory(c.key); }}
@@ -467,6 +470,10 @@ export default function Home() {
               <div className="bg-white rounded-3xl shadow-sm border border-toss-gray-100 p-6">
                 {category === "촬영PD" ? (
                   <PDForm worker={worker} onSubmitSuccess={handleSubmitSuccess} onDraftSaved={handleDraftSaved} onDeleteDraft={handleDeleteDraft} loadDraft={loadDraft} />
+                ) : category === "숏폼" ? (
+                  <PDForm worker={worker} onSubmitSuccess={handleSubmitSuccess} onDraftSaved={handleDraftSaved} onDeleteDraft={handleDeleteDraft} loadDraft={loadDraft} rate={10000} roleName="숏폼" formTitle="숏폼 내역" />
+                ) : category === "카드뉴스" ? (
+                  <PDForm worker={worker} onSubmitSuccess={handleSubmitSuccess} onDraftSaved={handleDraftSaved} onDeleteDraft={handleDeleteDraft} loadDraft={loadDraft} rate={10000} roleName="카드뉴스" formTitle="카드뉴스 내역" />
                 ) : (
                   <EditorForm worker={worker} onSubmitSuccess={handleSubmitSuccess} onDraftSaved={handleDraftSaved} onDeleteDraft={handleDeleteDraft} loadDraft={loadDraft} />
                 )}

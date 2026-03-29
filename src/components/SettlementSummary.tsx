@@ -1,14 +1,14 @@
 "use client";
 
 import { ContractType, TaxResult } from "@/types";
-import { calculateTax } from "@/lib/tax";
+import { calculateTax, getRoleLabel } from "@/lib/tax";
 
 interface SettlementSummaryProps {
   totalWork: number;
   totalExpense: number;
   contractType: ContractType;
   itemCount: number;
-  role: "촬영PD" | "편집자";
+  role: string;
   totalDuration?: number;
 }
 
@@ -24,11 +24,11 @@ export default function SettlementSummary({
       <h3 className="text-[16px] font-bold text-toss-gray-900 mb-4">정산 요약</h3>
 
       <div className="space-y-3 text-[14px]">
-        <Row label={role === "촬영PD" ? "촬영 건수" : "편집 건수"} value={`${itemCount}건`} />
+        <Row label={`${getRoleLabel(role)} 건수`} value={`${itemCount}건`} />
         {role === "편집자" && totalDuration !== undefined && (
           <Row label="총 영상 길이" value={`${totalDuration}분`} />
         )}
-        <Row label={role === "촬영PD" ? "촬영비" : "편집비"} value={`${totalWork.toLocaleString()}원`} />
+        <Row label={getRoleLabel(role)} value={`${totalWork.toLocaleString()}원`} />
         {totalExpense > 0 && (
           <Row label="경비" value={`${totalExpense.toLocaleString()}원`} />
         )}
