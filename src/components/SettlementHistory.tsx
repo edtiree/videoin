@@ -39,6 +39,7 @@ export default function SettlementHistory({ workerId, role, contractType, refres
   const [settlements, setSettlements] = useState<SettlementRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
 
   useEffect(() => {
     setLoading(true);
@@ -64,6 +65,28 @@ export default function SettlementHistory({ workerId, role, contractType, refres
     "제출됨": "bg-amber-50 text-amber-600",
     "확인됨": "bg-blue-50 text-toss-blue",
     "정산완료": "bg-green-50 text-toss-green",
+  };
+
+  const handleCancel = async (settlementId: string) => {
+    if (!confirm("정산서 제출을 취소하시겠어요?\n취소하면 삭제되며 복구할 수 없습니다.")) return;
+    setCancellingId(settlementId);
+    try {
+      const res = await fetch("/api/settlements/cancel", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ settlementId, workerId }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "취소 실패");
+      }
+      setSettlements((prev) => prev.filter((s) => s.id !== settlementId));
+      setExpandedId(null);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "취소 중 오류가 발생했습니다.");
+    } finally {
+      setCancellingId(null);
+    }
   };
 
   const isFreelancer = contractType === "프리랜서";
@@ -149,7 +172,17 @@ export default function SettlementHistory({ workerId, role, contractType, refres
                   ))}
                 </div>
 
-                <p className="text-[12px] text-toss-gray-400 text-right">제출 {formatDate(s.created_at)}</p>
+                <div className="flex items-center justify-between">
+                  {s.status === "제출됨" && (
+                    <button
+                      onClick={() => handleCancel(s.id)}
+                      disabled={cancellingId === s.id}
+                      className="px-4 py-2 text-[13px] font-semibold text-toss-red bg-red-50 rounded-xl hover:bg-red-100 disabled:opacity-50 transition">
+                      {cancellingId === s.id ? "취소 중..." : "제출 취소"}
+                    </button>
+                  )}
+                  <p className="text-[12px] text-toss-gray-400 text-right flex-1">제출 {formatDate(s.created_at)}</p>
+                </div>
               </div>
             )}
           </div>
