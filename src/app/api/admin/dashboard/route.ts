@@ -66,7 +66,7 @@ export async function GET(request: Request) {
 
   const statusCounts: Record<string, number> = { "제출됨": 0, "정산완료": 0 };
 
-  for (const s of (settlements || [])) {
+  for (const s of (settlements || []).filter((s) => s.status !== "임시저장")) {
     grandTotalAmount += s.total_amount;
     grandTotalExpense += s.total_expense;
     grandTotalTax += s.tax;
@@ -84,8 +84,8 @@ export async function GET(request: Request) {
     }
   }
 
-  // 최근 정산서 목록 (최신 10건)
-  const recentSettlements = (settlements || []).slice(0, 10).map((s) => ({
+  // 최근 정산서 목록 (임시저장 제외, 최신 10건)
+  const recentSettlements = (settlements || []).filter((s) => s.status !== "임시저장").slice(0, 10).map((s) => ({
     id: s.id,
     workerName: s.worker_name,
     role: s.role,
