@@ -9,6 +9,7 @@ export async function GET(request: Request) {
   const supabase = getSupabase();
   let query = supabase.from("settlements").select("*").order("created_at", { ascending: false });
 
+  query = query.neq("status", "임시저장");
   if (status) query = query.eq("status", status);
   if (month) {
     const [y, m] = month.split("-").map(Number);
