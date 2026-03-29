@@ -30,6 +30,7 @@ export default function EditorForm({ worker, onSubmitSuccess, onDraftSaved, onDe
   const [draftId, setDraftId] = useState<string | null>(null);
   const [savingDraft, setSavingDraft] = useState(false);
   const [banner, setBanner] = useState<string | null>(null);
+  const [dirty, setDirty] = useState(false);
 
   // 마운트 시 임시저장 불러오기
   useEffect(() => {
@@ -59,6 +60,7 @@ export default function EditorForm({ worker, onSubmitSuccess, onDraftSaved, onDe
   }, [banner]);
 
   const updateItem = (index: number, updates: Partial<EditorLineItem>) => {
+    setDirty(true);
     setItems((prev) =>
       prev.map((item, i) => {
         if (i !== index) return item;
@@ -69,7 +71,9 @@ export default function EditorForm({ worker, onSubmitSuccess, onDraftSaved, onDe
     );
   };
 
-  const addItem = () => setItems((prev) => [...prev, emptyItem()]);
+  const handleMonthChange = (v: string) => { setDirty(true); setMonth(v); };
+
+  const addItem = () => { setDirty(true); setItems((prev) => [...prev, emptyItem()]); };
   const removeItem = (index: number) => {
     if (items.length === 1) return;
     setItems((prev) => prev.filter((_, i) => i !== index));
@@ -116,6 +120,7 @@ export default function EditorForm({ worker, onSubmitSuccess, onDraftSaved, onDe
       if (!res.ok) throw new Error();
       const data = await res.json();
       setDraftId(data.id);
+      setDirty(false);
       if (onDraftSaved) {
         onDraftSaved();
         return;
@@ -152,7 +157,7 @@ export default function EditorForm({ worker, onSubmitSuccess, onDraftSaved, onDe
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-dirty={dirty ? "true" : "false"}>
       {banner && (
         <div className="flex items-center justify-between bg-blue-50 text-toss-blue px-4 py-3 rounded-2xl text-[14px]">
           <span>{banner}</span>
@@ -160,7 +165,7 @@ export default function EditorForm({ worker, onSubmitSuccess, onDraftSaved, onDe
         </div>
       )}
 
-      <MonthPicker value={month} onChange={setMonth} />
+      <MonthPicker value={month} onChange={handleMonthChange} />
 
       <div className="space-y-4">
         <div className="flex items-center justify-between">

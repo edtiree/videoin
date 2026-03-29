@@ -33,6 +33,7 @@ export default function PDForm({ worker, onSubmitSuccess, onDraftSaved, onDelete
   const [draftId, setDraftId] = useState<string | null>(null);
   const [savingDraft, setSavingDraft] = useState(false);
   const [banner, setBanner] = useState<string | null>(null);
+  const [dirty, setDirty] = useState(false);
 
   // 마운트 시 임시저장 불러오기
   useEffect(() => {
@@ -62,12 +63,15 @@ export default function PDForm({ worker, onSubmitSuccess, onDraftSaved, onDelete
   }, [banner]);
 
   const updateItem = (index: number, updates: Partial<PDLineItem>) => {
+    setDirty(true);
     setItems((prev) =>
       prev.map((item, i) => (i === index ? { ...item, ...updates } : item))
     );
   };
 
-  const addItem = () => setItems((prev) => [...prev, emptyItem()]);
+  const handleMonthChange = (v: string) => { setDirty(true); setMonth(v); };
+
+  const addItem = () => { setDirty(true); setItems((prev) => [...prev, emptyItem()]); };
   const removeItem = (index: number) => {
     if (items.length === 1) return;
     setItems((prev) => prev.filter((_, i) => i !== index));
@@ -115,6 +119,7 @@ export default function PDForm({ worker, onSubmitSuccess, onDraftSaved, onDelete
       if (!res.ok) throw new Error();
       const data = await res.json();
       setDraftId(data.id);
+      setDirty(false);
       if (onDraftSaved) {
         onDraftSaved();
         return;
@@ -151,7 +156,7 @@ export default function PDForm({ worker, onSubmitSuccess, onDraftSaved, onDelete
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-dirty={dirty ? "true" : "false"}>
       {banner && (
         <div className="flex items-center justify-between bg-blue-50 text-toss-blue px-4 py-3 rounded-2xl text-[14px]">
           <span>{banner}</span>
@@ -159,7 +164,7 @@ export default function PDForm({ worker, onSubmitSuccess, onDraftSaved, onDelete
         </div>
       )}
 
-      <MonthPicker value={month} onChange={setMonth} />
+      <MonthPicker value={month} onChange={handleMonthChange} />
 
       <div className="space-y-4">
         <div className="flex items-center justify-between">

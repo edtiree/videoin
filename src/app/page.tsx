@@ -473,9 +473,11 @@ export default function Home() {
           ) : (
             <div>
               <button onClick={() => {
+                  const formEl = document.querySelector("[data-dirty]");
+                  const isDirty = formEl?.getAttribute("data-dirty") === "true";
+                  if (!isDirty) { setCategory(null); return; }
                   const choice = confirm("임시저장하시겠습니까?\n\n확인 → 임시저장 후 나가기\n취소 → 저장하지 않고 나가기");
                   if (choice) {
-                    // 임시저장 버튼 클릭을 시뮬레이션 (폼 내부에서 처리)
                     document.getElementById("btn-draft-save")?.click();
                   } else {
                     setCategory(null);
