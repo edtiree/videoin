@@ -63,6 +63,7 @@ export async function POST(request: Request) {
         account_holder: accountHolder || null,
         business_registration_url: businessRegistrationUrl || null,
         approved: false,
+        allowed_services: ["settlement", "calendar", "review"],
       })
       .select()
       .single();

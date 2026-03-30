@@ -453,19 +453,10 @@ export default function Home() {
       {/* 헤더 */}
       <div className="bg-white border-b border-toss-gray-100">
         <div className="max-w-lg mx-auto px-5 py-5">
-          <a href="/" className="text-toss-gray-400 hover:text-toss-gray-600 text-[13px] mb-2 inline-block">← 홈</a>
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-[20px] font-bold text-toss-gray-900">{worker.name}</h1>
-              <div className="flex items-center gap-2 mt-1">
-                <span className={`px-2.5 py-1 rounded-lg text-[12px] font-semibold ${
-                  worker.contractType === "프리랜서"
-                    ? "bg-orange-50 text-toss-orange"
-                    : "bg-green-50 text-toss-green"
-                }`}>
-                  {worker.contractType}
-                </span>
-              </div>
+            <div className="flex items-center gap-3">
+              <a href="/" className="text-toss-gray-400 hover:text-toss-gray-600 text-[14px]">← 홈</a>
+              <h1 className="text-[20px] font-bold text-toss-gray-900">정산 관리</h1>
             </div>
             <div className="flex items-center gap-1">
               <button onClick={handleOpenProfile}
@@ -473,7 +464,7 @@ export default function Home() {
                 내 정보
               </button>
               <span className="text-toss-gray-200">|</span>
-              <button onClick={handleLogout}
+              <button onClick={() => window.location.href = "/"}
                 className="text-[13px] text-toss-gray-400 hover:text-toss-gray-600 transition px-2 py-2">
                 로그아웃
               </button>
@@ -535,6 +526,12 @@ export default function Home() {
                       );
                     })}
                   </div>
+                </div>
+              )}
+              {worker.isAdmin && (
+                <div className="mb-4 px-4 py-3 bg-amber-50 border border-amber-200 rounded-2xl">
+                  <p className="text-[13px] text-amber-700 font-semibold">관리자 계정은 정산서를 제출할 수 없습니다.</p>
+                  <p className="text-[12px] text-amber-600 mt-0.5">직원 화면 미리보기만 가능합니다.</p>
                 </div>
               )}
               <p className="text-[15px] text-toss-gray-600 mb-2">정산 카테고리를 선택하세요</p>

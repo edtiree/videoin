@@ -9,6 +9,8 @@ interface WorkerData {
   bank_name: string | null; bank_account: string | null; account_holder: string | null;
   business_registration_url: string | null; approved: boolean; created_at: string;
   categories: string[] | null;
+  is_admin?: boolean;
+  allowed_services?: string[];
 }
 
 const ALL_CATEGORIES = [
@@ -35,8 +37,14 @@ interface DashboardData {
   }[];
 }
 
-const ADMIN_PIN = "0123";
 type Tab = "dashboard" | "settlements" | "workers";
+const SERVICE_OPTIONS = [
+  { key: "settlement", label: "정산 관리" },
+  { key: "calendar", label: "촬영 일정" },
+  { key: "review", label: "영상 리뷰" },
+  { key: "instagram-card", label: "카드뉴스 메이커" },
+  { key: "youtube-title", label: "제목 생성기" },
+];
 
 interface SettlementData {
   id: string; worker_id: string; worker_name: string; role: string;
@@ -49,9 +57,7 @@ interface SettlementData {
 
 export default function AdminPage() {
   const [authed, setAuthed] = useState(false);
-  const [pin, setPin] = useState("");
-  const pinRef = useRef<HTMLInputElement>(null);
-  const [adminMode, setAdminMode] = useState<"menu" | "staff" | "ads">("menu");
+  const [adminMode, setAdminMode] = useState<"menu" | "staff" | "ads">("staff");
   const [tab, setTab] = useState<Tab>("dashboard");
   const [workers, setWorkers] = useState<WorkerData[]>([]);
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
@@ -65,13 +71,20 @@ export default function AdminPage() {
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   });
 
-  const [loginError, setLoginError] = useState("");
-
-  const handleAuth = (pinVal?: string) => {
-    const p = pinVal || pin;
-    if (p === ADMIN_PIN) { setAuthed(true); sessionStorage.setItem("ads_authed", "1"); fetchAll(); }
-    else { setLoginError("PIN이 일치하지 않습니다."); setPin(""); }
-  };
+  // localStorage에서 관리자 확인
+  useEffect(() => {
+    const saved = localStorage.getItem("worker");
+    if (saved) {
+      try {
+        const w = JSON.parse(saved);
+        if (w.isAdmin) {
+          setAuthed(true);
+          sessionStorage.setItem("ads_authed", "1");
+          fetchAll();
+        }
+      } catch {}
+    }
+  }, []);
 
   const fetchAll = () => { fetchWorkers(); fetchDashboard(); fetchSettlements(); };
 
@@ -114,6 +127,20 @@ export default function AdminPage() {
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
   }, [authed]);
+
+  const handleServiceToggle = async (workerId: string, service: string) => {
+    const worker = workers.find((w) => w.id === workerId);
+    if (!worker) return;
+    const current = worker.allowed_services || ["settlement"];
+    const updated = current.includes(service)
+      ? current.filter((s) => s !== service)
+      : [...current, service];
+    const res = await fetch("/api/admin/update-services", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ workerId, allowedServices: updated }),
+    });
+    if (res.ok) setWorkers(prev => prev.map(w => w.id === workerId ? { ...w, allowed_services: updated } : w));
+  };
 
   const handleCategoryToggle = async (workerId: string, category: string) => {
     const worker = workers.find((w) => w.id === workerId);
@@ -160,44 +187,15 @@ export default function AdminPage() {
   const formatDate = (d: string) => { const dt = new Date(d); return `${dt.getFullYear()}.${dt.getMonth() + 1}.${dt.getDate()}`; };
   const formatMonth = (d: string) => { const dt = new Date(d); return `${dt.getFullYear()}년 ${dt.getMonth() + 1}월 ${dt.getDate()}일`; };
 
-  // ─── 로그인 ───
+  // ─── 접근 권한 확인 ───
   if (!authed) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-6"
-        onClick={() => pinRef.current?.focus()}>
+      <div className="min-h-screen flex flex-col items-center justify-center px-6">
         <div className="w-full max-w-sm text-center">
-          <h2 className="text-[22px] font-bold text-toss-gray-900 mb-2">관리자 PIN 입력</h2>
-          <p className="text-toss-gray-500 text-[15px] mb-10">4자리 비밀번호를 입력하세요</p>
-
-          {loginError && (
-            <div className="mb-5 px-4 py-3 bg-red-50 text-toss-red rounded-2xl text-[14px]">
-              {loginError}
-            </div>
-          )}
-
-          <div className="relative flex justify-center gap-4 mb-8">
-            {[0, 1, 2, 3].map((i) => (
-              <div key={i}
-                className={`w-[52px] h-[52px] rounded-2xl flex items-center justify-center text-xl transition-all duration-200 ${
-                  pin.length > i
-                    ? "bg-toss-blue text-white scale-105"
-                    : pin.length === i
-                    ? "bg-white border-2 border-toss-blue"
-                    : "bg-toss-gray-100 border border-toss-gray-200"
-                }`}>
-                {pin[i] ? "●" : ""}
-              </div>
-            ))}
-            <input ref={pinRef} type="tel" value={pin} autoFocus
-              onChange={(e) => {
-                const val = e.target.value.replace(/\D/g, "").slice(0, 4);
-                setPin(val);
-                if (val.length === 4) setTimeout(() => handleAuth(val), 150);
-              }}
-              autoComplete="off"
-              className="absolute inset-0 opacity-0 w-full h-full caret-transparent"
-              inputMode="numeric" />
-          </div>
+          <div className="text-4xl mb-4">🔒</div>
+          <h2 className="text-[22px] font-bold text-toss-gray-900 mb-2">접근 권한이 없습니다</h2>
+          <p className="text-toss-gray-500 text-[14px] mb-6">관리자만 접근할 수 있는 페이지입니다.</p>
+          <a href="/" className="px-6 py-3 bg-toss-blue text-white font-semibold rounded-xl hover:bg-toss-blue-hover transition inline-block">홈으로</a>
         </div>
       </div>
     );
@@ -206,37 +204,6 @@ export default function AdminPage() {
   const pendingWorkers = workers.filter((w) => !w.approved);
   const approvedWorkers = workers.filter((w) => w.approved);
 
-  // 메뉴 선택
-  if (adminMode === "menu") {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-6">
-        <div className="w-full max-w-md">
-          <div className="flex items-center gap-3 mb-8">
-            <a href="/" className="text-toss-gray-400 hover:text-toss-gray-600 text-[14px]">← 홈</a>
-            <h1 className="text-[22px] font-bold text-toss-gray-900">관리자</h1>
-          </div>
-          <div className="space-y-3">
-            <button onClick={() => setAdminMode("staff")}
-              className="w-full flex items-center gap-4 bg-white rounded-2xl border border-toss-gray-100 p-5 hover:border-toss-blue hover:bg-blue-50/30 active:scale-[0.98] transition-all text-left shadow-sm">
-              <span className="text-[32px]">👥</span>
-              <div>
-                <p className="text-[17px] font-bold text-toss-gray-900">직원 · 정산 관리</p>
-                <p className="text-[13px] text-toss-gray-500 mt-0.5">직원 승인, 정산서 확인, 대시보드</p>
-              </div>
-            </button>
-            <button onClick={() => setAdminMode("ads")}
-              className="w-full flex items-center gap-4 bg-white rounded-2xl border border-toss-gray-100 p-5 hover:border-toss-blue hover:bg-blue-50/30 active:scale-[0.98] transition-all text-left shadow-sm">
-              <span className="text-[32px]">📺</span>
-              <div>
-                <p className="text-[17px] font-bold text-toss-gray-900">광고 관리</p>
-                <p className="text-[13px] text-toss-gray-500 mt-0.5">광고 DB, 정산현황, 캘린더</p>
-              </div>
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   // 광고 관리 → /ads로 이동 (PIN 없이)
   if (adminMode === "ads") {
@@ -312,6 +279,7 @@ export default function AdminPage() {
             handleApprove={handleApprove}
             handleReject={handleReject}
             handleCategoryToggle={handleCategoryToggle}
+            handleServiceToggle={handleServiceToggle}
             formatPhone={formatPhone}
             formatDate={formatDate}
           />
@@ -660,12 +628,13 @@ function SummaryCard({ label, value, highlight }: { label: string; value: string
 }
 
 // ─── 직원 관리 ───
-function WorkersView({ pendingWorkers, approvedWorkers, expandedId, setExpandedId, handleApprove, handleReject, handleCategoryToggle, formatPhone, formatDate }: {
+function WorkersView({ pendingWorkers, approvedWorkers, expandedId, setExpandedId, handleApprove, handleReject, handleCategoryToggle, handleServiceToggle, formatPhone, formatDate }: {
   pendingWorkers: WorkerData[]; approvedWorkers: WorkerData[];
   expandedId: string | null; setExpandedId: (id: string | null) => void;
   handleApprove: (id: string, approved: boolean) => void;
   handleReject: (id: string) => void;
   handleCategoryToggle: (workerId: string, category: string) => void;
+  handleServiceToggle: (workerId: string, service: string) => void;
   formatPhone: (p: string) => string; formatDate: (d: string) => string;
 }) {
   return (
@@ -683,6 +652,7 @@ function WorkersView({ pendingWorkers, approvedWorkers, expandedId, setExpandedI
                 onApprove={() => handleApprove(w.id, true)}
                 onReject={() => handleReject(w.id)}
                 onCategoryToggle={(cat) => handleCategoryToggle(w.id, cat)}
+                onServiceToggle={(svc) => handleServiceToggle(w.id, svc)}
                 formatPhone={formatPhone} formatDate={formatDate} />
             ))}
           </div>
@@ -702,6 +672,7 @@ function WorkersView({ pendingWorkers, approvedWorkers, expandedId, setExpandedI
                 onToggle={() => setExpandedId(expandedId === w.id ? null : w.id)}
                 onDelete={() => handleReject(w.id)}
                 onCategoryToggle={(cat) => handleCategoryToggle(w.id, cat)}
+                onServiceToggle={(svc) => handleServiceToggle(w.id, svc)}
                 formatPhone={formatPhone} formatDate={formatDate} />
             ))}
           </div>
@@ -711,10 +682,11 @@ function WorkersView({ pendingWorkers, approvedWorkers, expandedId, setExpandedI
   );
 }
 
-function WorkerCard({ worker, expanded, onToggle, onApprove, onReject, onRevoke, onDelete, onCategoryToggle, formatPhone, formatDate }: {
+function WorkerCard({ worker, expanded, onToggle, onApprove, onReject, onRevoke, onDelete, onCategoryToggle, onServiceToggle, formatPhone, formatDate }: {
   worker: WorkerData; expanded: boolean; onToggle: () => void;
   onApprove?: () => void; onReject?: () => void; onRevoke?: () => void; onDelete?: () => void;
   onCategoryToggle?: (category: string) => void;
+  onServiceToggle?: (service: string) => void;
   formatPhone: (p: string) => string; formatDate: (d: string) => string;
 }) {
   const categories = worker.categories || ["촬영비", "숏폼", "카드뉴스", "편집비"];
@@ -724,9 +696,13 @@ function WorkerCard({ worker, expanded, onToggle, onApprove, onReject, onRevoke,
         className="w-full px-5 py-4 flex items-center justify-between text-left hover:bg-toss-gray-50 transition">
         <div className="flex items-center gap-2.5">
           <span className="text-[15px] font-bold text-toss-gray-900">{worker.name}</span>
-          <span className={`px-2 py-0.5 rounded-lg text-[11px] font-bold ${
-            worker.contract_type === "프리랜서" ? "bg-orange-50 text-toss-orange" : "bg-green-50 text-toss-green"
-          }`}>{worker.contract_type}</span>
+          {worker.is_admin ? (
+            <span className="px-2 py-0.5 rounded-lg text-[11px] font-bold bg-amber-50 text-amber-600">관리자</span>
+          ) : (
+            <span className={`px-2 py-0.5 rounded-lg text-[11px] font-bold ${
+              worker.contract_type === "프리랜서" ? "bg-orange-50 text-toss-orange" : "bg-green-50 text-toss-green"
+            }`}>{worker.contract_type}</span>
+          )}
           {!worker.approved && (
             <span className="px-2 py-0.5 bg-red-50 text-toss-red rounded-lg text-[11px] font-bold">대기</span>
           )}
@@ -736,6 +712,12 @@ function WorkerCard({ worker, expanded, onToggle, onApprove, onReject, onRevoke,
 
       {expanded && (
         <div className="border-t border-toss-gray-100 px-5 py-5 bg-toss-gray-50 space-y-4">
+          {worker.is_admin ? (
+            <div className="text-[14px]">
+              <InfoField label="휴대폰" value={formatPhone(worker.phone)} />
+              <p className="text-[13px] text-toss-gray-400 mt-3">관리자는 모든 서비스에 접근할 수 있습니다.</p>
+            </div>
+          ) : (<>
           <div className="grid grid-cols-2 gap-4 text-[14px]">
             <InfoField label="휴대폰" value={formatPhone(worker.phone)} />
             <InfoField label="가입일" value={formatDate(worker.created_at)} />
@@ -749,7 +731,7 @@ function WorkerCard({ worker, expanded, onToggle, onApprove, onReject, onRevoke,
               <img src={worker.business_registration_url} alt="사업자등록증" className="max-h-48 rounded-xl border border-toss-gray-200" />
             </div>
           )}
-          {onCategoryToggle && (
+          {onCategoryToggle && !worker.is_admin && (
             <div>
               <span className="text-[12px] text-toss-gray-400 block mb-2">정산 카테고리</span>
               <div className="flex flex-wrap gap-2">
@@ -767,6 +749,26 @@ function WorkerCard({ worker, expanded, onToggle, onApprove, onReject, onRevoke,
             </div>
           )}
 
+          {onServiceToggle && worker.approved && !worker.is_admin && (
+            <div>
+              <span className="text-[12px] text-toss-gray-400 block mb-2">사용 가능 서비스</span>
+              <div className="flex flex-wrap gap-2">
+                {SERVICE_OPTIONS.map((s) => {
+                  const allowed = (worker as WorkerData & { allowed_services?: string[] }).allowed_services || ["settlement"];
+                  return (
+                    <button key={s.key} onClick={() => onServiceToggle(s.key)}
+                      className={`px-3 py-1.5 rounded-lg text-[13px] font-semibold transition-all ${
+                        allowed.includes(s.key) ? "bg-toss-green text-white" : "bg-toss-gray-100 text-toss-gray-400"
+                      }`}>
+                      {s.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {!worker.is_admin && (
           <div className="flex gap-2 pt-1">
             {onApprove && (
               <button onClick={onApprove}
@@ -793,6 +795,8 @@ function WorkerCard({ worker, expanded, onToggle, onApprove, onReject, onRevoke,
               </button>
             )}
           </div>
+          )}
+          </>)}
         </div>
       )}
     </div>

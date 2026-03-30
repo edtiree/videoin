@@ -11,6 +11,8 @@ export interface Worker {
   bankName?: string | null;
   bankAccount?: string | null;
   accountHolder?: string | null;
+  isAdmin?: boolean;
+  allowedServices?: string[];
 }
 
 export interface PDLineItem {

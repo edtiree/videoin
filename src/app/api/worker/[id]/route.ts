@@ -29,5 +29,7 @@ export async function GET(
     bankName: data.bank_name,
     bankAccount: data.bank_account,
     accountHolder: data.account_holder,
+    isAdmin: data.is_admin || false,
+    allowedServices: data.allowed_services || ["settlement", "calendar", "review"],
   });
 }

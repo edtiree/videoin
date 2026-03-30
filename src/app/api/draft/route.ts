@@ -6,6 +6,12 @@ export async function POST(request: Request) {
     const data = await request.json();
     const supabase = getSupabase();
 
+    // 관리자 차단
+    const { data: worker } = await supabase.from("workers").select("is_admin").eq("id", data.workerId).single();
+    if (worker?.is_admin) {
+      return NextResponse.json({ error: "관리자 계정은 정산서를 작성할 수 없습니다." }, { status: 403 });
+    }
+
     if (data.draftId) {
       // 기존 임시저장 업데이트
       const { error: updateError } = await supabase

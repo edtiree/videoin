@@ -43,6 +43,9 @@ export default function RegisterForm({ onSuccess, onBack }: RegisterFormProps) {
   };
 
   const handleSubmit = async () => {
+    if (!bankName) { setError("은행을 선택해주세요."); return; }
+    if (!bankAccount) { setError("계좌번호를 입력해주세요."); return; }
+    if (!accountHolder.trim()) { setError("예금주를 입력해주세요."); return; }
     setSubmitting(true); setError("");
     try {
       const res = await fetch("/api/auth/register", {

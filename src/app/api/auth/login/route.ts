@@ -49,6 +49,8 @@ export async function POST(request: Request) {
         accountHolder: data.account_holder,
         approved: data.approved,
         categories: data.categories || ["촬영비", "숏폼", "카드뉴스", "편집비"],
+        isAdmin: data.is_admin || false,
+        allowedServices: data.allowed_services || ["settlement", "calendar", "review"],
       },
     });
   } catch (error) {
