@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import TopNav from "@/components/TopNav";
 
 interface ReviewProject {
   id: string;
@@ -39,6 +40,14 @@ export default function ReviewListPage() {
     }
   }, []);
 
+  // ?new=true 쿼리 파라미터가 있으면 자동으로 업로드 모달 오픈
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (authed && params.get("new") === "true") {
+      openUploadModal();
+    }
+  }, [authed]);
+
   // 드롭다운 외부 클릭 닫기
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -50,7 +59,10 @@ export default function ReviewListPage() {
 
   const loadProjects = () => {
     setLoading(true);
-    fetch("/api/review/projects")
+    const saved = localStorage.getItem("worker");
+    const worker = saved ? JSON.parse(saved) : null;
+    const url = worker?.id ? `/api/review/projects?workerId=${worker.id}` : "/api/review/projects";
+    fetch(url)
       .then((r) => r.json())
       .then((data) => setProjects(data))
       .catch(() => {})
@@ -113,10 +125,12 @@ export default function ReviewListPage() {
       // 새 프로젝트 생성
       if (uploadTarget === "new") {
         if (!newProjectTitle.trim()) { alert("프로젝트 이름을 입력하세요"); setUploading(false); return; }
+        const saved = localStorage.getItem("worker");
+        const worker = saved ? JSON.parse(saved) : null;
         const res = await fetch("/api/review/projects", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ title: newProjectTitle.trim() }),
+          body: JSON.stringify({ title: newProjectTitle.trim(), workerId: worker?.id }),
         });
         if (!res.ok) throw new Error("프로젝트 생성 실패");
         const project = await res.json();
@@ -194,18 +208,12 @@ export default function ReviewListPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-10">
-      <div className="bg-white border-b border-toss-gray-100">
-        <div className="max-w-3xl mx-auto px-5 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link href="/" className="text-toss-gray-400 hover:text-toss-gray-600 text-[14px]">← 홈</Link>
-            <h1 className="text-[20px] font-bold text-toss-gray-900">영상 리뷰</h1>
-          </div>
-          <button onClick={openUploadModal}
-            className="px-4 py-2 bg-toss-blue text-white text-[13px] font-semibold rounded-xl hover:bg-toss-blue-hover transition">
-            + 영상 업로드
-          </button>
-        </div>
-      </div>
+      <TopNav title="영상 리뷰" backHref="/" rightContent={
+        <button onClick={openUploadModal}
+          className="px-4 py-2 bg-toss-blue text-white text-[13px] font-semibold rounded-xl hover:bg-toss-blue-hover transition">
+          + 영상 업로드
+        </button>
+      } />
 
       <div className="max-w-3xl mx-auto px-5 mt-4">
         {loading ? (

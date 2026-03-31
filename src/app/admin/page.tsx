@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import ConfirmModal from "@/components/ConfirmModal";
 import { getRoleLabel } from "@/lib/tax";
+import TopNav from "@/components/TopNav";
 
 interface WorkerData {
   id: string; name: string; phone: string; role: string; contract_type: string;
@@ -44,6 +45,8 @@ const SERVICE_OPTIONS = [
   { key: "review", label: "영상 리뷰" },
   { key: "instagram-card", label: "카드뉴스 메이커" },
   { key: "youtube-title", label: "제목 생성기" },
+  { key: "youtube-shorts", label: "쇼츠 제작기" },
+  { key: "screen-material", label: "화면자료 제작기" },
 ];
 
 interface SettlementData {
@@ -213,25 +216,18 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen pb-10">
-      {/* 헤더 */}
-      <div className="bg-white border-b border-toss-gray-100">
-        <div className="max-w-3xl mx-auto px-5 py-5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button onClick={() => setAdminMode("menu")} className="text-toss-gray-400 hover:text-toss-gray-600 text-[14px]">← 메뉴</button>
-            <h1 className="text-[20px] font-bold text-toss-gray-900">직원 · 정산 관리</h1>
-          </div>
-          <button
-            onClick={() => {
-              const url = `${window.location.origin}`;
-              navigator.clipboard.writeText(url);
-              setAlertMsg("가입 링크가 복사되었습니다!\n직원에게 공유해주세요.");
-            }}
-            className="flex items-center gap-1.5 px-4 py-2 bg-toss-blue text-white rounded-xl text-[13px] font-semibold hover:bg-toss-blue-hover active:scale-[0.98] transition-all"
-          >
-            🔗 가입 링크 복사
-          </button>
-        </div>
-      </div>
+      <TopNav title="직원·정산 관리" backHref="/" rightContent={
+        <button
+          onClick={() => {
+            const url = `${window.location.origin}`;
+            navigator.clipboard.writeText(url);
+            setAlertMsg("가입 링크가 복사되었습니다!\n직원에게 공유해주세요.");
+          }}
+          className="flex items-center gap-1.5 px-4 py-2 bg-toss-blue text-white rounded-xl text-[13px] font-semibold hover:bg-toss-blue-hover active:scale-[0.98] transition-all"
+        >
+          가입 링크 복사
+        </button>
+      } />
 
       <div className="max-w-3xl mx-auto px-5 mt-6">
         {/* 탭 */}

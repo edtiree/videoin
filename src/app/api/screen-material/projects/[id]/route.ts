@@ -1,48 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const supabase = getSupabase();
   const { data, error } = await supabase
-    .from("title_projects")
+    .from("screen_material_projects")
     .select("*")
     .eq("id", id)
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 404 });
-  return NextResponse.json({ ...data, project_id: data.id });
+  return NextResponse.json(data);
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const body = await request.json();
   const supabase = getSupabase();
 
-  const updateData: Record<string, unknown> = {
-    updated_at: new Date().toISOString(),
-  };
+  const updateData: Record<string, unknown> = { updated_at: new Date().toISOString() };
 
-  // 허용된 필드만 업데이트
   const allowedFields = [
-    "name",
-    "transcript",
-    "video_type",
-    "video_thumbnail",
-    "video_frames",
-    "analysis",
-    "similar_videos",
-    "titles",
-    "search_keywords",
-    "ref_channels",
-    "input_type",
-    "input_name",
+    "name", "video_name", "video_info", "segments", "clips",
+    "selected_image_model", "selected_video_model", "status", "railway_job_id",
   ];
 
   for (const field of allowedFields) {
@@ -52,7 +33,7 @@ export async function PUT(
   }
 
   const { data, error } = await supabase
-    .from("title_projects")
+    .from("screen_material_projects")
     .update(updateData)
     .eq("id", id)
     .select()
@@ -62,14 +43,11 @@ export async function PUT(
   return NextResponse.json(data);
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const supabase = getSupabase();
   const { error } = await supabase
-    .from("title_projects")
+    .from("screen_material_projects")
     .delete()
     .eq("id", id);
 

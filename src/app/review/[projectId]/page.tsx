@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
-import Link from "next/link";
 import { useParams } from "next/navigation";
+import TopNav from "@/components/TopNav";
 
 interface Video {
   id: string;
@@ -378,48 +378,20 @@ export default function ReviewProjectPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-10">
-      {/* 헤더 */}
-      <div className="bg-white border-b border-toss-gray-100">
-        <div className="max-w-5xl mx-auto px-5 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link href="/review" className="text-toss-gray-400 hover:text-toss-gray-600 text-[14px]">← 목록</Link>
-            <h1 className="text-[20px] font-bold text-toss-gray-900">{project.title}</h1>
-            {selectedVideo && (
-              <div className="relative">
-                <button onClick={() => setVersionDropdown(!versionDropdown)}
-                  className="px-2.5 py-1 border border-toss-gray-200 rounded-lg text-[13px] font-semibold text-toss-gray-600 hover:border-toss-gray-400 transition flex items-center gap-1">
-                  v{selectedVideo.version} <span className="text-[10px]">▾</span>
-                </button>
-                {versionDropdown && (
-                  <div className="absolute left-0 top-9 bg-white border border-toss-gray-200 rounded-xl shadow-lg z-20 overflow-hidden min-w-[180px]">
-                    {[...videos].reverse().map((v) => (
-                      <button key={v.id} onClick={() => { setSelectedVideo(v); setVersionDropdown(false); }}
-                        className={`w-full px-4 py-2.5 text-left text-[13px] flex items-center gap-2 hover:bg-toss-gray-50 transition ${
-                          selectedVideo?.id === v.id ? "bg-blue-50" : ""
-                        }`}>
-                        <span className="font-semibold text-toss-gray-900">{project.title}</span>
-                        <span className="px-1.5 py-0.5 bg-toss-gray-100 text-toss-gray-500 rounded text-[11px] font-bold">v{v.version}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-          <div className="flex items-center gap-2">
-            <button onClick={() => { navigator.clipboard.writeText(window.location.href); alert("링크가 복사되었습니다!"); }}
-              className="px-3 py-1.5 text-[13px] text-toss-gray-500 hover:text-toss-gray-700 transition">공유</button>
-            {videoUrl && (
-              <button onClick={handleDownload}
-                className="px-3 py-1.5 text-[13px] text-toss-gray-500 hover:text-toss-gray-700 transition">다운로드</button>
-            )}
-            <button onClick={openUploadModal}
-              className="px-4 py-2 bg-toss-blue text-white text-[13px] font-semibold rounded-xl hover:bg-toss-blue-hover transition">
-              + 업로드
-            </button>
-          </div>
+      <TopNav title="영상 리뷰" backHref="/review" rightContent={
+        <div className="flex items-center gap-2">
+          <button onClick={() => { navigator.clipboard.writeText(window.location.href); alert("링크가 복사되었습니다!"); }}
+            className="px-3 py-1.5 text-[13px] text-toss-gray-500 hover:text-toss-gray-700 transition">공유</button>
+          {videoUrl && (
+            <button onClick={handleDownload}
+              className="px-3 py-1.5 text-[13px] text-toss-gray-500 hover:text-toss-gray-700 transition">다운로드</button>
+          )}
+          <button onClick={openUploadModal}
+            className="px-4 py-2 bg-toss-blue text-white text-[13px] font-semibold rounded-xl hover:bg-toss-blue-hover transition">
+            + 업로드
+          </button>
         </div>
-      </div>
+      } />
 
       <div className="max-w-5xl mx-auto px-5 mt-4">
         {videos.length === 0 ? (

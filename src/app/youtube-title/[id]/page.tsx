@@ -2,8 +2,8 @@
 
 import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { useProjectStore } from "@/stores/titleProjectStore";
+import TopNav from "@/components/TopNav";
 import TranscriptViewer from "@/components/youtube-title/TranscriptViewer";
 import AnalysisResult from "@/components/youtube-title/AnalysisResult";
 import SimilarVideoList from "@/components/youtube-title/SimilarVideoList";
@@ -31,7 +31,8 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
     if (!saved) { router.push("/"); return; }
     try {
       const w = JSON.parse(saved);
-      if (!w.allowedServices?.includes("youtube-title")) { router.push("/"); return; }
+      const isAdmin = w.isAdmin === true;
+      if (!isAdmin && !w.allowedServices?.includes("youtube-title")) { router.push("/"); return; }
       setWorker(w);
     } catch { router.push("/"); }
   }, [router]);
@@ -155,24 +156,13 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
 
   return (
     <div className="min-h-screen bg-gray-50 pb-10">
-      {/* Header */}
-      <div className="bg-white border-b border-toss-gray-100">
-        <div className="max-w-4xl mx-auto px-5 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link href="/youtube-title" className="text-toss-gray-400 hover:text-toss-gray-600 text-[14px]">
-              ← 목록
-            </Link>
-            <h1 className="text-[18px] font-bold text-toss-gray-900 truncate max-w-[300px]">
-              {store.projectName}
-            </h1>
-          </div>
-          {store.videoType && (
-            <span className="text-[10px] font-bold bg-blue-50 text-toss-blue px-3 py-1.5 rounded-lg uppercase">
-              {store.videoType}
-            </span>
-          )}
-        </div>
-      </div>
+      <TopNav title={store.projectName} backHref="/youtube-title" rightContent={
+        store.videoType ? (
+          <span className="text-[10px] font-bold bg-blue-50 text-toss-blue px-3 py-1.5 rounded-lg uppercase">
+            {store.videoType}
+          </span>
+        ) : undefined
+      } />
 
       <div className="max-w-4xl mx-auto px-5 mt-6 space-y-5">
         {/* 1. Transcript */}

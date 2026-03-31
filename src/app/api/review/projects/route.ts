@@ -1,25 +1,37 @@
 import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
 
-export async function GET() {
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const workerId = searchParams.get("workerId");
+
   const supabase = getSupabase();
-  const { data, error } = await supabase
+  let query = supabase
     .from("review_projects")
     .select("*, review_videos(id, version, created_at)")
     .order("created_at", { ascending: false });
+
+  if (workerId) {
+    query = query.eq("worker_id", workerId);
+  }
+
+  const { data, error } = await query;
 
   if (error) return NextResponse.json({ error: "조회 실패" }, { status: 500 });
   return NextResponse.json(data || []);
 }
 
 export async function POST(request: Request) {
-  const { title } = await request.json();
+  const { title, workerId } = await request.json();
   if (!title) return NextResponse.json({ error: "제목 필요" }, { status: 400 });
 
   const supabase = getSupabase();
+  const insertData: Record<string, string> = { title };
+  if (workerId) insertData.worker_id = workerId;
+
   const { data, error } = await supabase
     .from("review_projects")
-    .insert({ title })
+    .insert(insertData)
     .select()
     .single();
 

@@ -29,6 +29,9 @@ function safeParseJson(text: string): Record<string, unknown> {
     }
   }
 
+  // 이중 중괄호 제거 (프롬프트 템플릿 잔재)
+  cleaned = cleaned.replace(/\{\{/g, "{").replace(/\}\}/g, "}");
+
   // { } 추출
   cleaned = cleaned.trim();
   if (cleaned.includes("{")) {
@@ -96,7 +99,12 @@ export async function POST(request: NextRequest) {
 
     const prompt = ANALYSIS_PROMPT.replace("{transcript}", text);
 
-    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey) {
+      return NextResponse.json({ error: "ANTHROPIC_API_KEY가 설정되지 않았습니다" }, { status: 500 });
+    }
+
+    const client = new Anthropic({ apiKey });
     const response = await client.messages.create({
       model: CLAUDE_MODEL,
       max_tokens: 1500,
@@ -105,7 +113,17 @@ export async function POST(request: NextRequest) {
 
     const responseText =
       response.content[0].type === "text" ? response.content[0].text : "";
+
+    if (!responseText) {
+      return NextResponse.json({ error: "AI 응답이 비어있습니다" }, { status: 500 });
+    }
+
     const result = safeParseJson(responseText);
+
+    // 파싱 결과가 전부 빈값이면 에러
+    if (!result.summary && (!result.keywords || (result.keywords as string[]).length === 0)) {
+      return NextResponse.json({ error: "AI 응답 파싱 실패: " + responseText.slice(0, 200) }, { status: 500 });
+    }
 
     return NextResponse.json(result);
   } catch (error) {

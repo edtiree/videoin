@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import BottomNav from "@/components/BottomNav";
+import SideNav from "@/components/SideNav";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,8 +15,18 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "정산서 시스템",
-  description: "유튜브 채널 인건비 정산 시스템",
+  title: {
+    default: "에디트리 영상 제작팀",
+    template: "%s | 에디트리",
+  },
+  description: "에디트리 영상 제작팀 내부 시스템",
+  openGraph: {
+    title: "에디트리 영상 제작팀",
+    description: "영상 제작팀 내부 업무 시스템",
+    siteName: "에디트리",
+    type: "website",
+    images: ["/og-image.png"],
+  },
 };
 
 export const viewport = {
@@ -34,7 +46,16 @@ export default function RootLayout({
       lang="ko"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <head>
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <link rel="manifest" href="/manifest.json" />
+      </head>
+      <body className="min-h-full flex flex-col pb-[env(safe-area-inset-bottom)] md:pb-0">
+        <SideNav />
+        <div className="flex-1 pb-14 md:pb-0 md:ml-[220px]">{children}</div>
+        <BottomNav />
+      </body>
     </html>
   );
 }

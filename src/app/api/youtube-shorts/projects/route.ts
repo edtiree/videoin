@@ -7,15 +7,13 @@ export async function GET(request: NextRequest) {
 
   const supabase = getSupabase();
   const { data, error } = await supabase
-    .from("title_projects")
-    .select("*")
+    .from("shorts_projects")
+    .select("id, name, status, video_name, settings, created_at, updated_at")
     .eq("worker_id", workerId)
     .order("updated_at", { ascending: false });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  // project_id 필드 추가 (프론트엔드 호환)
-  const mapped = (data || []).map((d: Record<string, unknown>) => ({ ...d, project_id: d.id }));
-  return NextResponse.json(mapped);
+  return NextResponse.json(data);
 }
 
 export async function POST(request: NextRequest) {
@@ -25,14 +23,11 @@ export async function POST(request: NextRequest) {
 
   const supabase = getSupabase();
   const { data, error } = await supabase
-    .from("title_projects")
-    .insert({
-      worker_id: workerId,
-      name: name || "새 프로젝트",
-    })
+    .from("shorts_projects")
+    .insert({ worker_id: workerId, name: name || "새 프로젝트" })
     .select()
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ ...data, project_id: data.id });
+  return NextResponse.json(data);
 }

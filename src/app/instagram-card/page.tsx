@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import TopNav from "@/components/TopNav";
 import "./card-styles.css";
 
 interface WorkerSession {
@@ -25,7 +26,9 @@ export default function InstagramCardPage() {
     }
     try {
       const w = JSON.parse(saved);
-      if (!w.allowedServices?.includes("instagram-card")) {
+      const isAdmin = w.isAdmin === true;
+      const hasAccess = isAdmin || w.allowedServices?.includes("instagram-card");
+      if (!hasAccess) {
         router.push("/");
         return;
       }
@@ -64,10 +67,13 @@ export default function InstagramCardPage() {
   }
 
   return (
-    <div
-      ref={containerRef}
-      className="card-maker-root"
-      style={{ width: "100vw", height: "100vh" }}
-    />
+    <div style={{ width: "100vw", height: "100vh", display: "flex", flexDirection: "column" }}>
+      <TopNav title="카드뉴스 메이커" backHref="/" />
+      <div
+        ref={containerRef}
+        className="card-maker-root"
+        style={{ flex: 1, overflow: "hidden" }}
+      />
+    </div>
   );
 }

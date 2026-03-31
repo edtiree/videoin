@@ -8,6 +8,7 @@ import SettlementHistory from "@/components/SettlementHistory";
 import RegisterForm from "@/components/RegisterForm";
 import { getRoleLabel } from "@/lib/tax";
 import ConfirmModal from "@/components/ConfirmModal";
+import TopNav from "@/components/TopNav";
 
 type Page = "login" | "pin" | "register" | "register-done" | "main";
 type Tab = "write" | "history";
@@ -450,28 +451,7 @@ export default function Home() {
   // ─── 메인 화면 ───
   return (
     <div className="min-h-screen pb-10">
-      {/* 헤더 */}
-      <div className="bg-white border-b border-toss-gray-100">
-        <div className="max-w-lg mx-auto px-5 py-5">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <a href="/" className="text-toss-gray-400 hover:text-toss-gray-600 text-[14px]">← 홈</a>
-              <h1 className="text-[20px] font-bold text-toss-gray-900">정산 관리</h1>
-            </div>
-            <div className="flex items-center gap-1">
-              <button onClick={handleOpenProfile}
-                className="text-[13px] text-toss-gray-400 hover:text-toss-gray-600 transition px-2 py-2">
-                내 정보
-              </button>
-              <span className="text-toss-gray-200">|</span>
-              <button onClick={() => window.location.href = "/"}
-                className="text-[13px] text-toss-gray-400 hover:text-toss-gray-600 transition px-2 py-2">
-                로그아웃
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <TopNav title="정산 관리" backHref="/" />
 
       <div className="max-w-lg mx-auto px-5 mt-6">
         {/* 탭 */}

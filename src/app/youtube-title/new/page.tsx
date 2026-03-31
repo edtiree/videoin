@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
+import TopNav from "@/components/TopNav";
 
 type Tab = "youtube" | "upload" | "direct";
 
@@ -10,6 +10,12 @@ interface Worker {
   id: string;
   name: string;
   allowedServices?: string[];
+}
+
+async function getOpenAIKey() {
+  const res = await fetch("/api/youtube-title/openai-key");
+  const data = await res.json();
+  return data.key;
 }
 
 export default function NewProjectPage() {
@@ -29,7 +35,8 @@ export default function NewProjectPage() {
     if (!saved) { router.push("/"); return; }
     try {
       const w = JSON.parse(saved);
-      if (!w.allowedServices?.includes("youtube-title")) { router.push("/"); return; }
+      const isAdmin = w.isAdmin === true;
+      if (!isAdmin && !w.allowedServices?.includes("youtube-title")) { router.push("/"); return; }
       setWorker(w);
     } catch { router.push("/"); }
     setLoading(false);
@@ -59,20 +66,86 @@ export default function NewProjectPage() {
 
       let transcriptData;
       if (tab === "youtube") {
+        // 서버 API로 자막 추출 시도
         const res = await fetch("/api/youtube-title/transcript/youtube", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ url: youtubeUrl }),
         });
         transcriptData = await res.json();
+
+        // 서버 실패 시 클라이언트에서 직접 시도
+        if (!res.ok || transcriptData.error) {
+          setProgress("서버 추출 실패, 다른 방법 시도 중...");
+          try {
+            const { fetchYoutubeTranscript, extractVideoId } = await import("@/lib/youtube-title/transcript-client");
+            const videoId = extractVideoId(youtubeUrl);
+            if (!videoId) throw new Error("올바른 YouTube URL이 아닙니다");
+            transcriptData = await fetchYoutubeTranscript(videoId);
+          } catch (clientErr) {
+            throw new Error(transcriptData.error || (clientErr instanceof Error ? clientErr.message : "자막 추출 실패"));
+          }
+        }
       } else if (tab === "upload" && file) {
-        const formData = new FormData();
-        formData.append("file", file);
-        const res = await fetch("/api/youtube-title/transcript/upload", {
-          method: "POST",
-          body: formData,
-        });
-        transcriptData = await res.json();
+        const MAX_DIRECT = 25 * 1024 * 1024; // 25MB
+        const MAX_FFMPEG = 500 * 1024 * 1024; // 500MB
+
+        const apiKey = await getOpenAIKey();
+
+        if (file.size <= MAX_DIRECT) {
+          // 25MB 이하: Whisper API에 직접 전송
+          setProgress("음성 인식 중...");
+          const formData = new FormData();
+          formData.append("file", file);
+          formData.append("model", "whisper-1");
+          formData.append("language", "ko");
+          const res = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+            method: "POST",
+            headers: { "Authorization": `Bearer ${apiKey}` },
+            body: formData,
+          });
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.error?.message || "음성 인식 실패");
+          }
+          const result = await res.json();
+          transcriptData = { transcript: result.text, videoType: "롱폼" };
+
+        } else if (file.size <= MAX_FFMPEG) {
+          // 25MB~500MB: ffmpeg.wasm으로 오디오 추출 후 Whisper
+          const { extractAudioFromVideo } = await import("@/lib/youtube-title/audio-extractor");
+          const audioChunks = await extractAudioFromVideo(file, (msg) => setProgress(msg));
+
+          const transcripts: string[] = [];
+          for (let i = 0; i < audioChunks.length; i++) {
+            setProgress(`음성 인식 중... (${i + 1}/${audioChunks.length})`);
+            const formData = new FormData();
+            formData.append("file", audioChunks[i]);
+            formData.append("model", "whisper-1");
+            formData.append("language", "ko");
+            const res = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+              method: "POST",
+              headers: { "Authorization": `Bearer ${apiKey}` },
+              body: formData,
+            });
+            if (!res.ok) {
+              const err = await res.json().catch(() => ({}));
+              throw new Error(err.error?.message || `음성 인식 실패 (${i + 1}번째 조각)`);
+            }
+            const result = await res.json();
+            if (result.text) transcripts.push(result.text);
+          }
+          transcriptData = { transcript: transcripts.join(" "), videoType: "롱폼" };
+
+        } else {
+          // 500MB 초과: 처리 불가
+          throw new Error(
+            `파일이 너무 큽니다 (${(file.size / (1024*1024*1024)).toFixed(1)}GB).\n\n` +
+            "대용량 영상은 다음 방법을 사용해주세요:\n" +
+            "• YouTube에 비공개로 업로드 후 'YouTube 링크' 탭 사용\n" +
+            "• 대본이 있다면 '직접 입력' 탭 사용"
+          );
+        }
       } else if (tab === "direct") {
         const res = await fetch("/api/youtube-title/transcript/direct", {
           method: "POST",
@@ -147,15 +220,7 @@ export default function NewProjectPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-10">
-      {/* Header */}
-      <div className="bg-white border-b border-toss-gray-100">
-        <div className="max-w-3xl mx-auto px-5 py-4 flex items-center gap-3">
-          <Link href="/youtube-title" className="text-toss-gray-400 hover:text-toss-gray-600 text-[14px]">
-            ← 돌아가기
-          </Link>
-          <h1 className="text-[20px] font-bold text-toss-gray-900">새 프로젝트</h1>
-        </div>
-      </div>
+      <TopNav title="새 프로젝트" backHref="/youtube-title" />
 
       <div className="max-w-2xl mx-auto px-5 mt-6">
         <p className="text-sm text-toss-gray-400 mb-8">영상 소스를 선택하여 시작하세요</p>
@@ -224,7 +289,16 @@ export default function NewProjectPage() {
                       </svg>
                     </div>
                     <p className="text-sm font-semibold text-toss-blue">{file.name}</p>
-                    <p className="text-xs text-toss-gray-400 mt-1">클릭하여 다른 파일 선택</p>
+                    <p className="text-xs text-toss-gray-400 mt-1">
+                      {(file.size / (1024*1024)).toFixed(0)}MB · 클릭하여 다른 파일 선택
+                    </p>
+                    {file.size > 500 * 1024 * 1024 && (
+                      <div className="mt-3 p-3 bg-orange-50 border border-orange-200 rounded-lg text-xs text-orange-700 text-left">
+                        <p className="font-semibold mb-1">대용량 파일 ({(file.size / (1024*1024*1024)).toFixed(1)}GB)</p>
+                        <p>500MB 초과 파일은 브라우저에서 처리할 수 없습니다.</p>
+                        <p className="mt-1">YouTube에 비공개 업로드 후 &apos;YouTube 링크&apos; 탭을 사용하거나, 대본을 &apos;직접 입력&apos; 탭에 붙여넣어 주세요.</p>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div>

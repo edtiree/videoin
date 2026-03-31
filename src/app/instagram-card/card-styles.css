@@ -3,6 +3,9 @@
 
 .card-maker-root *, .card-maker-root *::before, .card-maker-root *::after { margin:0; padding:0; box-sizing:border-box; }
 
+/* 엔진 자체 헤더 숨김 (TopNav로 대체) */
+.card-maker-root > .header { display: none !important; }
+
 /* ===== Theme Variables (scoped) ===== */
 .card-maker-root {
   --font: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;

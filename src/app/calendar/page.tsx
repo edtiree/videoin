@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import TopNav from "@/components/TopNav";
 
 interface Ad {
   id: string;
@@ -62,17 +62,11 @@ export default function CalendarPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-10">
-      <div className="bg-white border-b border-toss-gray-100">
-        <div className="max-w-6xl mx-auto px-5 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link href="/" className="text-toss-gray-400 hover:text-toss-gray-600 text-[14px]">← 홈</Link>
-            <h1 className="text-[20px] font-bold text-toss-gray-900">촬영 일정</h1>
-          </div>
-          <button onClick={goToday} className="px-4 py-2 bg-toss-blue text-white text-[13px] font-semibold rounded-xl hover:bg-toss-blue-hover active:scale-[0.98] transition-all">
-            오늘
-          </button>
-        </div>
-      </div>
+      <TopNav title="촬영 일정" backHref="/" rightContent={
+        <button onClick={goToday} className="px-4 py-2 bg-toss-blue text-white text-[13px] font-semibold rounded-xl hover:bg-toss-blue-hover active:scale-[0.98] transition-all">
+          오늘
+        </button>
+      } />
 
       <div className="max-w-6xl mx-auto px-5 mt-4 space-y-3">
         {/* 필터 */}

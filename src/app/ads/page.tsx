@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import ConfirmModal from "@/components/ConfirmModal";
+import TopNav from "@/components/TopNav";
 
 interface Ad {
   id: string;
@@ -174,20 +175,16 @@ export default function AdsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-10">
+      <TopNav title="광고 관리" backHref="/" rightContent={
+        tab === "dashboard" && dashView === "all" ? (
+          <button onClick={() => setEditAd({ youtube_channel: "돈벌쥐", progress: "완료", filming_fee_status: "정산 전", vat_method: "부가세 별도", tax_invoice: "발행 전", rs_settlement: "시작 전", ad_fee: 0, supply_amount: 0, vat_amount: 0, total_amount: 0, rs_rate: 0, rs_cost: 0 })}
+            className="px-4 py-2 bg-toss-blue text-white text-[14px] font-semibold rounded-xl hover:bg-toss-blue-hover active:scale-[0.98] transition-all">
+            + 새 광고
+          </button>
+        ) : undefined
+      } />
       <div className="bg-white border-b border-toss-gray-100">
-        <div className="max-w-6xl mx-auto px-5 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <a href="/admin" className="text-toss-gray-400 hover:text-toss-gray-600 text-[14px]">← 관리자</a>
-            <h1 className="text-[20px] font-bold text-toss-gray-900">광고 관리</h1>
-          </div>
-          {tab === "dashboard" && dashView === "all" && (
-            <button onClick={() => setEditAd({ youtube_channel: "돈벌쥐", progress: "완료", filming_fee_status: "정산 전", vat_method: "부가세 별도", tax_invoice: "발행 전", rs_settlement: "시작 전", ad_fee: 0, supply_amount: 0, vat_amount: 0, total_amount: 0, rs_rate: 0, rs_cost: 0 })}
-              className="px-4 py-2 bg-toss-blue text-white text-[14px] font-semibold rounded-xl hover:bg-toss-blue-hover active:scale-[0.98] transition-all">
-              + 새 광고
-            </button>
-          )}
-        </div>
-        <div className="max-w-6xl mx-auto px-5">
+        <div className="max-w-6xl mx-auto px-5 pb-2">
           <div className="flex gap-1 bg-toss-gray-100 rounded-xl p-1">
             {([["dashboard","정산현황"],["calendar","캘린더"]] as const).map(([k,l]) => (
               <button key={k} onClick={() => setTab(k)}

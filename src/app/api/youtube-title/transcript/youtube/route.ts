@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { YoutubeTranscript } from "youtube-transcript";
+
+const TRANSCRIPT_SERVER_URL = process.env.TRANSCRIPT_SERVER_URL || "https://web-production-7867d.up.railway.app";
 
 function extractVideoId(url: string): string | null {
   const patterns = [
@@ -11,11 +12,6 @@ function extractVideoId(url: string): string | null {
     if (m) return m[1];
   }
   return null;
-}
-
-function detectVideoType(url: string): string {
-  if (/shorts\//.test(url)) return "숏폼";
-  return "롱폼";
 }
 
 export async function POST(request: NextRequest) {
@@ -30,25 +26,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "올바른 YouTube URL이 아닙니다" }, { status: 400 });
     }
 
-    const transcriptItems = await YoutubeTranscript.fetchTranscript(videoId, {
-      lang: "ko",
+    // Railway 자막 서버에 요청
+    const res = await fetch(`${TRANSCRIPT_SERVER_URL}/transcript`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url }),
     });
 
-    const transcript = transcriptItems.map((item) => item.text).join(" ");
+    const data = await res.json();
 
-    if (!transcript.trim()) {
-      return NextResponse.json({ error: "자막을 가져올 수 없습니다" }, { status: 400 });
+    if (!res.ok) {
+      return NextResponse.json(
+        { error: data.detail || "자막 추출 실패" },
+        { status: res.status }
+      );
     }
 
-    const videoType = detectVideoType(url);
-    const videoThumbnail = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
-
-    return NextResponse.json({
-      transcript,
-      videoType,
-      videoThumbnail,
-      frames: [],
-    });
+    return NextResponse.json(data);
   } catch (error) {
     const message = error instanceof Error ? error.message : "자막 추출 실패";
     return NextResponse.json({ error: message }, { status: 500 });
