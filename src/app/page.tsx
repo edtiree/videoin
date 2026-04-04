@@ -12,10 +12,10 @@ const MAIN_CATEGORIES = [
   { key: "영상 촬영", label: "영상 촬영", icon: "📸", active: true },
   { key: "썸네일", label: "썸네일", icon: "🖼️", active: true },
   { key: "모션그래픽", label: "모션그래픽", icon: "✨", active: true },
-  { key: "스크립트", label: "스크립트", icon: "✏️", active: false },
-  { key: "성우", label: "성우", icon: "🎙️", active: false },
-  { key: "출연자", label: "출연자", icon: "🎭", active: false },
-  { key: "스튜디오", label: "스튜디오", icon: "🏠", active: false },
+  { key: "스크립트", label: "스크립트", icon: "✏️", active: true },
+  { key: "성우", label: "성우", icon: "🎙️", active: true },
+  { key: "출연자", label: "출연자", icon: "🎭", active: true },
+  { key: "스튜디오", label: "스튜디오", icon: "🏠", active: true },
 ];
 
 // 플레이스홀더 추천 편집자

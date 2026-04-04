@@ -6,7 +6,7 @@ import { useAuth } from "@/components/AuthProvider";
 import CategoryBadge from "@/components/common/CategoryBadge";
 import TopNav from "@/components/TopNav";
 
-const CATEGORIES = ["전체", "영상 편집", "영상 촬영", "썸네일", "모션그래픽"];
+const CATEGORIES = ["전체", "영상 편집", "영상 촬영", "썸네일", "모션그래픽", "스크립트", "성우", "출연자", "스튜디오"];
 
 interface Job {
   id: string;
