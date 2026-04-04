@@ -137,7 +137,9 @@ export default function PostDetailPage() {
         {/* 게시글 */}
         <div className="bg-white px-5 py-5 border-b border-toss-gray-100">
           <div className="flex items-center gap-2 mb-3">
-            <span className="text-[11px] font-medium text-toss-blue bg-blue-50 px-2 py-0.5 rounded">{post.category}</span>
+            <span className={`text-[11px] font-medium px-2 py-0.5 rounded ${
+              post.category === "중고거래" ? "text-toss-orange bg-orange-50" : "text-toss-blue bg-blue-50"
+            }`}>{post.category}</span>
             <span className="text-[11px] text-toss-gray-300">{timeAgo(post.created_at)}</span>
           </div>
 

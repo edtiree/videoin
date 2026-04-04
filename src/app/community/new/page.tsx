@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 import TopNav from "@/components/TopNav";
 
-const CATEGORIES = ["자유", "구인/구직", "장비", "노하우", "질문", "홍보"];
+const CATEGORIES = ["자유", "중고거래", "구인/구직", "장비", "노하우", "질문", "홍보"];
 
 export default function NewPostPage() {
   const router = useRouter();

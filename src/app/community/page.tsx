@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 
-const CATEGORIES = ["전체", "자유", "구인/구직", "장비", "노하우", "질문", "홍보"];
+const CATEGORIES = ["전체", "자유", "중고거래", "구인/구직", "장비", "노하우", "질문", "홍보"];
 
 interface Post {
   id: string;
@@ -104,7 +104,9 @@ export default function CommunityPage() {
             >
               {/* 카테고리 + 시간 */}
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-[11px] font-medium text-toss-blue bg-blue-50 px-2 py-0.5 rounded">{post.category}</span>
+                <span className={`text-[11px] font-medium px-2 py-0.5 rounded ${
+                  post.category === "중고거래" ? "text-toss-orange bg-orange-50" : "text-toss-blue bg-blue-50"
+                }`}>{post.category}</span>
                 <span className="text-[11px] text-toss-gray-300">{timeAgo(post.created_at)}</span>
               </div>
 
