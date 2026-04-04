@@ -201,10 +201,11 @@ export default function PostDetailPage() {
             <div className={`mt-4 gap-2 ${
               post.image_urls.length === 1 ? "flex" : "grid grid-cols-2"
             }`}>
-              {post.image_urls.map((keyOrUrl, i) => (
-                <R2Image
+              {post.image_urls.map((url, i) => (
+                <img
                   key={i}
-                  src={keyOrUrl}
+                  src={url}
+                  alt=""
                   className={`rounded-xl object-cover w-full ${
                     post.image_urls.length === 1 ? "max-h-[400px]" : "aspect-square"
                   }`}
@@ -310,8 +311,8 @@ export default function PostDetailPage() {
         </div>
       </div>
 
-      {/* 댓글 입력 — BottomNav(z-50) 위에 표시, 모바일에서는 BottomNav 높이만큼 올림 */}
-      <div className="fixed bottom-14 md:bottom-0 left-0 right-0 bg-white border-t border-toss-gray-100 px-4 py-3 z-[51] pb-[env(safe-area-inset-bottom,0px)] md:pb-[env(safe-area-inset-bottom,12px)]">
+      {/* 댓글 입력 */}
+      <div className="fixed bottom-[calc(3.5rem+env(safe-area-inset-bottom,8px))] md:bottom-0 left-0 right-0 bg-white border-t border-toss-gray-100 px-4 py-2 z-[51]">
         <div className="max-w-[800px] mx-auto">
           {replyTo && (
             <div className="flex items-center justify-between mb-2 px-1">
@@ -350,6 +351,9 @@ function CommentItem({ comment, isLoggedIn, isReply, onReply }: {
   isReply?: boolean;
   onReply: () => void;
 }) {
+  const [liked, setLiked] = useState(false);
+  const [likes, setLikes] = useState(0);
+
   return (
     <div className={`px-5 py-3 ${isReply ? "pl-4" : ""}`}>
       <div className="flex items-center gap-2 mb-1">
@@ -365,33 +369,25 @@ function CommentItem({ comment, isLoggedIn, isReply, onReply }: {
       </div>
       <div className="ml-9">
         <p className="text-[14px] text-toss-gray-700">{comment.content}</p>
-        <button
-          onClick={onReply}
-          className="text-[12px] text-toss-gray-400 hover:text-toss-blue mt-1 font-medium"
-        >
-          답글
-        </button>
+        <div className="flex items-center gap-3 mt-1">
+          <button
+            onClick={() => { if (!isLoggedIn) return; setLiked(!liked); setLikes(l => liked ? l - 1 : l + 1); }}
+            className={`flex items-center gap-1 text-[12px] font-medium ${liked ? "text-toss-red" : "text-toss-gray-400"}`}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill={liked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+            {likes > 0 && likes}
+          </button>
+          <button
+            onClick={onReply}
+            className="text-[12px] text-toss-gray-400 hover:text-toss-blue font-medium"
+          >
+            답글
+          </button>
+        </div>
       </div>
     </div>
   );
 }
 
-function R2Image({ src, className }: { src: string; className?: string }) {
-  const [url, setUrl] = useState<string | null>(null);
-
-  useEffect(() => {
-    // http로 시작하면 이미 URL
-    if (src.startsWith("http")) {
-      setUrl(src);
-      return;
-    }
-    // R2 key → presigned URL
-    fetch(`/api/posts/upload?key=${encodeURIComponent(src)}`)
-      .then((r) => r.json())
-      .then((data) => { if (data.url) setUrl(data.url); })
-      .catch(() => {});
-  }, [src]);
-
-  if (!url) return <div className={`${className} bg-toss-gray-100 animate-pulse`} />;
-  return <img src={url} alt="" className={className} />;
-}

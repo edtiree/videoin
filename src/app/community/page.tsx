@@ -38,7 +38,7 @@ export default function CommunityPage() {
   const [category, setCategory] = useState("전체");
 
   const fetchPosts = useCallback(async () => {
-    setLoading(true);
+    if (posts.length === 0) setLoading(true); // 첫 로딩만 스피너
     const params = new URLSearchParams();
     if (category !== "전체") params.set("category", category);
 
@@ -48,7 +48,7 @@ export default function CommunityPage() {
       setPosts(json.data || []);
     } catch { /* empty */ }
     setLoading(false);
-  }, [category]);
+  }, [category]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { fetchPosts(); }, [fetchPosts]);
 
@@ -118,7 +118,7 @@ export default function CommunityPage() {
                   <p className="text-[13px] text-toss-gray-500 line-clamp-2 mb-3">{post.content}</p>
                 </div>
                 {post.image_urls?.length > 0 && (
-                  <ThumbnailImage src={post.image_urls[0]} />
+                  <img src={post.image_urls[0]} alt="" className="w-16 h-16 rounded-lg object-cover flex-shrink-0" />
                 )}
               </div>
 
@@ -148,17 +148,3 @@ export default function CommunityPage() {
   );
 }
 
-function ThumbnailImage({ src }: { src: string }) {
-  const [url, setUrl] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (src.startsWith("http")) { setUrl(src); return; }
-    fetch(`/api/posts/upload?key=${encodeURIComponent(src)}`)
-      .then((r) => r.json())
-      .then((data) => { if (data.url) setUrl(data.url); })
-      .catch(() => {});
-  }, [src]);
-
-  if (!url) return <div className="w-16 h-16 rounded-lg bg-toss-gray-100 animate-pulse flex-shrink-0" />;
-  return <img src={url} alt="" className="w-16 h-16 rounded-lg object-cover flex-shrink-0" />;
-}
