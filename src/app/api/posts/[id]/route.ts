@@ -7,15 +7,18 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 
   const { data, error } = await supabase
     .from("posts")
-    .select("*, users!posts_user_id_fkey(id, nickname, profile_image)")
+    .select("*")
     .eq("id", id)
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: error.code === "PGRST116" ? 404 : 500 });
 
+  // 유저 정보 별도 조회
+  const { data: postUser } = await supabase.from("users").select("id, nickname, profile_image").eq("id", data.user_id).single();
+
   await supabase.from("posts").update({ view_count: (data.view_count || 0) + 1 }).eq("id", id);
 
-  return NextResponse.json(data);
+  return NextResponse.json({ ...data, users: postUser });
 }
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {

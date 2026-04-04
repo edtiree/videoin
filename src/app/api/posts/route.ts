@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
   const supabase = getSupabase();
   let query = supabase
     .from("posts")
-    .select("*, users!posts_user_id_fkey(nickname, profile_image)", { count: "exact" })
+    .select("*", { count: "exact" })
     .order("created_at", { ascending: false })
     .range((page - 1) * limit, page * limit - 1);
 
@@ -22,7 +22,16 @@ export async function GET(request: NextRequest) {
 
   const { data, error, count } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ data, total: count });
+
+  // 유저 정보 별도 조회
+  const userIds = [...new Set((data || []).map((p: { user_id: string }) => p.user_id))];
+  const { data: users } = userIds.length > 0
+    ? await supabase.from("users").select("id, nickname, profile_image").in("id", userIds)
+    : { data: [] };
+  const userMap = new Map((users || []).map((u: { id: string }) => [u.id, u]));
+
+  const result = (data || []).map((p: { user_id: string }) => ({ ...p, users: userMap.get(p.user_id) || null }));
+  return NextResponse.json({ data: result, total: count });
 }
 
 export async function POST(request: NextRequest) {

@@ -7,12 +7,19 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 
   const { data, error } = await supabase
     .from("post_comments")
-    .select("*, users!post_comments_user_id_fkey(id, nickname, profile_image)")
+    .select("*")
     .eq("post_id", id)
     .order("created_at", { ascending: true });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json(data);
+
+  // 유저 정보 별도 조회
+  const userIds = [...new Set((data || []).map((c: { user_id: string }) => c.user_id))];
+  const { data: users } = await supabase.from("users").select("id, nickname, profile_image").in("id", userIds);
+  const userMap = new Map((users || []).map((u: { id: string }) => [u.id, u]));
+
+  const result = (data || []).map((c: { user_id: string }) => ({ ...c, users: userMap.get(c.user_id) || null }));
+  return NextResponse.json(result);
 }
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -27,7 +34,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const { data, error } = await supabase
     .from("post_comments")
     .insert({ post_id: id, user_id, content: content.trim(), parent_id: parent_id || null })
-    .select("*, users!post_comments_user_id_fkey(id, nickname, profile_image)")
+    .select()
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
