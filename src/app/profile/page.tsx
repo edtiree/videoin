@@ -72,10 +72,10 @@ export default function ProfilePage() {
               </div>
             </div>
             <button
-              onClick={() => showToast("프로필 편집 기능 준비 중")}
+              onClick={() => router.push("/profile/edit")}
               className="px-3 py-1.5 rounded-lg border border-toss-gray-200 text-[13px] font-medium text-toss-gray-500 hover:bg-toss-gray-50 transition"
             >
-              프로필 편집
+              편집
             </button>
           </div>
 
