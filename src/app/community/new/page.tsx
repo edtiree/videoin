@@ -51,21 +51,22 @@ export default function NewPostPage() {
     const urls: string[] = [];
 
     for (const img of images) {
-      try {
-        const formData = new FormData();
-        formData.append("file", img.file);
+      const formData = new FormData();
+      formData.append("file", img.file);
 
-        const res = await fetch("/api/posts/upload", {
-          method: "POST",
-          body: formData,
-        });
-        const data = await res.json();
-        if (data.key) {
-          // R2 key → 프록시 URL로 변환 (만료 없음)
-          urls.push(`/api/posts/image?key=${encodeURIComponent(data.key)}`);
-        }
-      } catch {
-        console.error("이미지 업로드 실패");
+      const res = await fetch("/api/posts/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "업로드 실패" }));
+        throw new Error(err.error || "이미지 업로드에 실패했습니다");
+      }
+
+      const data = await res.json();
+      if (data.key) {
+        urls.push(`/api/posts/image?key=${encodeURIComponent(data.key)}`);
       }
     }
 
@@ -82,7 +83,13 @@ export default function NewPostPage() {
     // 이미지 업로드
     let imageUrls: string[] = [];
     if (images.length > 0) {
-      imageUrls = await uploadImages();
+      try {
+        imageUrls = await uploadImages();
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "이미지 업로드 실패");
+        setSaving(false);
+        return;
+      }
     }
 
     // 투표 데이터 구성
