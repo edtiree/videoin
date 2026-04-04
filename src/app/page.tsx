@@ -7,16 +7,15 @@ import AIRecommendation from "@/components/home/AIRecommendation";
 
 type FeedTab = "jobs" | "editors";
 
-const CATEGORIES = [
-  { key: "all", label: "전체" },
-  { key: "editing", label: "영상 편집", active: true },
-  { key: "filming", label: "영상 촬영", active: true },
-  { key: "thumbnail", label: "썸네일", active: true },
-  { key: "motion", label: "모션그래픽", active: true },
-  { key: "script", label: "스크립트 작가", active: false },
-  { key: "voice", label: "성우", active: false },
-  { key: "actor", label: "출연자/배우", active: false },
-  { key: "studio", label: "스튜디오 대여", active: false },
+const MAIN_CATEGORIES = [
+  { key: "editing", label: "영상 편집", icon: "🎬", active: true, subs: ["유튜브 편집", "숏폼 편집", "광고/홍보 편집", "웨딩 편집", "교육 영상", "브이로그"] },
+  { key: "filming", label: "영상 촬영", icon: "📸", active: true, subs: ["유튜브 촬영", "웨딩 촬영", "드론 촬영", "제품 촬영", "행사 촬영", "인터뷰 촬영"] },
+  { key: "thumbnail", label: "썸네일", icon: "🖼️", active: true, subs: ["유튜브 썸네일", "강의 썸네일", "광고 배너", "채널아트"] },
+  { key: "motion", label: "모션그래픽", icon: "✨", active: true, subs: ["인트로/아웃트로", "로고 애니메이션", "인포그래픽", "타이틀 모션", "광고 모션"] },
+  { key: "script", label: "스크립트", icon: "✏️", active: false, subs: [] },
+  { key: "voice", label: "성우", icon: "🎙️", active: false, subs: [] },
+  { key: "actor", label: "출연자", icon: "🎭", active: false, subs: [] },
+  { key: "studio", label: "스튜디오", icon: "🏠", active: false, subs: [] },
 ];
 
 // 플레이스홀더 공고 데이터
@@ -42,6 +41,8 @@ export default function HomePage() {
   const { isLoggedIn, openLoginModal, profile } = useAuth();
   const [tab, setTab] = useState<FeedTab>("jobs");
   const [category, setCategory] = useState("all");
+  const [subCategory, setSubCategory] = useState<string | null>(null);
+  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
   // 로그인된 유저의 역할에 따라 기본 탭 설정
@@ -53,14 +54,16 @@ export default function HomePage() {
     }
   }, [profile]);
 
+  const selectedMainLabel = MAIN_CATEGORIES.find((c) => c.key === category)?.label;
+
   const filteredJobs = PLACEHOLDER_JOBS.filter((j) => {
-    if (category !== "all" && j.category !== CATEGORIES.find((c) => c.key === category)?.label) return false;
+    if (category !== "all" && j.category !== selectedMainLabel) return false;
     if (searchQuery && !j.title.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     return true;
   });
 
   const filteredEditors = PLACEHOLDER_EDITORS.filter((e) => {
-    if (category !== "all" && e.category !== CATEGORIES.find((c) => c.key === category)?.label) return false;
+    if (category !== "all" && e.category !== selectedMainLabel) return false;
     if (searchQuery && !e.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     return true;
   });
@@ -85,21 +88,19 @@ export default function HomePage() {
       {/* 카테고리 아이콘 그리드 */}
       <div className="bg-white rounded-2xl border border-toss-gray-100 p-4 mb-5">
         <div className="grid grid-cols-4 gap-3 md:grid-cols-8">
-          {[
-            { key: "editing", label: "영상 편집", icon: "🎬", active: true },
-            { key: "filming", label: "영상 촬영", icon: "📸", active: true },
-            { key: "thumbnail", label: "썸네일", icon: "🖼️", active: true },
-            { key: "motion", label: "모션그래픽", icon: "✨", active: true },
-            { key: "script", label: "스크립트", icon: "✏️", active: false },
-            { key: "voice", label: "성우", icon: "🎙️", active: false },
-            { key: "actor", label: "출연자", icon: "🎭", active: false },
-            { key: "studio", label: "스튜디오", icon: "🏠", active: false },
-          ].map((item) => (
+          {MAIN_CATEGORIES.map((item) => (
             <button
               key={item.key}
               onClick={() => {
-                if (item.active) {
+                if (!item.active) return;
+                if (category === item.key && expandedCategory === item.key) {
+                  setCategory("all");
+                  setExpandedCategory(null);
+                  setSubCategory(null);
+                } else {
                   setCategory(item.key);
+                  setExpandedCategory(item.key);
+                  setSubCategory(null);
                 }
               }}
               className={`flex flex-col items-center gap-1.5 py-2 rounded-xl transition relative ${
@@ -120,6 +121,38 @@ export default function HomePage() {
             </button>
           ))}
         </div>
+
+        {/* 세부 카테고리 펼침 */}
+        {expandedCategory && (() => {
+          const main = MAIN_CATEGORIES.find((c) => c.key === expandedCategory);
+          if (!main || main.subs.length === 0) return null;
+          return (
+            <div className="mt-3 pt-3 border-t border-toss-gray-100">
+              <p className="text-[12px] font-semibold text-toss-gray-400 mb-2">{main.label} 세부 분야</p>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => setSubCategory(null)}
+                  className={`px-3 py-1.5 rounded-lg text-[12px] font-medium transition ${
+                    !subCategory ? "bg-toss-blue text-white" : "bg-toss-gray-50 text-toss-gray-500 hover:bg-toss-gray-100"
+                  }`}
+                >
+                  전체
+                </button>
+                {main.subs.map((sub) => (
+                  <button
+                    key={sub}
+                    onClick={() => setSubCategory(sub)}
+                    className={`px-3 py-1.5 rounded-lg text-[12px] font-medium transition ${
+                      subCategory === sub ? "bg-toss-blue text-white" : "bg-toss-gray-50 text-toss-gray-500 hover:bg-toss-gray-100"
+                    }`}
+                  >
+                    {sub}
+                  </button>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
       {/* AI 추천 섹션 */}
@@ -128,7 +161,7 @@ export default function HomePage() {
       {/* 탭 */}
       <div className="flex gap-2 mb-4">
         <button
-          onClick={() => { setTab("jobs"); setCategory("all"); }}
+          onClick={() => setTab("jobs")}
           className={`flex-1 h-[42px] rounded-xl text-[14px] font-semibold transition ${
             tab === "jobs"
               ? "bg-toss-gray-900 text-white"
@@ -138,7 +171,7 @@ export default function HomePage() {
           공고 찾기
         </button>
         <button
-          onClick={() => { setTab("editors"); setCategory("all"); }}
+          onClick={() => setTab("editors")}
           className={`flex-1 h-[42px] rounded-xl text-[14px] font-semibold transition ${
             tab === "editors"
               ? "bg-toss-gray-900 text-white"
@@ -149,29 +182,20 @@ export default function HomePage() {
         </button>
       </div>
 
-      {/* 카테고리 필터 */}
-      <div className="flex gap-2 overflow-x-auto pb-3 mb-4 scrollbar-hide">
-        {CATEGORIES.map((c) => (
+      {/* 선택된 카테고리 표시 */}
+      {category !== "all" && (
+        <div className="flex items-center gap-2 mb-4">
+          <span className="text-[13px] text-toss-gray-500">
+            {selectedMainLabel}{subCategory ? ` > ${subCategory}` : ""}
+          </span>
           <button
-            key={c.key}
-            onClick={() => c.key === "all" || c.active ? setCategory(c.key) : null}
-            className={`flex-shrink-0 px-4 h-[34px] rounded-full text-[13px] font-medium transition whitespace-nowrap ${
-              category === c.key
-                ? "bg-toss-gray-900 text-white"
-                : c.active !== false
-                  ? "bg-white border border-toss-gray-100 text-toss-gray-500 hover:border-toss-gray-200"
-                  : "bg-toss-gray-50 border border-toss-gray-100 text-toss-gray-300 cursor-default"
-            }`}
+            onClick={() => { setCategory("all"); setExpandedCategory(null); setSubCategory(null); }}
+            className="text-[12px] text-toss-gray-400 hover:text-toss-gray-600"
           >
-            {c.label}
-            {c.active === false && (
-              <span className="ml-1 text-[10px] bg-toss-gray-200 text-toss-gray-400 px-1.5 py-0.5 rounded-full">
-                준비중
-              </span>
-            )}
+            ✕ 초기화
           </button>
-        ))}
-      </div>
+        </div>
+      )}
 
       {/* 피드 */}
       {tab === "jobs" ? (
