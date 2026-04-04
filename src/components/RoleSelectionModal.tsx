@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useAuth } from "@/components/AuthProvider";
 import { getSupabaseAuthBrowser } from "@/lib/supabase-auth-browser";
@@ -47,6 +47,9 @@ const ROLES = [
 export default function RoleSelectionModal() {
   const { showRoleModal, closeRoleModal, profile, refreshProfile } = useAuth();
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [nickname, setNickname] = useState("");
+  const [nicknameStatus, setNicknameStatus] = useState<"idle" | "checking" | "available" | "taken">("idle");
+  const nicknameTimer = useRef<NodeJS.Timeout | null>(null);
   const [saving, setSaving] = useState(false);
 
   if (!showRoleModal || !profile) return null;
@@ -62,13 +65,29 @@ export default function RoleSelectionModal() {
     });
   };
 
+  const checkNickname = (value: string) => {
+    setNickname(value);
+    if (nicknameTimer.current) clearTimeout(nicknameTimer.current);
+    if (!value.trim()) { setNicknameStatus("idle"); return; }
+
+    setNicknameStatus("checking");
+    nicknameTimer.current = setTimeout(async () => {
+      const res = await fetch(`/api/users/check-nickname?nickname=${encodeURIComponent(value.trim())}&exclude_id=${profile.id}`);
+      const data = await res.json();
+      setNicknameStatus(data.available ? "available" : "taken");
+    }, 500);
+  };
+
   const handleSave = async () => {
-    if (selected.size === 0) return;
+    if (!nickname.trim() || nicknameStatus === "taken") return;
     setSaving(true);
+
+    const updates: Record<string, unknown> = { role: Array.from(selected) };
+    if (nickname.trim()) updates.nickname = nickname.trim();
 
     await supabase
       .from("users")
-      .update({ role: Array.from(selected) })
+      .update(updates)
       .eq("id", profile.id);
 
     await refreshProfile();
@@ -86,10 +105,37 @@ export default function RoleSelectionModal() {
 
       <div className="relative bg-white dark:bg-[var(--surface)] w-full md:w-[420px] md:rounded-2xl rounded-t-2xl p-6 pb-[env(safe-area-inset-bottom,24px)] animate-slide-up">
         <div className="text-center mb-6 mt-2">
-          <h2 className="text-[20px] font-bold text-toss-gray-900">어떤 역할이신가요?</h2>
-          <p className="text-toss-gray-400 text-[14px] mt-1">복수 선택 가능해요. 나중에 변경할 수 있어요.</p>
+          <h2 className="text-[20px] font-bold text-toss-gray-900">프로필을 설정해주세요</h2>
+          <p className="text-toss-gray-400 text-[14px] mt-1">닉네임과 역할을 선택해주세요</p>
         </div>
 
+        {/* 닉네임 */}
+        <div className="mb-5">
+          <label className="text-[13px] font-medium text-toss-gray-500 mb-1.5 block">닉네임 *</label>
+          <input
+            type="text"
+            value={nickname}
+            onChange={(e) => checkNickname(e.target.value)}
+            placeholder="사용할 닉네임을 입력하세요"
+            maxLength={20}
+            className={`w-full h-[48px] rounded-xl border px-4 text-[15px] focus:outline-none transition ${
+              nicknameStatus === "taken" ? "border-toss-red" :
+              nicknameStatus === "available" ? "border-toss-green" :
+              "border-toss-gray-200 focus:border-toss-blue"
+            }`}
+          />
+          {nicknameStatus !== "idle" && (
+            <p className={`text-[11px] mt-1 ${
+              nicknameStatus === "checking" ? "text-toss-gray-400" :
+              nicknameStatus === "available" ? "text-toss-green" : "text-toss-red"
+            }`}>
+              {nicknameStatus === "checking" ? "확인 중..." :
+               nicknameStatus === "available" ? "사용 가능한 닉네임입니다" : "이미 사용 중인 닉네임입니다"}
+            </p>
+          )}
+        </div>
+
+        <label className="text-[13px] font-medium text-toss-gray-500 mb-2 block">역할 (복수 선택 가능)</label>
         <div className="space-y-3 mb-6">
           {ROLES.map((role) => {
             const isSelected = selected.has(role.id);
@@ -126,7 +172,7 @@ export default function RoleSelectionModal() {
 
         <button
           onClick={handleSave}
-          disabled={saving || selected.size === 0}
+          disabled={saving || !nickname.trim() || nicknameStatus === "taken" || nicknameStatus === "checking"}
           className="w-full h-[52px] rounded-xl bg-toss-blue text-white font-semibold text-[15px] disabled:opacity-50 transition mb-3"
         >
           {saving ? "저장 중..." : "시작하기"}

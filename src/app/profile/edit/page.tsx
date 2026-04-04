@@ -29,6 +29,8 @@ export default function ProfileEditPage() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState("");
+  const [nicknameStatus, setNicknameStatus] = useState<"idle" | "checking" | "available" | "taken">("idle");
+  const nicknameTimer = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (!isLoggedIn) { openLoginModal(); return; }
@@ -39,6 +41,23 @@ export default function ProfileEditPage() {
       setPreviewImage(profile.profile_image || null);
     }
   }, [isLoggedIn, profile, openLoginModal]);
+
+  const checkNickname = (value: string) => {
+    setNickname(value);
+    if (nicknameTimer.current) clearTimeout(nicknameTimer.current);
+
+    if (!value.trim() || value.trim() === profile?.nickname) {
+      setNicknameStatus("idle");
+      return;
+    }
+
+    setNicknameStatus("checking");
+    nicknameTimer.current = setTimeout(async () => {
+      const res = await fetch(`/api/users/check-nickname?nickname=${encodeURIComponent(value.trim())}&exclude_id=${profile?.id}`);
+      const data = await res.json();
+      setNicknameStatus(data.available ? "available" : "taken");
+    }, 500);
+  };
 
   const toggleRole = (id: string) => {
     setRoles((prev) => {
@@ -62,6 +81,11 @@ export default function ProfileEditPage() {
     if (!profile) return;
     if (!nickname.trim()) {
       setToast("닉네임을 입력해주세요");
+      setTimeout(() => setToast(""), 2500);
+      return;
+    }
+    if (nicknameStatus === "taken") {
+      setToast("이미 사용 중인 닉네임입니다");
       setTimeout(() => setToast(""), 2500);
       return;
     }
@@ -154,12 +178,28 @@ export default function ProfileEditPage() {
             <input
               type="text"
               value={nickname}
-              onChange={(e) => setNickname(e.target.value)}
+              onChange={(e) => checkNickname(e.target.value)}
               placeholder="닉네임을 입력하세요"
               maxLength={20}
-              className="w-full h-[48px] rounded-xl border border-toss-gray-200 px-4 text-[15px] focus:outline-none focus:border-toss-blue"
+              className={`w-full h-[48px] rounded-xl border px-4 text-[15px] focus:outline-none transition ${
+                nicknameStatus === "taken" ? "border-toss-red focus:border-toss-red" :
+                nicknameStatus === "available" ? "border-toss-green focus:border-toss-green" :
+                "border-toss-gray-200 focus:border-toss-blue"
+              }`}
             />
-            <p className="text-[11px] text-toss-gray-300 mt-1 text-right">{nickname.length}/20</p>
+            <div className="flex items-center justify-between mt-1">
+              <span className={`text-[11px] ${
+                nicknameStatus === "checking" ? "text-toss-gray-400" :
+                nicknameStatus === "available" ? "text-toss-green" :
+                nicknameStatus === "taken" ? "text-toss-red" :
+                "text-transparent"
+              }`}>
+                {nicknameStatus === "checking" ? "확인 중..." :
+                 nicknameStatus === "available" ? "사용 가능한 닉네임입니다" :
+                 nicknameStatus === "taken" ? "이미 사용 중인 닉네임입니다" : "."}
+              </span>
+              <span className="text-[11px] text-toss-gray-300">{nickname.length}/20</span>
+            </div>
           </div>
 
           {/* 역할 */}
