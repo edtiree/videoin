@@ -74,7 +74,7 @@ export default function JobDetailPage() {
         ) : null
       } />
 
-      <div className="max-w-[640px] mx-auto px-4 py-5">
+      <div className="max-w-[800px] mx-auto px-4 py-5">
         <div className="bg-white rounded-2xl border border-toss-gray-100 p-6 mb-4">
           <CategoryBadge category={job.category} size="md" />
           <h1 className="text-[22px] font-bold text-toss-gray-900 mt-3 mb-2">{job.title}</h1>

@@ -44,7 +44,7 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-full bg-gray-50 pb-20">
-      <div className="max-w-[640px] mx-auto px-4 mt-4 space-y-4">
+      <div className="max-w-[800px] mx-auto px-4 mt-4 space-y-4">
 
         {/* 프로필 헤더 */}
         <div className="bg-white rounded-2xl border border-toss-gray-100 p-5">

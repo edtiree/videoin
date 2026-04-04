@@ -120,7 +120,7 @@ export default function ProfileEditPage() {
         </button>
       } />
 
-      <div className="max-w-[640px] mx-auto px-4 py-5 pb-20">
+      <div className="max-w-[800px] mx-auto px-4 py-5 pb-20">
         {/* 프로필 이미지 */}
         <div className="flex flex-col items-center mb-8">
           <div className="relative">

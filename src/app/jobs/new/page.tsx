@@ -76,7 +76,7 @@ export default function NewJobPage() {
   return (
     <>
       <TopNav title="공고 올리기" backHref="/jobs" />
-      <div className="max-w-[640px] mx-auto px-4 py-5">
+      <div className="max-w-[800px] mx-auto px-4 py-5">
         <div className="space-y-5">
           {/* 카테고리 */}
           <div>

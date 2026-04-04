@@ -49,7 +49,7 @@ export default function NewPostPage() {
         </button>
       } />
 
-      <div className="max-w-[640px] mx-auto px-4 py-5 space-y-5">
+      <div className="max-w-[800px] mx-auto px-4 py-5 space-y-5">
         {/* 카테고리 */}
         <div>
           <label className="text-[13px] font-medium text-toss-gray-500 mb-2 block">카테고리</label>

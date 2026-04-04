@@ -66,9 +66,9 @@ export default function HomePage() {
   });
 
   return (
-    <div className="max-w-[640px] mx-auto px-4 py-5">
+    <div className="max-w-[960px] mx-auto px-4 py-5">
       {/* 검색바 */}
-      <div className="relative mb-5">
+      <div className="relative mb-5 md:max-w-[480px]">
         <svg className="absolute left-4 top-1/2 -translate-y-1/2 text-toss-gray-300" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
           <circle cx="11" cy="11" r="8"/>
           <path d="m21 21-4.35-4.35"/>
@@ -135,7 +135,7 @@ export default function HomePage() {
 
       {/* 피드 */}
       {tab === "jobs" ? (
-        <div className="space-y-3">
+        <div className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
           {filteredJobs.map((job) => (
             <div
               key={job.id}
@@ -162,7 +162,7 @@ export default function HomePage() {
           ))}
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
           {filteredEditors.map((editor) => (
             <div
               key={editor.id}
@@ -227,7 +227,7 @@ export default function HomePage() {
       </div>
 
       {/* AI 툴 유도 */}
-      <div className="bg-white rounded-2xl border border-toss-gray-100 p-5 mb-8">
+      <div className="bg-white rounded-2xl border border-toss-gray-100 p-5 mb-8 md:flex md:items-center md:justify-between md:p-6">
         <div className="flex items-center gap-3 mb-3">
           <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-purple-500">

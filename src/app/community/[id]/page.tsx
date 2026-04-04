@@ -133,7 +133,7 @@ export default function PostDetailPage() {
         ) : null
       } />
 
-      <div className="max-w-[640px] mx-auto">
+      <div className="max-w-[800px] mx-auto">
         {/* 게시글 */}
         <div className="bg-white px-5 py-5 border-b border-toss-gray-100">
           <div className="flex items-center gap-2 mb-3">
@@ -210,7 +210,7 @@ export default function PostDetailPage() {
 
       {/* 댓글 입력 */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-toss-gray-100 px-4 py-3 pb-[env(safe-area-inset-bottom,12px)] z-30">
-        <div className="flex gap-2 max-w-[640px] mx-auto">
+        <div className="flex gap-2 max-w-[800px] mx-auto">
           <input
             type="text"
             value={commentInput}
