@@ -12,7 +12,7 @@ const TITLES: Record<string, string> = {
   "/dashboard": "대시보드",
   "/settlement": "정산 관리",
   "/calendar": "달력",
-  "/messages": "쪽지",
+  "/messages": "채팅",
 };
 
 export default function MobileTopNav() {

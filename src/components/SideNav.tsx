@@ -26,7 +26,7 @@ export default function SideNav() {
   const pathname = usePathname();
   const router = useRouter();
   const { theme, toggle: toggleTheme } = useTheme();
-  const { isLoggedIn, profile, openLoginModal, signOut } = useAuth();
+  const { isLoggedIn, profile, signOut } = useAuth();
   const [workerName, setWorkerName] = useState("");
   const [showPlanGate, setShowPlanGate] = useState(false);
   const [gatePlan, setGatePlan] = useState("team");
@@ -55,9 +55,9 @@ export default function SideNav() {
   const activeSection =
     pathname === "/" || pathname.startsWith("/jobs") || pathname.startsWith("/editors") ? "home"
     : pathname.startsWith("/community") ? "community"
+    : pathname.startsWith("/messages") ? "chat"
     : (pathname.startsWith("/tools") || pathname.startsWith("/review") || pathname.startsWith("/instagram-card") || pathname.startsWith("/youtube-title") || pathname.startsWith("/youtube-shorts") || pathname.startsWith("/screen-material")) ? "ai"
-    : (pathname.startsWith("/dashboard") || pathname.startsWith("/settlement") || pathname.startsWith("/calendar") || pathname.startsWith("/admin") || pathname.startsWith("/ads")) ? "manage"
-    : pathname.startsWith("/profile") || pathname.startsWith("/messages") ? "me"
+    : pathname.startsWith("/profile") || pathname.startsWith("/dashboard") || pathname.startsWith("/settlement") || pathname.startsWith("/calendar") || pathname.startsWith("/admin") || pathname.startsWith("/ads") ? "me"
     : null;
 
   return (
@@ -73,7 +73,7 @@ export default function SideNav() {
         </div>
 
         <nav className="flex-1 px-3 overflow-y-auto">
-          {/* 홈 (구인구직) */}
+          {/* 홈 */}
           <button
             onClick={() => router.push("/")}
             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1 transition-all text-left ${
@@ -91,9 +91,22 @@ export default function SideNav() {
               activeSection === "community" ? "bg-toss-gray-50 text-toss-gray-900" : "text-toss-gray-500 hover:bg-toss-gray-50"
             }`}
           >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill={activeSection === "community" ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill={activeSection === "community" ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
             <span className={`text-[14px] ${activeSection === "community" ? "font-bold" : "font-medium"}`}>커뮤니티</span>
           </button>
+
+          {/* 채팅 */}
+          <button
+            onClick={() => router.push("/messages")}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1 transition-all text-left ${
+              activeSection === "chat" ? "bg-toss-gray-50 text-toss-gray-900" : "text-toss-gray-500 hover:bg-toss-gray-50"
+            }`}
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill={activeSection === "chat" ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span className={`text-[14px] ${activeSection === "chat" ? "font-bold" : "font-medium"}`}>채팅</span>
+          </button>
+
+          <div className="border-t border-toss-gray-100 my-3" />
 
           {/* AI 툴 */}
           <button
@@ -109,19 +122,15 @@ export default function SideNav() {
             <span className={`text-[14px] ${activeSection === "ai" ? "font-bold" : "font-medium"}`}>AI 툴</span>
           </button>
 
-          {/* AI 툴 서브메뉴 */}
           {activeSection === "ai" && canAccessTools && (
             <div className="ml-3 mb-2">
               {AI_TOOL_ITEMS.map((item) => {
                 const basePath = "/" + item.href.split("/")[1];
                 return (
-                  <button
-                    key={item.href}
-                    onClick={() => router.push(item.href)}
+                  <button key={item.href} onClick={() => router.push(item.href)}
                     className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl mb-0.5 text-left transition-all ${
                       pathname.startsWith(basePath) ? "bg-blue-50 text-toss-blue font-semibold" : "text-toss-gray-500 hover:bg-toss-gray-50"
-                    }`}
-                  >
+                    }`}>
                     <span className="text-[13px]">{item.label}</span>
                   </button>
                 );
@@ -129,41 +138,25 @@ export default function SideNav() {
             </div>
           )}
 
-          {/* 관리 */}
-          <button
-            onClick={() => {
-              if (!canAccessManage) { setGatePlan("team"); setShowPlanGate(true); return; }
-              router.push("/dashboard");
-            }}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1 transition-all text-left ${
-              activeSection === "manage" ? "bg-toss-gray-50 text-toss-gray-900" : "text-toss-gray-500 hover:bg-toss-gray-50"
-            }`}
-          >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill={activeSection === "manage" ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-            <span className={`text-[14px] ${activeSection === "manage" ? "font-bold" : "font-medium"}`}>관리</span>
-          </button>
-
-          {/* 관리 서브메뉴 */}
-          {activeSection === "manage" && canAccessManage && (
-            <div className="ml-3 mb-2">
+          {/* 팀 관리 (팀+ 플랜만) */}
+          {canAccessManage && (
+            <>
+              <p className="px-3 text-[11px] font-bold text-toss-gray-400 uppercase mt-2 mb-2">팀 관리</p>
               {MANAGE_ITEMS.map((item) => (
-                <button
-                  key={item.href}
-                  onClick={() => router.push(item.href)}
+                <button key={item.href} onClick={() => router.push(item.href)}
                   className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl mb-0.5 text-left transition-all ${
                     pathname.startsWith(item.href) ? "bg-blue-50 text-toss-blue font-semibold" : "text-toss-gray-500 hover:bg-toss-gray-50"
-                  }`}
-                >
+                  }`}>
                   <span className="text-[13px]">{item.label}</span>
                 </button>
               ))}
-            </div>
+            </>
           )}
 
           {/* 내 정보 */}
           <button
             onClick={() => router.push("/profile")}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1 transition-all text-left ${
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1 mt-2 transition-all text-left ${
               activeSection === "me" ? "bg-toss-gray-50 text-toss-gray-900" : "text-toss-gray-500 hover:bg-toss-gray-50"
             }`}
           >
@@ -174,24 +167,15 @@ export default function SideNav() {
 
         {/* Bottom */}
         <div className="px-3 pb-4 space-y-1">
-          <button
-            onClick={toggleTheme}
-            className="w-full flex items-center justify-between px-3 py-2 rounded-xl hover:bg-toss-gray-50 transition"
-          >
-            <span className="text-[13px] text-toss-gray-500">
-              {theme === "dark" ? "라이트 모드" : "다크 모드"}
-            </span>
+          <button onClick={toggleTheme}
+            className="w-full flex items-center justify-between px-3 py-2 rounded-xl hover:bg-toss-gray-50 transition">
+            <span className="text-[13px] text-toss-gray-500">{theme === "dark" ? "라이트 모드" : "다크 모드"}</span>
             <div className={`w-9 h-5 rounded-full relative transition-colors ${theme === "dark" ? "bg-toss-blue" : "bg-toss-gray-300"}`}>
               <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${theme === "dark" ? "translate-x-[18px]" : "translate-x-0.5"}`} />
             </div>
           </button>
-          <button
-            onClick={async () => {
-              await signOut();
-              router.push("/");
-            }}
-            className="w-full px-3 py-2 text-[13px] text-toss-gray-400 hover:text-toss-red rounded-xl hover:bg-red-50 transition text-left"
-          >
+          <button onClick={async () => { await signOut(); router.push("/"); }}
+            className="w-full px-3 py-2 text-[13px] text-toss-gray-400 hover:text-toss-red rounded-xl hover:bg-red-50 transition text-left">
             로그아웃
           </button>
         </div>
