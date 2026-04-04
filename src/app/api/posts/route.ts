@@ -36,16 +36,33 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { user_id, category, title, content, image_urls } = body;
+  const { user_id, category, title, content, image_urls, poll_options } = body;
 
   if (!user_id || !title?.trim() || !content?.trim()) {
     return NextResponse.json({ error: "필수 항목 누락" }, { status: 400 });
   }
 
   const supabase = getSupabase();
+
+  const insertData: Record<string, unknown> = {
+    user_id,
+    category: category || "자유",
+    title: title.trim(),
+    content: content.trim(),
+    image_urls: image_urls || [],
+  };
+
+  // 투표 옵션이 있으면 JSON으로 저장
+  if (poll_options && Array.isArray(poll_options) && poll_options.length >= 2) {
+    insertData.poll_data = {
+      options: poll_options.map((label: string) => ({ label, votes: 0 })),
+      voters: {},
+    };
+  }
+
   const { data, error } = await supabase
     .from("posts")
-    .insert({ user_id, category: category || "자유", title: title.trim(), content: content.trim(), image_urls: image_urls || [] })
+    .insert(insertData)
     .select()
     .single();
 

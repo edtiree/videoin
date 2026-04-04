@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
-import { getSupabaseAuthBrowser } from "@/lib/supabase-auth-browser";
 import TopNav from "@/components/TopNav";
 
 const CATEGORIES = ["자유", "중고거래", "장비", "노하우", "질문", "홍보"];
@@ -16,6 +15,8 @@ export default function NewPostPage() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [images, setImages] = useState<{ file: File; preview: string }[]>([]);
+  const [showPoll, setShowPoll] = useState(false);
+  const [pollOptions, setPollOptions] = useState(["", ""]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -47,21 +48,31 @@ export default function NewPostPage() {
 
   const uploadImages = async (): Promise<string[]> => {
     if (images.length === 0) return [];
-
-    const supabase = getSupabaseAuthBrowser();
     const urls: string[] = [];
 
     for (const img of images) {
-      const ext = img.file.name.split(".").pop();
-      const fileName = `posts/${profile?.id}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+      try {
+        // presigned URL 받기
+        const res = await fetch("/api/posts/upload", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ fileName: img.file.name, contentType: img.file.type }),
+        });
+        const { uploadUrl, key } = await res.json();
 
-      const { error: uploadErr } = await supabase.storage
-        .from("community")
-        .upload(fileName, img.file);
+        // R2에 직접 업로드
+        await fetch(uploadUrl, {
+          method: "PUT",
+          body: img.file,
+          headers: { "Content-Type": img.file.type },
+        });
 
-      if (!uploadErr) {
-        const { data } = supabase.storage.from("community").getPublicUrl(fileName);
-        urls.push(data.publicUrl);
+        // presigned 다운로드 URL 받기
+        const dlRes = await fetch(`/api/posts/upload?key=${encodeURIComponent(key)}`);
+        const { url } = await dlRes.json();
+        urls.push(url);
+      } catch {
+        console.error("이미지 업로드 실패");
       }
     }
 
@@ -81,6 +92,10 @@ export default function NewPostPage() {
       imageUrls = await uploadImages();
     }
 
+    // 투표 데이터 구성
+    const validPollOptions = showPoll ? pollOptions.filter((o) => o.trim()) : [];
+    const pollData = validPollOptions.length >= 2 ? validPollOptions.map((o) => o.trim()) : null;
+
     const res = await fetch("/api/posts", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -90,6 +105,7 @@ export default function NewPostPage() {
         title: title.trim(),
         content: content.trim(),
         image_urls: imageUrls,
+        poll_options: pollData,
       }),
     });
 
@@ -192,6 +208,57 @@ export default function NewPostPage() {
             className="hidden"
             onChange={handleImageSelect}
           />
+        </div>
+
+        {/* 투표 */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <label className="text-[13px] font-medium text-toss-gray-500">투표</label>
+            <button
+              onClick={() => { setShowPoll(!showPoll); if (showPoll) setPollOptions(["", ""]); }}
+              className={`text-[12px] font-medium px-3 py-1 rounded-lg transition ${
+                showPoll ? "bg-toss-blue text-white" : "bg-toss-gray-50 text-toss-gray-500"
+              }`}
+            >
+              {showPoll ? "투표 제거" : "투표 추가"}
+            </button>
+          </div>
+
+          {showPoll && (
+            <div className="space-y-2 bg-toss-gray-50 rounded-xl p-4">
+              {pollOptions.map((opt, i) => (
+                <div key={i} className="flex gap-2">
+                  <input
+                    type="text"
+                    value={opt}
+                    onChange={(e) => {
+                      const next = [...pollOptions];
+                      next[i] = e.target.value;
+                      setPollOptions(next);
+                    }}
+                    placeholder={`선택지 ${i + 1}`}
+                    className="flex-1 h-[40px] rounded-lg border border-toss-gray-200 px-3 text-[14px] focus:outline-none focus:border-toss-blue"
+                  />
+                  {pollOptions.length > 2 && (
+                    <button
+                      onClick={() => setPollOptions(pollOptions.filter((_, j) => j !== i))}
+                      className="w-[40px] h-[40px] rounded-lg border border-toss-gray-200 flex items-center justify-center text-toss-gray-400 hover:text-toss-red hover:border-toss-red transition"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                    </button>
+                  )}
+                </div>
+              ))}
+              {pollOptions.length < 5 && (
+                <button
+                  onClick={() => setPollOptions([...pollOptions, ""])}
+                  className="w-full h-[40px] rounded-lg border border-dashed border-toss-gray-200 text-[13px] text-toss-gray-400 hover:border-toss-blue hover:text-toss-blue transition"
+                >
+                  + 선택지 추가
+                </button>
+              )}
+            </div>
+          )}
         </div>
 
         {error && <p className="text-toss-red text-[13px]">{error}</p>}

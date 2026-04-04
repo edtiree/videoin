@@ -5,6 +5,11 @@ import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 import TopNav from "@/components/TopNav";
 
+interface PollData {
+  options: { label: string; votes: number }[];
+  voters: Record<string, number>;
+}
+
 interface Post {
   id: string;
   user_id: string;
@@ -12,6 +17,7 @@ interface Post {
   title: string;
   content: string;
   image_urls: string[];
+  poll_data: PollData | null;
   view_count: number;
   like_count: number;
   comment_count: number;
@@ -49,6 +55,7 @@ export default function PostDetailPage() {
   const [likeCount, setLikeCount] = useState(0);
   const [commentInput, setCommentInput] = useState("");
   const [replyTo, setReplyTo] = useState<{ id: string; nickname: string } | null>(null);
+  const [pollData, setPollData] = useState<PollData | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -57,6 +64,7 @@ export default function PostDetailPage() {
       .then((data) => {
         setPost(data);
         setLikeCount(data.like_count || 0);
+        if (data.poll_data) setPollData(data.poll_data);
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -105,6 +113,17 @@ export default function PostDetailPage() {
       setPost((prev) => prev ? { ...prev, comment_count: (prev.comment_count || 0) + 1 } : prev);
     }
     setSubmitting(false);
+  };
+
+  const handleVote = async (optionIndex: number) => {
+    if (!isLoggedIn) { openLoginModal(); return; }
+    const res = await fetch(`/api/posts/${id}/vote`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id: profile?.id, option_index: optionIndex }),
+    });
+    const data = await res.json();
+    if (data.poll_data) setPollData(data.poll_data);
   };
 
   const isOwner = profile?.id === post?.user_id;
@@ -185,6 +204,43 @@ export default function PostDetailPage() {
               ))}
             </div>
           )}
+
+          {/* 투표 */}
+          {pollData && (() => {
+            const totalVotes = pollData.options.reduce((sum, o) => sum + o.votes, 0);
+            const myVote = profile?.id ? pollData.voters[profile.id] : undefined;
+            return (
+              <div className="mt-4 bg-toss-gray-50 rounded-xl p-4">
+                <p className="text-[13px] font-semibold text-toss-gray-700 mb-3">투표 ({totalVotes}명 참여)</p>
+                <div className="space-y-2">
+                  {pollData.options.map((opt, i) => {
+                    const pct = totalVotes > 0 ? Math.round((opt.votes / totalVotes) * 100) : 0;
+                    const isMyVote = myVote === i;
+                    return (
+                      <button
+                        key={i}
+                        onClick={() => handleVote(i)}
+                        className={`w-full relative overflow-hidden rounded-lg border-2 transition text-left ${
+                          isMyVote ? "border-toss-blue" : "border-toss-gray-200 hover:border-toss-gray-300"
+                        }`}
+                      >
+                        <div
+                          className={`absolute inset-y-0 left-0 transition-all ${isMyVote ? "bg-blue-100" : "bg-toss-gray-100"}`}
+                          style={{ width: `${pct}%` }}
+                        />
+                        <div className="relative flex items-center justify-between px-4 py-3">
+                          <span className={`text-[14px] font-medium ${isMyVote ? "text-toss-blue" : "text-toss-gray-700"}`}>
+                            {isMyVote && "✓ "}{opt.label}
+                          </span>
+                          <span className={`text-[13px] font-semibold ${isMyVote ? "text-toss-blue" : "text-toss-gray-500"}`}>{pct}%</span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
 
           {/* 좋아요 + 통계 */}
           <div className="flex items-center justify-between mt-5 pt-4 border-t border-toss-gray-50">
