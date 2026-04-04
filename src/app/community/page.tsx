@@ -38,6 +38,16 @@ export default function CommunityPage() {
   const [category, setCategory] = useState("전체");
   const [showWriteSheet, setShowWriteSheet] = useState(false);
 
+  // 바텀시트 열릴 때 배경 스크롤 막기
+  useEffect(() => {
+    if (showWriteSheet) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [showWriteSheet]);
+
   const fetchPosts = useCallback(async () => {
     if (posts.length === 0) setLoading(true); // 첫 로딩만 스피너
     const params = new URLSearchParams();
