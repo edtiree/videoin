@@ -220,7 +220,7 @@ export default function HomePage() {
         </button>
       </div>
 
-      {/* AI 툴 유도 */}
+      {/* 도구 유도 */}
       <div className="bg-white rounded-2xl border border-toss-gray-100 p-5 mb-8 md:flex md:items-center md:justify-between md:p-6">
         <div className="flex items-center gap-3 mb-3 md:mb-0">
           <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center">
@@ -230,7 +230,7 @@ export default function HomePage() {
           </div>
           <div>
             <h4 className="text-[15px] font-semibold text-toss-gray-900">AI 영상 제작 도구</h4>
-            <p className="text-[12px] text-toss-gray-400">제목 생성기, 쇼츠 제작기 외 다양한 AI 툴</p>
+            <p className="text-[12px] text-toss-gray-400">제목 생성기, 쇼츠 제작기 외 다양한 도구</p>
           </div>
         </div>
         <button

@@ -14,7 +14,7 @@ export default function DesktopNav() {
     { label: "홈", href: "/", match: (p: string) => p === "/" || p.startsWith("/jobs") || p.startsWith("/editors") },
     { label: "커뮤니티", href: "/community", match: (p: string) => p.startsWith("/community") },
     { label: "채팅", href: "/messages", match: (p: string) => p.startsWith("/messages"), auth: true },
-    { label: "AI 툴", href: "/tools", match: (p: string) => p.startsWith("/tools") || p.startsWith("/review") || p.startsWith("/instagram-card") || p.startsWith("/youtube-title") || p.startsWith("/youtube-shorts") || p.startsWith("/screen-material"), auth: true },
+    { label: "도구", href: "/tools", match: (p: string) => p.startsWith("/tools") || p.startsWith("/review") || p.startsWith("/instagram-card") || p.startsWith("/youtube-title") || p.startsWith("/youtube-shorts") || p.startsWith("/screen-material"), auth: true },
   ];
 
   const userPlan = profile?.plan || "free";

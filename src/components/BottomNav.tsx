@@ -66,7 +66,7 @@ export default function BottomNav() {
           <span className={`text-[10px] font-bold ${activeTab === "community" ? "text-toss-gray-900" : "text-toss-gray-400"}`}>커뮤니티</span>
         </button>
 
-        {/* AI 툴 (가운데) */}
+        {/* 도구 (가운데) */}
         <button onClick={() => handleTabClick("ai")}
           className="flex flex-col items-center justify-center flex-1 h-full gap-0.5">
           <svg width="22" height="22" viewBox="0 0 24 24" fill={activeTab === "ai" ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -74,7 +74,7 @@ export default function BottomNav() {
             <path d="M2 17l10 5 10-5"/>
             <path d="M2 12l10 5 10-5"/>
           </svg>
-          <span className={`text-[10px] font-bold ${activeTab === "ai" ? "text-toss-gray-900" : "text-toss-gray-400"}`}>AI 툴</span>
+          <span className={`text-[10px] font-bold ${activeTab === "ai" ? "text-toss-gray-900" : "text-toss-gray-400"}`}>도구</span>
         </button>
 
         {/* 채팅 */}

@@ -7,7 +7,7 @@ import NotificationBell from "@/components/NotificationBell";
 const TITLES: Record<string, string> = {
   "/": "영상인",
   "/community": "커뮤니티",
-  "/tools": "AI 툴",
+  "/tools": "도구",
   "/profile": "내 정보",
   "/dashboard": "대시보드",
   "/settlement": "정산 관리",

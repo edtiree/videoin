@@ -108,7 +108,7 @@ export default function SideNav() {
 
           <div className="border-t border-toss-gray-100 my-3" />
 
-          {/* AI 툴 */}
+          {/* 도구 */}
           <button
             onClick={() => {
               if (!canAccessTools) { setGatePlan("creator"); setShowPlanGate(true); return; }
@@ -119,7 +119,7 @@ export default function SideNav() {
             }`}
           >
             <svg width="22" height="22" viewBox="0 0 24 24" fill={activeSection === "ai" ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-            <span className={`text-[14px] ${activeSection === "ai" ? "font-bold" : "font-medium"}`}>AI 툴</span>
+            <span className={`text-[14px] ${activeSection === "ai" ? "font-bold" : "font-medium"}`}>도구</span>
           </button>
 
           {activeSection === "ai" && canAccessTools && (
