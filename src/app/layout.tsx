@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import BottomNav from "@/components/BottomNav";
-import SideNav from "@/components/SideNav";
+import DesktopNav from "@/components/DesktopNav";
 import SplashHider from "@/components/SplashHider";
 import MobileTopNav from "@/components/MobileTopNav";
 import ThemeProvider from "@/components/ThemeProvider";
@@ -65,9 +65,9 @@ export default function RootLayout({
         <ThemeProvider>
           <AuthProvider>
             <SplashHider />
-            <SideNav />
+            <DesktopNav />
             <MobileTopNav />
-            <div className="flex-1 pb-14 md:pb-0 md:ml-[220px] bg-gray-50 overflow-y-auto">{children}</div>
+            <div className="flex-1 pb-14 md:pb-0 bg-gray-50 overflow-y-auto">{children}</div>
             <BottomNav />
             <LoginModal />
             <RoleSelectionModal />
