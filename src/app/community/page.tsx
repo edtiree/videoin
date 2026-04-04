@@ -70,16 +70,6 @@ export default function CommunityPage() {
       </div>
 
       {/* 글쓰기 버튼 */}
-      <button
-        onClick={() => isLoggedIn ? router.push("/community/new") : openLoginModal()}
-        className="w-full bg-white rounded-2xl border border-toss-gray-100 p-4 mb-4 flex items-center gap-3 hover:bg-toss-gray-50 transition"
-      >
-        <div className="w-9 h-9 bg-toss-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-toss-gray-400" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
-        </div>
-        <span className="text-[14px] text-toss-gray-400">글을 작성해보세요</span>
-      </button>
-
       {/* 게시글 목록 */}
       {loading ? (
         <div className="flex justify-center py-20">
@@ -144,6 +134,15 @@ export default function CommunityPage() {
           ))}
         </div>
       )}
+
+      {/* 플로팅 글쓰기 버튼 */}
+      <button
+        onClick={() => isLoggedIn ? router.push("/community/new") : openLoginModal()}
+        className="fixed bottom-20 right-5 md:bottom-8 md:right-8 bg-toss-blue text-white px-5 py-3 rounded-full shadow-lg flex items-center gap-2 hover:bg-[var(--blue-hover)] transition z-40 active:scale-95"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        <span className="text-[14px] font-semibold">글쓰기</span>
+      </button>
     </div>
   );
 }
