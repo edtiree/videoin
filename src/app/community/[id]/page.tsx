@@ -23,6 +23,7 @@ interface Comment {
   content: string;
   created_at: string;
   parent_id: string | null;
+  user_id: string;
   users?: { id: string; nickname: string; profile_image: string | null };
 }
 
@@ -46,6 +47,7 @@ export default function PostDetailPage() {
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [commentInput, setCommentInput] = useState("");
+  const [replyTo, setReplyTo] = useState<{ id: string; nickname: string } | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -88,11 +90,16 @@ export default function PostDetailPage() {
     const res = await fetch(`/api/posts/${id}/comments`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ user_id: profile?.id, content: commentInput.trim() }),
+      body: JSON.stringify({
+        user_id: profile?.id,
+        content: commentInput.trim(),
+        parent_id: replyTo?.id || null,
+      }),
     });
 
     if (res.ok) {
       setCommentInput("");
+      setReplyTo(null);
       fetchComments();
       setPost((prev) => prev ? { ...prev, comment_count: (prev.comment_count || 0) + 1 } : prev);
     }
@@ -106,6 +113,10 @@ export default function PostDetailPage() {
     await fetch(`/api/posts/${id}`, { method: "DELETE" });
     router.push("/community");
   };
+
+  // 댓글을 트리 구조로 정리 (부모 → 자식)
+  const rootComments = comments.filter((c) => !c.parent_id);
+  const getReplies = (parentId: string) => comments.filter((c) => c.parent_id === parentId);
 
   if (loading) {
     return (
@@ -128,9 +139,7 @@ export default function PostDetailPage() {
   return (
     <div className="min-h-full bg-gray-50 pb-24">
       <TopNav title="" backHref="/community" rightContent={
-        isOwner ? (
-          <button onClick={handleDelete} className="text-[14px] text-toss-red">삭제</button>
-        ) : null
+        isOwner ? <button onClick={handleDelete} className="text-[14px] text-toss-red">삭제</button> : null
       } />
 
       <div className="max-w-[800px] mx-auto">
@@ -145,7 +154,6 @@ export default function PostDetailPage() {
 
           <h1 className="text-[20px] font-bold text-toss-gray-900 mb-3">{post.title}</h1>
 
-          {/* 작성자 */}
           <div className="flex items-center gap-2 mb-4">
             {post.users?.profile_image ? (
               <img src={post.users.profile_image} alt="" className="w-8 h-8 rounded-full object-cover" referrerPolicy="no-referrer" />
@@ -159,11 +167,11 @@ export default function PostDetailPage() {
 
           <p className="text-[15px] text-toss-gray-700 whitespace-pre-wrap leading-relaxed">{post.content}</p>
 
-          {/* 통계 + 좋아요 */}
+          {/* 좋아요 + 통계 */}
           <div className="flex items-center justify-between mt-5 pt-4 border-t border-toss-gray-50">
             <div className="flex items-center gap-4 text-[13px] text-toss-gray-400">
               <span>조회 {post.view_count}</span>
-              <span>댓글 {post.comment_count}</span>
+              <span>댓글 {comments.length}</span>
             </div>
             <button
               onClick={handleLike}
@@ -179,7 +187,7 @@ export default function PostDetailPage() {
           </div>
         </div>
 
-        {/* 댓글 목록 */}
+        {/* 댓글 */}
         <div className="bg-white mt-2">
           <p className="px-5 pt-4 pb-2 text-[14px] font-bold text-toss-gray-900">댓글 {comments.length}</p>
 
@@ -187,20 +195,31 @@ export default function PostDetailPage() {
             <p className="px-5 py-6 text-center text-[13px] text-toss-gray-400">아직 댓글이 없습니다</p>
           ) : (
             <div className="divide-y divide-toss-gray-50">
-              {comments.map((c) => (
-                <div key={c.id} className="px-5 py-3">
-                  <div className="flex items-center gap-2 mb-1">
-                    {c.users?.profile_image ? (
-                      <img src={c.users.profile_image} alt="" className="w-7 h-7 rounded-full object-cover" referrerPolicy="no-referrer" />
-                    ) : (
-                      <div className="w-7 h-7 bg-toss-gray-100 rounded-full flex items-center justify-center">
-                        <span className="text-[10px] font-bold text-toss-gray-400">{c.users?.nickname?.[0] || "?"}</span>
-                      </div>
-                    )}
-                    <span className="text-[13px] font-semibold text-toss-gray-900">{c.users?.nickname || "익명"}</span>
-                    <span className="text-[11px] text-toss-gray-300">{timeAgo(c.created_at)}</span>
-                  </div>
-                  <p className="text-[14px] text-toss-gray-700 ml-9">{c.content}</p>
+              {rootComments.map((c) => (
+                <div key={c.id}>
+                  {/* 원 댓글 */}
+                  <CommentItem
+                    comment={c}
+                    isLoggedIn={isLoggedIn}
+                    onReply={() => {
+                      setReplyTo({ id: c.id, nickname: c.users?.nickname || "익명" });
+                      setCommentInput("");
+                    }}
+                  />
+                  {/* 답글 */}
+                  {getReplies(c.id).map((reply) => (
+                    <div key={reply.id} className="ml-9 border-l-2 border-toss-gray-100">
+                      <CommentItem
+                        comment={reply}
+                        isLoggedIn={isLoggedIn}
+                        isReply
+                        onReply={() => {
+                          setReplyTo({ id: c.id, nickname: reply.users?.nickname || "익명" });
+                          setCommentInput("");
+                        }}
+                      />
+                    </div>
+                  ))}
                 </div>
               ))}
             </div>
@@ -210,25 +229,65 @@ export default function PostDetailPage() {
 
       {/* 댓글 입력 */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-toss-gray-100 px-4 py-3 pb-[env(safe-area-inset-bottom,12px)] z-30">
-        <div className="flex gap-2 max-w-[800px] mx-auto">
-          <input
-            type="text"
-            value={commentInput}
-            onChange={(e) => setCommentInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && !e.nativeEvent.isComposing && handleComment()}
-            placeholder={isLoggedIn ? "댓글을 입력하세요" : "로그인 후 댓글을 작성할 수 있어요"}
-            className="flex-1 h-[44px] rounded-xl border border-toss-gray-200 px-4 text-[14px] focus:outline-none focus:border-toss-blue"
-            onClick={() => !isLoggedIn && openLoginModal()}
-            readOnly={!isLoggedIn}
-          />
-          <button
-            onClick={handleComment}
-            disabled={!commentInput.trim() || submitting}
-            className="w-[44px] h-[44px] rounded-xl bg-toss-blue text-white flex items-center justify-center disabled:opacity-50 transition flex-shrink-0"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
-          </button>
+        <div className="max-w-[800px] mx-auto">
+          {replyTo && (
+            <div className="flex items-center justify-between mb-2 px-1">
+              <span className="text-[12px] text-toss-blue">@{replyTo.nickname}에게 답글</span>
+              <button onClick={() => { setReplyTo(null); setCommentInput(""); }} className="text-[12px] text-toss-gray-400">취소</button>
+            </div>
+          )}
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={commentInput}
+              onChange={(e) => setCommentInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && !e.nativeEvent.isComposing && handleComment()}
+              placeholder={replyTo ? `@${replyTo.nickname}에게 답글 작성` : isLoggedIn ? "댓글을 입력하세요" : "로그인 후 댓글을 작성할 수 있어요"}
+              className="flex-1 h-[44px] rounded-xl border border-toss-gray-200 px-4 text-[14px] focus:outline-none focus:border-toss-blue"
+              onClick={() => !isLoggedIn && openLoginModal()}
+              readOnly={!isLoggedIn}
+            />
+            <button
+              onClick={handleComment}
+              disabled={!commentInput.trim() || submitting}
+              className="w-[44px] h-[44px] rounded-xl bg-toss-blue text-white flex items-center justify-center disabled:opacity-50 transition flex-shrink-0"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+            </button>
+          </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function CommentItem({ comment, isLoggedIn, isReply, onReply }: {
+  comment: Comment;
+  isLoggedIn: boolean;
+  isReply?: boolean;
+  onReply: () => void;
+}) {
+  return (
+    <div className={`px-5 py-3 ${isReply ? "pl-4" : ""}`}>
+      <div className="flex items-center gap-2 mb-1">
+        {comment.users?.profile_image ? (
+          <img src={comment.users.profile_image} alt="" className="w-7 h-7 rounded-full object-cover" referrerPolicy="no-referrer" />
+        ) : (
+          <div className="w-7 h-7 bg-toss-gray-100 rounded-full flex items-center justify-center">
+            <span className="text-[10px] font-bold text-toss-gray-400">{comment.users?.nickname?.[0] || "?"}</span>
+          </div>
+        )}
+        <span className="text-[13px] font-semibold text-toss-gray-900">{comment.users?.nickname || "익명"}</span>
+        <span className="text-[11px] text-toss-gray-300">{timeAgo(comment.created_at)}</span>
+      </div>
+      <div className="ml-9">
+        <p className="text-[14px] text-toss-gray-700">{comment.content}</p>
+        <button
+          onClick={onReply}
+          className="text-[12px] text-toss-gray-400 hover:text-toss-blue mt-1 font-medium"
+        >
+          답글
+        </button>
       </div>
     </div>
   );

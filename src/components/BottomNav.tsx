@@ -17,17 +17,18 @@ export default function BottomNav() {
   const activeTab =
     pathname === "/" || pathname.startsWith("/jobs") || pathname.startsWith("/editors") ? "home"
     : pathname.startsWith("/community") ? "community"
+    : (pathname.startsWith("/tools") || pathname.startsWith("/review") || pathname.startsWith("/instagram-card") || pathname.startsWith("/youtube-title") || pathname.startsWith("/youtube-shorts") || pathname.startsWith("/screen-material")) ? "ai"
     : pathname.startsWith("/messages") ? "chat"
-    : pathname.startsWith("/profile") || pathname.startsWith("/tools") || pathname.startsWith("/dashboard") || pathname.startsWith("/settlement") || pathname.startsWith("/calendar") || pathname.startsWith("/admin") || pathname.startsWith("/review") || pathname.startsWith("/instagram-card") || pathname.startsWith("/youtube-title") || pathname.startsWith("/youtube-shorts") || pathname.startsWith("/screen-material") ? "me"
+    : pathname.startsWith("/profile") || pathname.startsWith("/dashboard") || pathname.startsWith("/settlement") || pathname.startsWith("/calendar") || pathname.startsWith("/admin") ? "me"
     : null;
 
   const handleTabClick = (tab: string) => {
     switch (tab) {
-      case "home":
-        router.push("/");
-        break;
-      case "community":
-        router.push("/community");
+      case "home": router.push("/"); break;
+      case "community": router.push("/community"); break;
+      case "ai":
+        if (!isLoggedIn) { openLoginModal(); return; }
+        router.push("/tools");
         break;
       case "chat":
         if (!isLoggedIn) { openLoginModal(); return; }
@@ -46,7 +47,7 @@ export default function BottomNav() {
         {/* 홈 */}
         <button onClick={() => handleTabClick("home")}
           className="flex flex-col items-center justify-center flex-1 h-full gap-0.5">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill={activeTab === "home" ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill={activeTab === "home" ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"/>
             {activeTab !== "home" && <polyline points="9 22 9 12 15 12 15 22"/>}
           </svg>
@@ -56,7 +57,7 @@ export default function BottomNav() {
         {/* 커뮤니티 */}
         <button onClick={() => handleTabClick("community")}
           className="flex flex-col items-center justify-center flex-1 h-full gap-0.5">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill={activeTab === "community" ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill={activeTab === "community" ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
             <circle cx="9" cy="7" r="4"/>
             <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
@@ -65,10 +66,21 @@ export default function BottomNav() {
           <span className={`text-[10px] font-bold ${activeTab === "community" ? "text-toss-gray-900" : "text-toss-gray-400"}`}>커뮤니티</span>
         </button>
 
+        {/* AI 툴 (가운데) */}
+        <button onClick={() => handleTabClick("ai")}
+          className="flex flex-col items-center justify-center flex-1 h-full gap-0.5">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill={activeTab === "ai" ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+            <path d="M2 17l10 5 10-5"/>
+            <path d="M2 12l10 5 10-5"/>
+          </svg>
+          <span className={`text-[10px] font-bold ${activeTab === "ai" ? "text-toss-gray-900" : "text-toss-gray-400"}`}>AI 툴</span>
+        </button>
+
         {/* 채팅 */}
         <button onClick={() => handleTabClick("chat")}
           className="flex flex-col items-center justify-center flex-1 h-full gap-0.5">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill={activeTab === "chat" ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill={activeTab === "chat" ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
           </svg>
           <span className={`text-[10px] font-bold ${activeTab === "chat" ? "text-toss-gray-900" : "text-toss-gray-400"}`}>채팅</span>
@@ -77,7 +89,7 @@ export default function BottomNav() {
         {/* 내 정보 */}
         <button onClick={() => handleTabClick("me")}
           className="flex flex-col items-center justify-center flex-1 h-full gap-0.5">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill={activeTab === "me" ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill={activeTab === "me" ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
             <circle cx="12" cy="7" r="4"/>
           </svg>
