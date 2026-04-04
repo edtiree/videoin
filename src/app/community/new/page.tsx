@@ -19,6 +19,8 @@ export default function NewPostPage() {
   const [pollOptions, setPollOptions] = useState(["", ""]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [titleError, setTitleError] = useState(false);
+  const [contentError, setContentError] = useState(false);
 
   useEffect(() => {
     if (!isLoggedIn) openLoginModal();
@@ -74,8 +76,13 @@ export default function NewPostPage() {
   };
 
   const handleSubmit = async () => {
-    if (!title.trim()) { setError("제목을 입력해주세요"); return; }
-    if (!content.trim()) { setError("내용을 입력해주세요"); return; }
+    setTitleError(!title.trim());
+    setContentError(!content.trim());
+
+    if (!title.trim() || !content.trim()) {
+      setError(!title.trim() ? "제목을 입력해주세요" : "내용을 입력해주세요");
+      return;
+    }
 
     setSaving(true);
     setError("");
@@ -150,10 +157,13 @@ export default function NewPostPage() {
           <input
             type="text"
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={(e) => { setTitle(e.target.value); if (e.target.value.trim()) setTitleError(false); }}
             placeholder="제목을 입력하세요"
-            className="w-full h-[48px] rounded-xl border border-toss-gray-200 px-4 text-[15px] focus:outline-none focus:border-toss-blue"
+            className={`w-full h-[48px] rounded-xl border px-4 text-[15px] focus:outline-none ${
+              titleError ? "border-toss-red focus:border-toss-red" : "border-toss-gray-200 focus:border-toss-blue"
+            }`}
           />
+          {titleError && <p className="text-[11px] text-toss-red mt-1">제목을 입력해주세요</p>}
         </div>
 
         {/* 내용 */}
@@ -161,11 +171,14 @@ export default function NewPostPage() {
           <label className="text-[13px] font-medium text-toss-gray-500 mb-1.5 block">내용</label>
           <textarea
             value={content}
-            onChange={(e) => setContent(e.target.value)}
+            onChange={(e) => { setContent(e.target.value); if (e.target.value.trim()) setContentError(false); }}
             placeholder="내용을 입력하세요"
             rows={12}
-            className="w-full rounded-xl border border-toss-gray-200 px-4 py-3 text-[15px] focus:outline-none focus:border-toss-blue resize-none"
+            className={`w-full rounded-xl border px-4 py-3 text-[15px] focus:outline-none resize-none ${
+              contentError ? "border-toss-red focus:border-toss-red" : "border-toss-gray-200 focus:border-toss-blue"
+            }`}
           />
+          {contentError && <p className="text-[11px] text-toss-red mt-1">내용을 입력해주세요</p>}
         </div>
 
         {/* 사진 첨부 */}
