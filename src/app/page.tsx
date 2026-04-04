@@ -82,6 +82,46 @@ export default function HomePage() {
         />
       </div>
 
+      {/* 카테고리 아이콘 그리드 */}
+      <div className="bg-white rounded-2xl border border-toss-gray-100 p-4 mb-5">
+        <div className="grid grid-cols-4 gap-3 md:grid-cols-8">
+          {[
+            { key: "editing", label: "영상 편집", icon: "🎬", active: true },
+            { key: "filming", label: "영상 촬영", icon: "📸", active: true },
+            { key: "thumbnail", label: "썸네일", icon: "🖼️", active: true },
+            { key: "motion", label: "모션그래픽", icon: "✨", active: true },
+            { key: "script", label: "스크립트", icon: "✏️", active: false },
+            { key: "voice", label: "성우", icon: "🎙️", active: false },
+            { key: "actor", label: "출연자", icon: "🎭", active: false },
+            { key: "studio", label: "스튜디오", icon: "🏠", active: false },
+          ].map((item) => (
+            <button
+              key={item.key}
+              onClick={() => {
+                if (item.active) {
+                  setCategory(item.key);
+                }
+              }}
+              className={`flex flex-col items-center gap-1.5 py-2 rounded-xl transition relative ${
+                category === item.key
+                  ? "bg-blue-50"
+                  : item.active
+                    ? "hover:bg-toss-gray-50"
+                    : "opacity-50 cursor-default"
+              }`}
+            >
+              <span className="text-[28px]">{item.icon}</span>
+              <span className={`text-[11px] font-medium ${
+                category === item.key ? "text-toss-blue" : "text-toss-gray-600"
+              }`}>{item.label}</span>
+              {!item.active && (
+                <span className="absolute top-1 right-1 text-[8px] bg-toss-gray-200 text-toss-gray-400 px-1 rounded">준비중</span>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* AI 추천 섹션 */}
       <AIRecommendation />
 
