@@ -1,6 +1,6 @@
 {
-  "name": "에디트리",
-  "short_name": "에디트리",
+  "name": "영상인",
+  "short_name": "영상인",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f7f8fa",

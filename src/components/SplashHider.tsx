@@ -25,8 +25,9 @@ export default function SplashHider() {
       background: "#3182f6",
     });
     sp.innerHTML = `<div style="text-align:center">
-      <h1 style="color:white;font-size:36px;font-weight:800;letter-spacing:-0.02em;margin:0">에디트리</h1>
-      <p style="color:rgba(255,255,255,0.6);font-size:14px;font-weight:500;margin-top:8px">영상 제작팀</p>
+      <svg width="48" height="48" viewBox="0 0 32 32" fill="none" style="margin:0 auto 12px"><rect width="32" height="32" rx="8" fill="white" opacity="0.15"/><path d="M8 7L16 25L20 16L24 25L24 7" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 7L16 16" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <h1 style="color:white;font-size:36px;font-weight:800;letter-spacing:-0.02em;margin:0">영상인</h1>
+      <p style="color:rgba(255,255,255,0.6);font-size:14px;font-weight:500;margin-top:8px">크리에이터를 위한 플랫폼</p>
     </div>`;
     document.body.prepend(sp);
 

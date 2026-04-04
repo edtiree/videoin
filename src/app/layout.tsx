@@ -6,6 +6,10 @@ import SideNav from "@/components/SideNav";
 import SplashHider from "@/components/SplashHider";
 import MobileTopNav from "@/components/MobileTopNav";
 import ThemeProvider from "@/components/ThemeProvider";
+import AuthProvider from "@/components/AuthProvider";
+import LoginModal from "@/components/LoginModal";
+import RoleSelectionModal from "@/components/RoleSelectionModal";
+import LandingSlide from "@/components/LandingSlide";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,14 +23,14 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "에디트리 영상 제작팀",
-    template: "%s | 에디트리",
+    default: "영상인 - 크리에이터와 편집자를 위한 플랫폼",
+    template: "%s | 영상인",
   },
-  description: "에디트리 영상 제작팀 내부 시스템",
+  description: "유튜브 크리에이터와 영상 편집자를 위한 올인원 플랫폼",
   openGraph: {
-    title: "에디트리 영상 제작팀",
-    description: "영상 제작팀 내부 업무 시스템",
-    siteName: "에디트리",
+    title: "영상인 - 크리에이터와 편집자를 위한 플랫폼",
+    description: "유튜브 크리에이터와 영상 편집자를 위한 올인원 플랫폼",
+    siteName: "영상인",
     type: "website",
     images: ["/og-image.png"],
   },
@@ -59,11 +63,16 @@ export default function RootLayout({
       </head>
       <body className="h-[100dvh] flex flex-col overflow-hidden pb-[env(safe-area-inset-bottom)] md:pb-0 bg-gray-50">
         <ThemeProvider>
-          <SplashHider />
-          <SideNav />
-          <MobileTopNav />
-          <div className="flex-1 pb-14 md:pb-0 md:ml-[220px] bg-gray-50 overflow-y-auto">{children}</div>
-          <BottomNav />
+          <AuthProvider>
+            <SplashHider />
+            <SideNav />
+            <MobileTopNav />
+            <div className="flex-1 pb-14 md:pb-0 md:ml-[220px] bg-gray-50 overflow-y-auto">{children}</div>
+            <BottomNav />
+            <LoginModal />
+            <RoleSelectionModal />
+            <LandingSlide />
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

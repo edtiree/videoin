@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
-export const alt = "에디트리 영상 제작팀";
+export const alt = "영상인 - 크리에이터와 편집자를 위한 플랫폼";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -27,7 +27,7 @@ export default function Image() {
             marginBottom: 16,
           }}
         >
-          에디트리
+          영상인
         </div>
         <div
           style={{
@@ -35,7 +35,7 @@ export default function Image() {
             color: "rgba(255,255,255,0.85)",
           }}
         >
-          영상 제작팀 내부 시스템
+          크리에이터와 편집자를 위한 플랫폼
         </div>
       </div>
     ),
