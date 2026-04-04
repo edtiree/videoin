@@ -6,6 +6,7 @@ import NotificationBell from "@/components/NotificationBell";
 
 const TITLES: Record<string, string> = {
   "/": "영상인",
+  "/community": "커뮤니티",
   "/tools": "AI 툴",
   "/profile": "내 정보",
   "/dashboard": "대시보드",
@@ -34,7 +35,7 @@ export default function MobileTopNav() {
   }, []);
 
   // 홈은 비로그인에서도 표시, 나머지는 로그인 필요
-  const mainPaths = ["/", "/tools", "/profile", "/dashboard", "/settlement", "/calendar", "/messages"];
+  const mainPaths = ["/", "/community", "/tools", "/profile", "/dashboard", "/settlement", "/calendar", "/messages"];
   const isMainPage = mainPaths.some(p => p === "/" ? pathname === "/" : pathname === p);
   if (!isMainPage) return null;
   if (pathname !== "/" && !isLoggedIn) return null;

@@ -24,6 +24,7 @@ export default function BottomNav() {
 
   const activeTab =
     pathname === "/" || pathname.startsWith("/jobs") || pathname.startsWith("/editors") ? "home"
+    : pathname.startsWith("/community") ? "community"
     : (pathname.startsWith("/tools") || pathname.startsWith("/review") || pathname.startsWith("/instagram-card") || pathname.startsWith("/youtube-title") || pathname.startsWith("/youtube-shorts") || pathname.startsWith("/screen-material")) ? "ai"
     : (pathname.startsWith("/dashboard") || pathname.startsWith("/settlement") || pathname.startsWith("/calendar") || pathname.startsWith("/admin")) ? "manage"
     : pathname.startsWith("/profile") || pathname.startsWith("/messages") ? "me"
@@ -33,6 +34,9 @@ export default function BottomNav() {
     switch (tab) {
       case "home":
         router.push("/");
+        break;
+      case "community":
+        router.push("/community");
         break;
       case "ai":
         if (!isLoggedIn) { openLoginModal(); return; }
@@ -63,6 +67,15 @@ export default function BottomNav() {
               {activeTab !== "home" && <polyline points="9 22 9 12 15 12 15 22"/>}
             </svg>
             <span className={`text-[10px] font-bold ${activeTab === "home" ? "text-toss-gray-900" : "text-toss-gray-400"}`}>홈</span>
+          </button>
+
+          {/* 커뮤니티 */}
+          <button onClick={() => handleTabClick("community")}
+            className="flex flex-col items-center justify-center flex-1 h-full gap-0.5">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill={activeTab === "community" ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            <span className={`text-[10px] font-bold ${activeTab === "community" ? "text-toss-gray-900" : "text-toss-gray-400"}`}>커뮤니티</span>
           </button>
 
           {/* AI 툴 */}

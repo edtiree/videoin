@@ -54,6 +54,7 @@ export default function SideNav() {
 
   const activeSection =
     pathname === "/" || pathname.startsWith("/jobs") || pathname.startsWith("/editors") ? "home"
+    : pathname.startsWith("/community") ? "community"
     : (pathname.startsWith("/tools") || pathname.startsWith("/review") || pathname.startsWith("/instagram-card") || pathname.startsWith("/youtube-title") || pathname.startsWith("/youtube-shorts") || pathname.startsWith("/screen-material")) ? "ai"
     : (pathname.startsWith("/dashboard") || pathname.startsWith("/settlement") || pathname.startsWith("/calendar") || pathname.startsWith("/admin") || pathname.startsWith("/ads")) ? "manage"
     : pathname.startsWith("/profile") || pathname.startsWith("/messages") ? "me"
@@ -81,6 +82,17 @@ export default function SideNav() {
           >
             <svg width="22" height="22" viewBox="0 0 24 24" fill={activeSection === "home" ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"/>{activeSection !== "home" && <polyline points="9 22 9 12 15 12 15 22"/>}</svg>
             <span className={`text-[14px] ${activeSection === "home" ? "font-bold" : "font-medium"}`}>홈</span>
+          </button>
+
+          {/* 커뮤니티 */}
+          <button
+            onClick={() => router.push("/community")}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1 transition-all text-left ${
+              activeSection === "community" ? "bg-toss-gray-50 text-toss-gray-900" : "text-toss-gray-500 hover:bg-toss-gray-50"
+            }`}
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill={activeSection === "community" ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span className={`text-[14px] ${activeSection === "community" ? "font-bold" : "font-medium"}`}>커뮤니티</span>
           </button>
 
           {/* AI 툴 */}
