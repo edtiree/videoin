@@ -11,6 +11,7 @@ interface Post {
   category: string;
   title: string;
   content: string;
+  image_urls: string[];
   view_count: number;
   like_count: number;
   comment_count: number;
@@ -166,6 +167,24 @@ export default function PostDetailPage() {
           </div>
 
           <p className="text-[15px] text-toss-gray-700 whitespace-pre-wrap leading-relaxed">{post.content}</p>
+
+          {/* 이미지 */}
+          {post.image_urls?.length > 0 && (
+            <div className={`mt-4 gap-2 ${
+              post.image_urls.length === 1 ? "flex" : "grid grid-cols-2"
+            }`}>
+              {post.image_urls.map((url, i) => (
+                <img
+                  key={i}
+                  src={url}
+                  alt=""
+                  className={`rounded-xl object-cover w-full ${
+                    post.image_urls.length === 1 ? "max-h-[400px]" : "aspect-square"
+                  }`}
+                />
+              ))}
+            </div>
+          )}
 
           {/* 좋아요 + 통계 */}
           <div className="flex items-center justify-between mt-5 pt-4 border-t border-toss-gray-50">

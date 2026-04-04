@@ -11,6 +11,7 @@ interface Post {
   category: string;
   title: string;
   content: string;
+  image_urls: string[];
   view_count: number;
   like_count: number;
   comment_count: number;
@@ -110,11 +111,16 @@ export default function CommunityPage() {
                 <span className="text-[11px] text-toss-gray-300">{timeAgo(post.created_at)}</span>
               </div>
 
-              {/* 제목 */}
-              <h3 className="text-[15px] font-semibold text-toss-gray-900 mb-1 line-clamp-1">{post.title}</h3>
-
-              {/* 본문 미리보기 */}
-              <p className="text-[13px] text-toss-gray-500 line-clamp-2 mb-3">{post.content}</p>
+              {/* 제목 + 썸네일 */}
+              <div className="flex gap-3">
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-[15px] font-semibold text-toss-gray-900 mb-1 line-clamp-1">{post.title}</h3>
+                  <p className="text-[13px] text-toss-gray-500 line-clamp-2 mb-3">{post.content}</p>
+                </div>
+                {post.image_urls?.length > 0 && (
+                  <img src={post.image_urls[0]} alt="" className="w-16 h-16 rounded-lg object-cover flex-shrink-0" />
+                )}
+              </div>
 
               {/* 하단: 작성자 + 통계 */}
               <div className="flex items-center justify-between">
