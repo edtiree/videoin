@@ -60,7 +60,10 @@ export default function NewPostPage() {
           body: formData,
         });
         const data = await res.json();
-        if (data.url) urls.push(data.url);
+        if (data.key) {
+          // R2 key → 프록시 URL로 변환 (만료 없음)
+          urls.push(`/api/posts/image?key=${encodeURIComponent(data.key)}`);
+        }
       } catch {
         console.error("이미지 업로드 실패");
       }
