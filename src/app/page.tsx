@@ -139,7 +139,7 @@ export default function HomePage() {
           {filteredJobs.map((job) => (
             <div
               key={job.id}
-              onClick={() => isLoggedIn ? router.push(`/jobs/${job.id}`) : openLoginModal()}
+              onClick={() => isLoggedIn ? router.push("/jobs") : openLoginModal()}
               className="bg-white rounded-2xl border border-toss-gray-100 p-5 cursor-pointer hover:border-toss-gray-200 transition"
             >
               <div className="flex items-start justify-between gap-3">
@@ -166,7 +166,7 @@ export default function HomePage() {
           {filteredEditors.map((editor) => (
             <div
               key={editor.id}
-              onClick={() => isLoggedIn ? router.push(`/editors/${editor.id}`) : openLoginModal()}
+              onClick={() => isLoggedIn ? router.push("/editors") : openLoginModal()}
               className="bg-white rounded-2xl border border-toss-gray-100 p-5 cursor-pointer hover:border-toss-gray-200 transition"
             >
               <div className="flex items-start gap-4">
