@@ -70,18 +70,44 @@ export default function LoginModal() {
 
   const supabase = getSupabaseAuthBrowser();
 
+  const isPWA = typeof window !== "undefined" && (
+    window.matchMedia("(display-mode: standalone)").matches ||
+    (window.navigator as unknown as { standalone?: boolean }).standalone === true
+  );
+
   const handleSocialLogin = async (provider: "kakao" | "google" | "apple" | "facebook") => {
     setLoading(true);
     setError("");
-    const { error: err } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-    if (err) {
-      setError("로그인에 실패했습니다. 다시 시도해주세요.");
-      setLoading(false);
+
+    if (isPWA) {
+      // PWA: 현재 창에서 리다이렉트 (인앱브라우저 방지)
+      const { data, error: err } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+          skipBrowserRedirect: true,
+        },
+      });
+      if (err) {
+        setError("로그인에 실패했습니다. 다시 시도해주세요.");
+        setLoading(false);
+        return;
+      }
+      if (data?.url) {
+        window.location.href = data.url;
+      }
+    } else {
+      // 일반 브라우저: 기본 리다이렉트
+      const { error: err } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+      if (err) {
+        setError("로그인에 실패했습니다. 다시 시도해주세요.");
+        setLoading(false);
+      }
     }
   };
 
