@@ -166,7 +166,7 @@ export default function PostDetailPage() {
   }
 
   return (
-    <div className="min-h-full bg-gray-50 pb-36">
+    <div className="min-h-full bg-gray-50 pb-24">
       <TopNav title="" backHref="/community" rightContent={
         isOwner ? <button onClick={handleDelete} className="text-[14px] text-toss-red">삭제</button> : null
       } />
@@ -312,7 +312,7 @@ export default function PostDetailPage() {
       </div>
 
       {/* 댓글 입력 */}
-      <div className="fixed bottom-[calc(3.5rem+env(safe-area-inset-bottom,8px))] md:bottom-0 left-0 right-0 bg-white border-t border-toss-gray-100 px-4 py-2 z-[51]">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-toss-gray-100 px-4 py-2 pb-[env(safe-area-inset-bottom,8px)] z-[51]">
         <div className="max-w-[800px] mx-auto">
           {replyTo && (
             <div className="flex items-center justify-between mb-2 px-1">

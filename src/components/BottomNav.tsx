@@ -14,6 +14,9 @@ export default function BottomNav() {
 
   if (!mounted) return null;
 
+  // 커뮤니티 상세, 채팅 대화방에서는 BottomNav 숨김
+  if (/^\/community\/.+/.test(pathname) || /^\/messages\/.+/.test(pathname)) return null;
+
   const activeTab =
     pathname === "/" || pathname.startsWith("/jobs") || pathname.startsWith("/editors") ? "home"
     : pathname.startsWith("/community") ? "community"
