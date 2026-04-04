@@ -96,21 +96,30 @@ export default function PostDetailPage() {
     if (!commentInput.trim() || submitting) return;
 
     setSubmitting(true);
-    const res = await fetch(`/api/posts/${id}/comments`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        user_id: profile?.id,
-        content: commentInput.trim(),
-        parent_id: replyTo?.id || null,
-      }),
-    });
+    try {
+      const res = await fetch(`/api/posts/${id}/comments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: profile?.id,
+          content: commentInput.trim(),
+          parent_id: replyTo?.id || null,
+        }),
+      });
 
-    if (res.ok) {
-      setCommentInput("");
-      setReplyTo(null);
-      fetchComments();
-      setPost((prev) => prev ? { ...prev, comment_count: (prev.comment_count || 0) + 1 } : prev);
+      if (res.ok) {
+        setCommentInput("");
+        setReplyTo(null);
+        fetchComments();
+        setPost((prev) => prev ? { ...prev, comment_count: (prev.comment_count || 0) + 1 } : prev);
+      } else {
+        const err = await res.json();
+        console.error("댓글 에러:", err);
+        alert(`댓글 등록 실패: ${err.error || "알 수 없는 에러"}`);
+      }
+    } catch (e) {
+      console.error("댓글 네트워크 에러:", e);
+      alert("네트워크 오류가 발생했습니다");
     }
     setSubmitting(false);
   };

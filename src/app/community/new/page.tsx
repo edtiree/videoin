@@ -52,25 +52,15 @@ export default function NewPostPage() {
 
     for (const img of images) {
       try {
-        // presigned URL 받기
+        const formData = new FormData();
+        formData.append("file", img.file);
+
         const res = await fetch("/api/posts/upload", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ fileName: img.file.name, contentType: img.file.type }),
+          body: formData,
         });
-        const { uploadUrl, key } = await res.json();
-
-        // R2에 직접 업로드
-        await fetch(uploadUrl, {
-          method: "PUT",
-          body: img.file,
-          headers: { "Content-Type": img.file.type },
-        });
-
-        // presigned 다운로드 URL 받기
-        const dlRes = await fetch(`/api/posts/upload?key=${encodeURIComponent(key)}`);
-        const { url } = await dlRes.json();
-        urls.push(url);
+        const data = await res.json();
+        if (data.url) urls.push(data.url);
       } catch {
         console.error("이미지 업로드 실패");
       }

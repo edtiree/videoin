@@ -1,27 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUploadPresignedUrl, getPresignedUrl } from "@/lib/r2";
+import { uploadToR2, getPresignedUrl } from "@/lib/r2";
 
-// GET: presigned download URL
-export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const key = searchParams.get("key");
-
-  if (!key) return NextResponse.json({ error: "key 필요" }, { status: 400 });
-
-  const url = await getPresignedUrl(key, 86400 * 7); // 7일
-  return NextResponse.json({ url });
-}
-
-// POST: presigned upload URL
+// POST: 이미지 업로드 (서버에서 R2로 직접 업로드)
 export async function POST(request: NextRequest) {
-  const { fileName, contentType } = await request.json();
+  try {
+    const formData = await request.formData();
+    const file = formData.get("file") as File | null;
 
-  if (!fileName || !contentType) {
-    return NextResponse.json({ error: "fileName, contentType 필요" }, { status: 400 });
+    if (!file) {
+      return NextResponse.json({ error: "파일이 없습니다" }, { status: 400 });
+    }
+
+    const ext = file.name.split(".").pop() || "jpg";
+    const key = `community/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+
+    const buffer = Buffer.from(await file.arrayBuffer());
+    await uploadToR2(key, buffer, file.type);
+
+    // presigned download URL (7일)
+    const url = await getPresignedUrl(key, 86400 * 7);
+
+    return NextResponse.json({ url, key });
+  } catch (err) {
+    console.error("업로드 에러:", err);
+    return NextResponse.json({ error: "업로드 실패" }, { status: 500 });
   }
-
-  const key = `community/${Date.now()}_${Math.random().toString(36).slice(2)}_${fileName.replace(/[^a-zA-Z0-9._-]/g, "")}`;
-  const uploadUrl = await getUploadPresignedUrl(key, contentType);
-
-  return NextResponse.json({ uploadUrl, key });
 }
