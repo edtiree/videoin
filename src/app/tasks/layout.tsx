@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "영상 피드백",
+  title: "요청된 작업",
 };
 
 export default function Layout({ children }: { children: React.ReactNode }) {

@@ -2,33 +2,43 @@
 
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { useTheme } from "@/components/ThemeProvider";
 
 const NAV_ITEMS = [
   {
     key: "home", label: "홈", href: "/",
-    icon: (a: boolean) => <svg width="22" height="22" viewBox="0 0 24 24" fill={a?"#191f28":"none"} stroke={a?"#191f28":"#8b95a1"} strokeWidth="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"/>{!a&&<polyline points="9 22 9 12 15 12 15 22"/>}</svg>,
+    icon: (a: boolean) => <svg width="22" height="22" viewBox="0 0 24 24" fill={a?"currentColor":"none"} stroke="currentColor" strokeWidth="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"/>{!a&&<polyline points="9 22 9 12 15 12 15 22"/>}</svg>,
   },
   {
-    key: "tools", label: "프로젝트", href: "/tools",
-    icon: (a: boolean) => <svg width="22" height="22" viewBox="0 0 24 24" fill={a?"#191f28":"none"} stroke={a?"#191f28":"#8b95a1"} strokeWidth="1.8"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>,
+    key: "project", label: "프로젝트", href: "/tools",
+    icon: (a: boolean) => <svg width="22" height="22" viewBox="0 0 24 24" fill={a?"currentColor":"none"} stroke="currentColor" strokeWidth="1.8"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>,
+  },
+  {
+    key: "settlement", label: "정산", href: "/settlement",
+    icon: (a: boolean) => <svg width="22" height="22" viewBox="0 0 24 24" fill={a?"currentColor":"none"} stroke="currentColor" strokeWidth="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>,
+  },
+  {
+    key: "calendar", label: "달력", href: "/calendar",
+    icon: (a: boolean) => <svg width="22" height="22" viewBox="0 0 24 24" fill={a?"currentColor":"none"} stroke="currentColor" strokeWidth="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>,
   },
   {
     key: "profile", label: "내 정보", href: "/profile",
-    icon: (a: boolean) => <svg width="22" height="22" viewBox="0 0 24 24" fill={a?"#191f28":"none"} stroke={a?"#191f28":"#8b95a1"} strokeWidth="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
+    icon: (a: boolean) => <svg width="22" height="22" viewBox="0 0 24 24" fill={a?"currentColor":"none"} stroke="currentColor" strokeWidth="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
   },
 ];
 
-const NEW_WORK_ITEMS = [
-  { label: "영상 리뷰", href: "/review?new=true" },
-  { label: "카드뉴스 메이커", href: "/instagram-card" },
-  { label: "제목 생성기", href: "/youtube-title/new" },
-  { label: "쇼츠 제작기", href: "/youtube-shorts?new=true" },
-  { label: "화면자료 제작기", href: "/screen-material?new=true" },
+const PROJECT_ITEMS = [
+  { label: "영상 피드백", href: "/review/new" },
+  { label: "인스타 카드뉴스", href: "/instagram-card" },
+  { label: "유튜브 제목", href: "/youtube-title/new" },
+  { label: "유튜브/인스타 숏폼", href: "/youtube-shorts/new" },
+  { label: "화면자료", href: "/screen-material/new" },
 ];
 
 export default function SideNav() {
   const pathname = usePathname();
   const router = useRouter();
+  const { theme, toggle: toggleTheme } = useTheme();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [workerName, setWorkerName] = useState("");
 
@@ -43,7 +53,7 @@ export default function SideNav() {
     } else {
       setIsLoggedIn(false);
     }
-  }, [pathname]);
+  }, []);
 
   useEffect(() => {
     const onLogin = () => {
@@ -62,7 +72,9 @@ export default function SideNav() {
   if (!isLoggedIn) return null;
 
   const activeTab = pathname === "/" ? "home"
-    : pathname.startsWith("/tools") ? "tools"
+    : (pathname.startsWith("/tools") || pathname.startsWith("/review") || pathname.startsWith("/instagram-card") || pathname.startsWith("/youtube-title") || pathname.startsWith("/youtube-shorts") || pathname.startsWith("/screen-material")) ? "project"
+    : pathname.startsWith("/settlement") ? "settlement"
+    : pathname.startsWith("/calendar") ? "calendar"
     : pathname.startsWith("/profile") ? "profile"
     : null;
 
@@ -99,8 +111,8 @@ export default function SideNav() {
 
         {/* 새 작업 */}
         <p className="px-3 text-[11px] font-bold text-toss-gray-400 uppercase mb-2">새 작업</p>
-        {NEW_WORK_ITEMS.map((item) => {
-          const basePath = item.href.split("?")[0];
+        {PROJECT_ITEMS.map((item) => {
+          const basePath = "/" + item.href.split("/")[1];
           return (
           <button
             key={item.href}
@@ -113,24 +125,21 @@ export default function SideNav() {
           </button>
           );
         })}
-
-        {/* Divider */}
-        <div className="border-t border-toss-gray-100 my-3" />
-
-        {/* 바로가기 */}
-        <p className="px-3 text-[11px] font-bold text-toss-gray-400 uppercase mb-2">바로가기</p>
-        <button onClick={() => router.push("/settlement")}
-          className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl mb-0.5 text-left transition-all ${pathname.startsWith("/settlement") ? "bg-blue-50 text-toss-blue font-semibold" : "text-toss-gray-500 hover:bg-toss-gray-50"}`}>
-          <span className="text-[13px]">💰 정산 관리</span>
-        </button>
-        <button onClick={() => router.push("/calendar")}
-          className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl mb-0.5 text-left transition-all ${pathname.startsWith("/calendar") ? "bg-blue-50 text-toss-blue font-semibold" : "text-toss-gray-500 hover:bg-toss-gray-50"}`}>
-          <span className="text-[13px]">📅 촬영 일정</span>
-        </button>
       </nav>
 
       {/* Bottom */}
-      <div className="px-3 pb-4">
+      <div className="px-3 pb-4 space-y-1">
+        <button
+          onClick={toggleTheme}
+          className="w-full flex items-center justify-between px-3 py-2 rounded-xl hover:bg-toss-gray-50 transition"
+        >
+          <span className="text-[13px] text-toss-gray-500">
+            {theme === "dark" ? "라이트 모드" : "다크 모드"}
+          </span>
+          <div className={`w-9 h-5 rounded-full relative transition-colors ${theme === "dark" ? "bg-toss-blue" : "bg-toss-gray-300"}`}>
+            <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${theme === "dark" ? "translate-x-[18px]" : "translate-x-0.5"}`} />
+          </div>
+        </button>
         <button
           onClick={() => {
             localStorage.removeItem("worker");

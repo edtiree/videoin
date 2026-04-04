@@ -373,12 +373,12 @@ export default function ReviewProjectPage() {
     }
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center text-toss-gray-400">불러오는 중...</div>;
-  if (!project) return <div className="min-h-screen flex items-center justify-center text-toss-gray-400">프로젝트를 찾을 수 없습니다</div>;
+  if (loading) return <div className="min-h-full bg-gray-50" />;
+  if (!project) return <div className="min-h-full flex items-center justify-center text-toss-gray-400">프로젝트를 찾을 수 없습니다</div>;
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-10">
-      <TopNav title="영상 리뷰" backHref="/review" rightContent={
+    <div className="min-h-full bg-gray-50 pb-10">
+      <TopNav title="영상 피드백" backHref="/review" rightContent={
         <div className="flex items-center gap-2">
           <button onClick={() => { navigator.clipboard.writeText(window.location.href); alert("링크가 복사되었습니다!"); }}
             className="px-3 py-1.5 text-[13px] text-toss-gray-500 hover:text-toss-gray-700 transition">공유</button>

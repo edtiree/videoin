@@ -50,7 +50,7 @@ export default function SubmitPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-full flex items-center justify-center bg-gray-50">
         <div className="flex items-center gap-3">
           <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
           <span className="text-gray-500">정보를 불러오는 중...</span>
@@ -61,7 +61,7 @@ export default function SubmitPage() {
 
   if (error || !worker) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <div className="min-h-full flex items-center justify-center bg-gray-50 px-4">
         <div className="bg-white rounded-2xl shadow-sm border p-8 max-w-md w-full text-center">
           <div className="text-4xl mb-4">&#x26A0;&#xFE0F;</div>
           <h2 className="text-lg font-semibold text-gray-800 mb-2">
@@ -75,7 +75,7 @@ export default function SubmitPage() {
 
   if (submitted) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <div className="min-h-full flex items-center justify-center bg-gray-50 px-4">
         <div className="bg-white rounded-2xl shadow-sm border p-8 max-w-md w-full text-center">
           <div className="text-5xl mb-4">&#x2705;</div>
           <h2 className="text-xl font-bold text-gray-800 mb-2">
@@ -107,7 +107,7 @@ export default function SubmitPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
+    <div className="min-h-full bg-gray-50 py-8 px-4">
       <div className="max-w-lg mx-auto">
         {/* 헤더 */}
         <div className="bg-white rounded-2xl shadow-sm border p-6 mb-6">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Worker, PDLineItem, SettlementSubmission } from "@/types";
 import { calculateTax, PD_RATE } from "@/lib/tax";
 import MonthPicker from "./MonthPicker";
@@ -23,12 +24,15 @@ interface PDFormProps {
 }
 
 export default function PDForm({ worker, onSubmitSuccess, onDraftSaved, onDeleteDraft, loadDraft = true, rate = PD_RATE, roleName = "촬영비", formTitle = "촬영 내역", initialDraft }: PDFormProps) {
+  const isFilming = roleName === "촬영비";
   const emptyItem = (): PDLineItem => ({
     performer: "", filmingDate: "", expense: 0, receiptUrls: [], amount: rate,
+    ...(isFilming ? {} : { quantity: 1 }),
   });
   const [month, setMonth] = useState(() => {
     const now = new Date();
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    const day = now.getDate() <= 10 ? 10 : 25;
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
   });
   const [items, setItems] = useState<PDLineItem[]>([emptyItem()]);
   const [submitting, setSubmitting] = useState(false);
@@ -39,6 +43,29 @@ export default function PDForm({ worker, onSubmitSuccess, onDraftSaved, onDelete
   const [banner, setBanner] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
   const [alertMsg, setAlertMsg] = useState<string | null>(null);
+  const [showManualAdd, setShowManualAdd] = useState(false);
+
+  // 작업 요청 목록
+  interface TaskNotif { id: string; title: string; deadlineDate: string | null; type: string; }
+  const [taskNotifs, setTaskNotifs] = useState<TaskNotif[]>([]);
+  const [showTaskPicker, setShowTaskPicker] = useState(false);
+
+  useEffect(() => {
+    const notifType = roleName === "촬영비" ? "filming" : roleName === "숏폼" ? "shorts" : roleName === "카드뉴스" ? "cardnews" : "editing";
+    fetch(`/api/notifications?workerId=${worker.id}`)
+      .then(r => r.json())
+      .then(data => {
+        const tasks = (data.notifications || [])
+          .filter((n: TaskNotif) => n.type === notifType)
+          .filter((n: TaskNotif) => {
+            if (!n.deadlineDate) return true;
+            const dd = new Date(n.deadlineDate); const now = new Date();
+            return Math.round((new Date(dd.getFullYear(), dd.getMonth(), dd.getDate()).getTime() - new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()) / 86400000) >= 0;
+          });
+        setTaskNotifs(tasks);
+      })
+      .catch(() => {});
+  }, [worker.id, isFilming]);
 
   // 마운트 시 임시저장 불러오기
   useEffect(() => {
@@ -86,8 +113,10 @@ export default function PDForm({ worker, onSubmitSuccess, onDraftSaved, onDelete
     setItems((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const totalWork = items.length * rate;
-  const totalExpense = items.reduce((sum, item) => sum + (item.expense || 0), 0);
+  const totalWork = isFilming
+    ? items.length * rate
+    : items.reduce((sum, item) => sum + (item.quantity || 1) * rate, 0);
+  const totalExpense = isFilming ? items.reduce((sum, item) => sum + (item.expense || 0), 0) : 0;
   const grandTotal = totalWork + totalExpense;
   const taxResult = calculateTax(grandTotal, worker.contractType);
 
@@ -98,8 +127,9 @@ export default function PDForm({ worker, onSubmitSuccess, onDraftSaved, onDelete
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
       if (!item.performer.trim()) return `${i + 1}번째 항목: 출연자명을 입력해주세요.`;
-      if (!item.filmingDate) return `${i + 1}번째 항목: 촬영일을 선택해주세요.`;
-      if (item.expense > 0 && item.receiptUrls.length === 0) return `${i + 1}번째 항목: 경비가 있으면 영수증을 첨부해주세요.`;
+      if (isFilming && !item.filmingDate) return `${i + 1}번째 항목: 촬영일을 선택해주세요.`;
+      if (isFilming && item.expense > 0 && item.receiptUrls.length === 0) return `${i + 1}번째 항목: 경비가 있으면 영수증을 첨부해주세요.`;
+      if (!isFilming && (!item.quantity || item.quantity < 1)) return `${i + 1}번째 항목: 편수를 입력해주세요.`;
     }
     return null;
   };
@@ -178,69 +208,190 @@ export default function PDForm({ worker, onSubmitSuccess, onDraftSaved, onDelete
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-[16px] font-bold text-toss-gray-900">{formTitle}</h3>
-          <span className="text-[13px] text-toss-gray-500">건당 {rate.toLocaleString()}원</span>
+          <span className="text-[13px] text-toss-gray-500">{isFilming ? "건당" : "편당"} {rate.toLocaleString()}원</span>
         </div>
 
-        {items.map((item, index) => (
-          <div key={index} className="bg-toss-gray-50 rounded-2xl p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-[13px] font-bold text-toss-blue">#{index + 1}</span>
-              {items.length > 1 && (
-                <button type="button" onClick={() => removeItem(index)}
-                  className="text-[13px] text-toss-gray-400 hover:text-toss-red transition">
-                  삭제
-                </button>
-              )}
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-[13px] font-medium text-toss-gray-600 mb-1.5">출연자</label>
-                <input type="text" value={item.performer}
-                  onChange={(e) => updateItem(index, { performer: e.target.value })}
-                  className="w-full rounded-xl border border-toss-gray-200 px-4 py-3 text-[15px] text-toss-gray-900 focus:border-toss-blue focus:ring-1 focus:ring-toss-blue/30 outline-none transition-all bg-white placeholder:text-toss-gray-400"
-                  placeholder="출연자 이름" />
-              </div>
-              <div>
-                <label className="block text-[13px] font-medium text-toss-gray-600 mb-1.5">날짜</label>
-                <DatePickerButton value={item.filmingDate} placeholder="날짜 선택"
-                  onChange={(v) => updateItem(index, { filmingDate: v })} />
-              </div>
-              <div>
-                <label className="block text-[13px] font-medium text-toss-gray-600 mb-1.5">경비 (원)</label>
-                <input type="text" inputMode="numeric" value={item.expense ? item.expense.toLocaleString() : ""}
-                  onChange={(e) => updateItem(index, { expense: Number(e.target.value.replace(/\D/g, "")) || 0 })}
-                  className="w-full rounded-xl border border-toss-gray-200 px-4 py-3 text-[15px] text-toss-gray-900 focus:border-toss-blue focus:ring-1 focus:ring-toss-blue/30 outline-none transition-all bg-white placeholder:text-toss-gray-400"
-                  placeholder="0" />
-              </div>
-              <div className="flex items-end pb-1">
-                <p className="text-[14px] text-toss-gray-500">
-                  금액 <span className="font-bold text-toss-gray-900 text-[16px] ml-1">{rate.toLocaleString()}원</span>
-                </p>
-              </div>
-            </div>
-
-            {item.expense > 0 && (
-              <div>
-                <label className="block text-[13px] font-medium text-toss-gray-600 mb-1.5">
-                  영수증 첨부 <span className="text-toss-red">*</span>
-                </label>
-                <FileUpload currentUrls={item.receiptUrls}
-                  onUpload={(urls) => updateItem(index, { receiptUrls: urls })} />
+        {/* 요청된 작업 목록 */}
+        {taskNotifs.length > 0 ? (
+          <>
+            {/* 미추가 작업 */}
+            {taskNotifs.filter(t => !items.some(item => item.notificationId === t.id)).length > 0 && (
+              <div className="space-y-1.5">
+                {taskNotifs.filter(t => !items.some(item => item.notificationId === t.id)).map(task => (
+                  <button key={task.id} type="button"
+                    onClick={() => {
+                      setDirty(true);
+                      const newItem: PDLineItem = {
+                        performer: task.title,
+                        filmingDate: isFilming ? (task.deadlineDate || "") : "",
+                        expense: 0, receiptUrls: [], amount: rate,
+                        notificationId: task.id,
+                        ...(isFilming ? {} : { quantity: 1 }),
+                      };
+                      setItems(prev => prev.length === 1 && !prev[0].performer ? [newItem] : [...prev, newItem]);
+                    }}
+                    className="w-full flex items-center gap-3 p-4 bg-toss-gray-50 rounded-2xl hover:bg-blue-50/30 active:scale-[0.98] transition-all text-left">
+                    <span className={`px-2 py-1 rounded-lg text-[11px] font-bold shrink-0 ${
+                      task.type === "filming" ? "bg-blue-50 text-toss-blue" : task.type === "editing" ? "bg-green-50 text-toss-green" : task.type === "shorts" ? "bg-amber-50 text-amber-600" : "bg-pink-50 text-pink-600"
+                    }`}>{task.type === "filming" ? "촬영" : task.type === "editing" ? "편집" : task.type === "shorts" ? "쇼츠" : "카드뉴스"}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[15px] font-bold text-toss-gray-900">{task.title}</p>
+                      <p className="text-[12px] text-toss-gray-400 mt-0.5">업로드 {task.deadlineDate ? new Date(task.deadlineDate).toLocaleDateString("ko-KR", { month: "long", day: "numeric" }) : "일정 미정"}</p>
+                    </div>
+                    <span className="text-[13px] text-toss-blue font-semibold shrink-0">+ 추가</span>
+                  </button>
+                ))}
               </div>
             )}
-          </div>
-        ))}
 
-        <button type="button" onClick={addItem}
-          className="w-full py-3.5 border-2 border-dashed border-toss-gray-200 rounded-2xl text-toss-gray-400 hover:border-toss-blue hover:text-toss-blue transition-all text-[14px] font-medium">
-          + 건 추가
-        </button>
+            {/* 추가된 항목 — 작업 요청 건 */}
+            {items.filter(item => item.notificationId).map((item, _idx) => {
+              const index = items.indexOf(item);
+              const task = taskNotifs.find(t => t.id === item.notificationId);
+              return (
+                <div key={index} className="bg-blue-50/40 border border-toss-blue/20 rounded-2xl p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className={`px-2 py-1 rounded-lg text-[11px] font-bold ${
+                        task?.type === "filming" ? "bg-blue-50 text-toss-blue" : task?.type === "editing" ? "bg-green-50 text-toss-green" : task?.type === "shorts" ? "bg-amber-50 text-amber-600" : "bg-pink-50 text-pink-600"
+                      }`}>{task?.type === "filming" ? "촬영" : task?.type === "editing" ? "편집" : task?.type === "shorts" ? "쇼츠" : "카드뉴스"}</span>
+                      <p className="text-[15px] font-bold text-toss-gray-900">{item.performer}</p>
+                    </div>
+                    <button type="button" onClick={() => removeItem(index)}
+                      className="text-[13px] text-toss-gray-400 hover:text-toss-red transition">삭제</button>
+                  </div>
+                  <div className="flex items-center justify-between text-[13px]">
+                    <span className="text-toss-gray-500">업로드 {task?.deadlineDate ? new Date(task.deadlineDate).toLocaleDateString("ko-KR", { month: "long", day: "numeric" }) : "일정 미정"}</span>
+                    <span className="font-bold text-toss-gray-900">{isFilming ? rate.toLocaleString() : ((item.quantity || 1) * rate).toLocaleString()}원</span>
+                  </div>
+                  {/* 경비 — 촬영만 */}
+                  {isFilming && (
+                    <div className="flex items-center gap-3">
+                      <label className="text-[13px] text-toss-gray-500 shrink-0">경비</label>
+                      <input type="text" inputMode="numeric" value={item.expense ? item.expense.toLocaleString() : ""}
+                        onChange={(e) => updateItem(index, { expense: Number(e.target.value.replace(/\D/g, "")) || 0 })}
+                        className="flex-1 rounded-xl border border-toss-gray-200 px-3 py-2 text-[14px] text-toss-gray-900 focus:border-toss-blue outline-none bg-white placeholder:text-toss-gray-400"
+                        placeholder="0원" />
+                    </div>
+                  )}
+                  {isFilming && item.expense > 0 && (
+                    <div>
+                      <label className="block text-[13px] font-medium text-toss-gray-600 mb-1.5">영수증 첨부 <span className="text-toss-red">*</span></label>
+                      <FileUpload currentUrls={item.receiptUrls} onUpload={(urls) => updateItem(index, { receiptUrls: urls })} />
+                    </div>
+                  )}
+                  {/* 편수 — 쇼츠/카드뉴스만 */}
+                  {!isFilming && (
+                    <div className="flex items-center gap-3">
+                      <label className="text-[13px] text-toss-gray-500 shrink-0">편수</label>
+                      <input type="text" inputMode="numeric" value={item.quantity || ""}
+                        onChange={(e) => { const qty = Number(e.target.value.replace(/\D/g, "")) || 0; updateItem(index, { quantity: qty, amount: qty * rate }); }}
+                        className="w-20 rounded-xl border border-toss-gray-200 px-3 py-2 text-[14px] text-toss-gray-900 focus:border-toss-blue outline-none bg-white text-center"
+                        placeholder="1" />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </>
+        ) : (
+          <div className="text-center py-8 bg-toss-gray-50 rounded-2xl">
+            <p className="text-[14px] text-toss-gray-500">정산할 내역이 없습니다</p>
+            <p className="text-[12px] text-toss-gray-400 mt-1">관리자가 작업을 요청하면 여기에 표시됩니다</p>
+          </div>
+        )}
+
+        {/* 수동 추가 항목 */}
+        {items.filter(item => !item.notificationId && item.performer).map((item, _idx) => {
+          const index = items.indexOf(item);
+          return (
+            <div key={`manual-${index}`} className="bg-amber-50/40 border border-amber-200/50 rounded-2xl p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-1 bg-amber-50 text-amber-600 rounded-lg text-[11px] font-bold">수동</span>
+                  <p className="text-[15px] font-bold text-toss-gray-900">{item.performer}</p>
+                </div>
+                <button type="button" onClick={() => removeItem(index)}
+                  className="text-[13px] text-toss-gray-400 hover:text-toss-red transition">삭제</button>
+              </div>
+              {isFilming ? (
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[13px] font-medium text-toss-gray-600 mb-1.5">출연자</label>
+                      <input type="text" value={item.performer} onChange={(e) => updateItem(index, { performer: e.target.value })}
+                        className="w-full rounded-xl border border-toss-gray-200 px-4 py-3 text-[15px] text-toss-gray-900 focus:border-toss-blue outline-none bg-white placeholder:text-toss-gray-400"
+                        placeholder="출연자 이름" />
+                    </div>
+                    <div>
+                      <label className="block text-[13px] font-medium text-toss-gray-600 mb-1.5">촬영 일정</label>
+                      <DatePickerButton value={item.filmingDate} placeholder="촬영일 선택" onChange={(v) => updateItem(index, { filmingDate: v })} />
+                    </div>
+                    <div>
+                      <label className="block text-[13px] font-medium text-toss-gray-600 mb-1.5">경비 (원)</label>
+                      <input type="text" inputMode="numeric" value={item.expense ? item.expense.toLocaleString() : ""}
+                        onChange={(e) => updateItem(index, { expense: Number(e.target.value.replace(/\D/g, "")) || 0 })}
+                        className="w-full rounded-xl border border-toss-gray-200 px-4 py-3 text-[15px] text-toss-gray-900 focus:border-toss-blue outline-none bg-white placeholder:text-toss-gray-400"
+                        placeholder="0" />
+                    </div>
+                    <div className="flex items-end pb-1">
+                      <p className="text-[14px] text-toss-gray-500">금액 <span className="font-bold text-toss-gray-900 text-[16px] ml-1">{rate.toLocaleString()}원</span></p>
+                    </div>
+                  </div>
+                  {item.expense > 0 && (
+                    <div>
+                      <label className="block text-[13px] font-medium text-toss-gray-600 mb-1.5">영수증 첨부 <span className="text-toss-red">*</span></label>
+                      <FileUpload currentUrls={item.receiptUrls} onUpload={(urls) => updateItem(index, { receiptUrls: urls })} />
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-[13px] font-medium text-toss-gray-600 mb-1.5">출연자</label>
+                    <input type="text" value={item.performer} onChange={(e) => updateItem(index, { performer: e.target.value })}
+                      className="w-full rounded-xl border border-toss-gray-200 px-4 py-3 text-[15px] text-toss-gray-900 focus:border-toss-blue outline-none bg-white placeholder:text-toss-gray-400"
+                      placeholder="출연자 이름" />
+                  </div>
+                  <div>
+                    <label className="block text-[13px] font-medium text-toss-gray-600 mb-1.5">편수</label>
+                    <input type="text" inputMode="numeric" value={item.quantity || ""}
+                      onChange={(e) => { const qty = Number(e.target.value.replace(/\D/g, "")) || 0; updateItem(index, { quantity: qty, amount: qty * rate }); }}
+                      className="w-full rounded-xl border border-toss-gray-200 px-4 py-3 text-[15px] text-toss-gray-900 focus:border-toss-blue outline-none bg-white placeholder:text-toss-gray-400"
+                      placeholder="1" />
+                  </div>
+                  <div className="flex items-end pb-1">
+                    <p className="text-[14px] text-toss-gray-500">금액 <span className="font-bold text-toss-gray-900 text-[16px] ml-1">{((item.quantity || 1) * rate).toLocaleString()}원</span></p>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+
+        {/* 수동 추가 버튼 — 접힌 상태로 */}
+        {!showManualAdd ? (
+          <button type="button" onClick={() => setShowManualAdd(true)}
+            className="w-full py-3 text-[13px] text-toss-gray-400 hover:text-amber-600 transition">
+            수동으로 추가하기
+          </button>
+        ) : (
+          <div className="space-y-2">
+            <button type="button" onClick={() => { addItem(); setShowManualAdd(false); }}
+              className="w-full py-3.5 border-2 border-dashed border-amber-300 rounded-2xl text-amber-600 hover:bg-amber-50/30 transition-all text-[14px] font-medium">
+              + 수동 추가
+            </button>
+            <button type="button" onClick={() => setShowManualAdd(false)}
+              className="w-full py-2 text-[12px] text-toss-gray-400">닫기</button>
+          </div>
+        )}
       </div>
 
       {hasContent && (
         <SettlementSummary totalWork={totalWork} totalExpense={totalExpense}
-          contractType={worker.contractType} itemCount={items.length} role={roleName} />
+          contractType={worker.contractType}
+          itemCount={isFilming ? items.length : items.reduce((sum, item) => sum + (item.quantity || 1), 0)}
+          role={roleName} />
       )}
 
       <div className="space-y-3">
@@ -265,6 +416,7 @@ export default function PDForm({ worker, onSubmitSuccess, onDraftSaved, onDelete
       {alertMsg && (
         <ConfirmModal title="알림" message={alertMsg} confirmText="확인" onConfirm={() => setAlertMsg(null)} />
       )}
+
     </div>
   );
 }

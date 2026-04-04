@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import TopNav from "@/components/TopNav";
+import { getCache, setCache } from "@/lib/cache";
 
 interface Ad {
   id: string;
@@ -16,17 +17,24 @@ interface Ad {
 const CHANNELS = ["돈벌쥐", "잡터뷰", "머니월드", "부업백과", "전국부업자랑"];
 
 export default function CalendarPage() {
-  const [ads, setAds] = useState<Ad[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [ads, setAds] = useState<Ad[]>(() => {
+    if (typeof window === "undefined") return [];
+    return getCache<Ad[]>("calendar_ads") || [];
+  });
+  const [loading, setLoading] = useState(() => {
+    if (typeof window === "undefined") return true;
+    return !getCache<Ad[]>("calendar_ads");
+  });
   const [calMonth, setCalMonth] = useState(() => { const n = new Date(); return { year: n.getFullYear(), month: n.getMonth() + 1 }; });
   const [calFilter, setCalFilter] = useState<"all" | "filming" | "upload">("all");
   const [calChannels, setCalChannels] = useState<string[]>([...CHANNELS]);
   const [detail, setDetail] = useState<Ad | null>(null);
 
   useEffect(() => {
-    setLoading(true);
     fetch("/api/ads").then(r => r.json()).then((data) => {
-      setAds(data.map((a: Ad) => ({ id: a.id, youtube_channel: a.youtube_channel, performer: a.performer, platform: a.platform, filming_date: a.filming_date, upload_date: a.upload_date, progress: a.progress })));
+      const mapped = data.map((a: Ad) => ({ id: a.id, youtube_channel: a.youtube_channel, performer: a.performer, platform: a.platform, filming_date: a.filming_date, upload_date: a.upload_date, progress: a.progress }));
+      setAds(mapped);
+      setCache("calendar_ads", mapped);
     }).finally(() => setLoading(false));
   }, []);
 
@@ -58,32 +66,48 @@ export default function CalendarPage() {
   const nextMo = () => setCalMonth(p => p.month === 12 ? { year: p.year + 1, month: 1 } : { ...p, month: p.month + 1 });
   const goToday = () => { const n = new Date(); setCalMonth({ year: n.getFullYear(), month: n.getMonth() + 1 }); };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center text-toss-gray-400">불러오는 중...</div>;
+  if (loading) return <div className="min-h-full bg-gray-50" />;
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-10">
-      <TopNav title="촬영 일정" backHref="/" rightContent={
-        <button onClick={goToday} className="px-4 py-2 bg-toss-blue text-white text-[13px] font-semibold rounded-xl hover:bg-toss-blue-hover active:scale-[0.98] transition-all">
-          오늘
-        </button>
-      } />
+    <div className="min-h-full bg-gray-50 pb-10">
+      <div className="hidden md:block">
+        <TopNav title="달력" backHref="/" rightContent={
+          <button onClick={goToday} className="px-4 py-2 bg-toss-blue text-white text-[13px] font-semibold rounded-xl hover:bg-toss-blue-hover active:scale-[0.98] transition-all">
+            오늘
+          </button>
+        } />
+      </div>
 
       <div className="max-w-6xl mx-auto px-5 mt-4 space-y-3">
         {/* 필터 */}
-        <div className="flex flex-wrap gap-2">
-          {([["all","전체"],["filming","촬영만"],["upload","업로드만"]] as const).map(([k,l]) => (
-            <button key={k} onClick={() => setCalFilter(k)}
-              className={`px-4 py-2 rounded-xl text-[13px] font-semibold transition-all ${calFilter === k ? "bg-toss-blue text-white" : "bg-white border border-toss-gray-200 text-toss-gray-600"}`}>
-              {l}
+        <div className="bg-white rounded-2xl border border-toss-gray-100 shadow-sm p-4 space-y-3">
+          {/* 타입 필터 - 세그먼트 컨트롤 */}
+          <div className="flex bg-toss-gray-50 rounded-xl p-1">
+            {([["all","전체"],["filming","촬영 일정"],["upload","업로드 일정"]] as const).map(([k,l]) => (
+              <button key={k} onClick={() => setCalFilter(k)}
+                className={`flex-1 py-2 rounded-lg text-[13px] font-semibold transition-all ${calFilter === k ? "bg-white text-toss-blue shadow-sm" : "text-toss-gray-400 hover:text-toss-gray-600"}`}>
+                {l}
+              </button>
+            ))}
+          </div>
+
+          {/* 채널 필터 */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCalChannels(prev => prev.length === CHANNELS.length ? [] : [...CHANNELS])}
+              className={`shrink-0 px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-all border ${calChannels.length === CHANNELS.length ? "bg-toss-gray-900 text-white border-toss-gray-900" : "bg-white text-toss-gray-400 border-toss-gray-200"}`}>
+              전체
             </button>
-          ))}
-          <span className="w-px bg-toss-gray-200 mx-1"></span>
-          {CHANNELS.map(ch => (
-            <button key={ch} onClick={() => setCalChannels(prev => prev.includes(ch) ? prev.filter(c => c !== ch) : [...prev, ch])}
-              className={`px-3 py-2 rounded-xl text-[13px] font-semibold transition-all ${calChannels.includes(ch) ? "bg-toss-gray-900 text-white" : "bg-white border border-toss-gray-200 text-toss-gray-400"}`}>
-              {ch}
-            </button>
-          ))}
+            <div className="w-px h-5 bg-toss-gray-100"></div>
+            <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
+              {CHANNELS.map(ch => (
+                <button key={ch} onClick={() => setCalChannels(prev => prev.includes(ch) ? prev.filter(c => c !== ch) : [...prev, ch])}
+                  className={`shrink-0 px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-all border ${calChannels.includes(ch) ? "bg-toss-gray-900 text-white border-toss-gray-900" : "bg-white text-toss-gray-400 border-toss-gray-200"}`}>
+                  {ch}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* 캘린더 */}

@@ -21,13 +21,18 @@ export interface PDLineItem {
   expense: number;
   receiptUrls: string[];
   amount: number; // 고정 200,000
+  quantity?: number; // 숏폼/카드뉴스 편수
+  notificationId?: string | null; // 작업 요청 연결
 }
 
 export interface EditorLineItem {
   performer: string;
   videoLink: string;
-  videoDuration: number; // 분
+  videoDuration: number; // 정산 적용 분 (반올림/반내림)
+  videoMinutes?: number; // 입력 원본 분
+  videoSeconds?: number; // 입력 원본 초
   amount: number; // 분 × 10,000
+  notificationId?: string | null; // 작업 요청 연결
 }
 
 export interface SettlementSubmission {

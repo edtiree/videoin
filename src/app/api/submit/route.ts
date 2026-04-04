@@ -53,10 +53,10 @@ export async function POST(request: Request) {
         .delete()
         .eq("settlement_id", data.draftId);
 
-      const lineItems = data.items.map((item) => ({
-        settlement_id: data.draftId,
-        ...item,
-      }));
+      const lineItems = data.items.map((item) => {
+        const { quantity, videoMinutes, videoSeconds, notificationId, ...rest } = item as unknown as Record<string, unknown>;
+        return { settlement_id: data.draftId, ...rest };
+      });
 
       const { error: itemsError } = await supabase
         .from("settlement_items")
@@ -104,10 +104,10 @@ export async function POST(request: Request) {
     }
 
     // 상세 항목 저장
-    const lineItems = data.items.map((item) => ({
-      settlement_id: settlement.id,
-      ...item,
-    }));
+    const lineItems = data.items.map((item) => {
+      const { quantity, videoMinutes, videoSeconds, notificationId, ...rest } = item as unknown as Record<string, unknown>;
+      return { settlement_id: settlement.id, ...rest };
+    });
 
     const { error: itemsError } = await supabase
       .from("settlement_items")

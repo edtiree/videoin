@@ -74,7 +74,6 @@ export default function SettlementHistory({ workerId, role, contractType, refres
   const statusStyle: Record<string, string> = {
     "임시저장": "bg-toss-gray-100 text-toss-gray-500",
     "제출됨": "bg-amber-50 text-amber-600",
-    "확인됨": "bg-blue-50 text-toss-blue",
     "정산완료": "bg-green-50 text-toss-green",
   };
 
@@ -120,9 +119,12 @@ export default function SettlementHistory({ workerId, role, contractType, refres
         return (
           <div key={s.id} className="bg-white border border-toss-gray-100 rounded-2xl overflow-hidden shadow-sm">
             <button onClick={() => setExpandedId(isExpanded ? null : s.id)}
-              className="w-full px-5 py-4 flex items-center justify-between text-left hover:bg-toss-gray-50 transition">
-              <div className="flex items-center gap-2.5">
+              className="w-full px-5 py-4 text-left hover:bg-toss-gray-50 transition">
+              <div className="flex items-center justify-between mb-1.5">
                 <span className="text-[15px] font-bold text-toss-gray-900">{formatMonth(s.settlement_month)}</span>
+                <span className="text-[16px] font-bold text-toss-blue">{s.final_amount.toLocaleString()}원</span>
+              </div>
+              <div className="flex items-center gap-1.5 flex-wrap">
                 <span className="px-1.5 py-0.5 bg-toss-gray-100 text-toss-gray-600 rounded text-[11px] font-bold">
                   {getRoleLabel(s.role)}
                 </span>
@@ -134,16 +136,13 @@ export default function SettlementHistory({ workerId, role, contractType, refres
                     {s.tax_invoice_issued ? "계산서 ✓" : "계산서 ✗"}
                   </span>
                 )}
-              </div>
-              <div className="flex items-center gap-2">
                 {s.status === "임시저장" && onResumeDraft && (
                   <button
                     onClick={(e) => { e.stopPropagation(); onResumeDraft(s.role); }}
-                    className="px-3 py-1.5 bg-toss-blue text-white text-[12px] font-semibold rounded-lg hover:bg-toss-blue-hover transition">
+                    className="px-3 py-1 bg-toss-blue text-white text-[11px] font-semibold rounded-lg hover:bg-toss-blue-hover transition">
                     이어 작성
                   </button>
                 )}
-                <span className="text-[16px] font-bold text-toss-blue">{s.final_amount.toLocaleString()}원</span>
               </div>
             </button>
 

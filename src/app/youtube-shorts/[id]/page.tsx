@@ -398,7 +398,7 @@ export default function YouTubeShortsDetailPage() {
   if (loading || !worker) {
     if (!loading && !worker) {
       return (
-        <div className="min-h-screen flex items-center justify-center px-6">
+        <div className="min-h-full flex items-center justify-center px-6">
           <div className="w-full max-w-xs text-center space-y-4">
             <h1 className="text-[20px] font-bold text-toss-gray-900">로그인이 필요합니다</h1>
             <p className="text-[14px] text-toss-gray-500">홈에서 로그인 후 이용해주세요.</p>
@@ -412,7 +412,7 @@ export default function YouTubeShortsDetailPage() {
 
   if (projectLoading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-full bg-gray-50">
         <TopNav title="쇼츠 제작기" backHref="/youtube-shorts" />
         <div className="max-w-2xl mx-auto px-5 mt-10">
           <div className="flex items-center justify-center py-20">
@@ -424,7 +424,7 @@ export default function YouTubeShortsDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-10">
+    <div className="min-h-full bg-gray-50 pb-10">
       <TopNav title="쇼츠 제작기" backHref="/youtube-shorts" />
 
       <div className="max-w-2xl mx-auto px-5 mt-6">
@@ -473,7 +473,7 @@ export default function YouTubeShortsDetailPage() {
               ) : (
                 <div>
                   <div className="w-14 h-14 bg-toss-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
-                    <svg width="28" height="28" fill="none" stroke="#b0b8c1" strokeWidth="1.5" viewBox="0 0 24 24">
+                    <svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                       <path d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
                     </svg>
                   </div>

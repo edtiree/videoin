@@ -216,10 +216,10 @@ export default function NewProjectPage() {
     },
   ];
 
-  if (loading || !worker) return null;
+  if (loading || !worker) return <div className="min-h-full bg-gray-50" />;
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-10">
+    <div className="min-h-full bg-gray-50 pb-10">
       <TopNav title="새 프로젝트" backHref="/youtube-title" />
 
       <div className="max-w-2xl mx-auto px-5 mt-6">
@@ -303,7 +303,7 @@ export default function NewProjectPage() {
                 ) : (
                   <div>
                     <div className="w-12 h-12 bg-toss-gray-50 rounded-xl flex items-center justify-center mx-auto mb-3">
-                      <svg width="24" height="24" fill="none" stroke="#b0b8c1" strokeWidth="1.5" viewBox="0 0 24 24">
+                      <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                         <path d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
                       </svg>
                     </div>

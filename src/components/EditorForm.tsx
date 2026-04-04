@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Worker, EditorLineItem, SettlementSubmission } from "@/types";
 import { calculateTax, EDITOR_RATE } from "@/lib/tax";
 import MonthPicker from "./MonthPicker";
@@ -24,7 +25,8 @@ const emptyItem = (): EditorLineItem => ({
 export default function EditorForm({ worker, onSubmitSuccess, onDraftSaved, onDeleteDraft, loadDraft = true, initialDraft }: EditorFormProps) {
   const [month, setMonth] = useState(() => {
     const now = new Date();
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    const day = now.getDate() <= 10 ? 10 : 25;
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
   });
   const [items, setItems] = useState<EditorLineItem[]>([emptyItem()]);
   const [submitting, setSubmitting] = useState(false);
@@ -35,6 +37,28 @@ export default function EditorForm({ worker, onSubmitSuccess, onDraftSaved, onDe
   const [banner, setBanner] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
   const [alertMsg, setAlertMsg] = useState<string | null>(null);
+  const [showManualAdd, setShowManualAdd] = useState(false);
+
+  // 작업 요청 목록
+  interface TaskNotif { id: string; title: string; deadlineDate: string | null; type: string; }
+  const [taskNotifs, setTaskNotifs] = useState<TaskNotif[]>([]);
+  const [showTaskPicker, setShowTaskPicker] = useState(false);
+
+  useEffect(() => {
+    fetch(`/api/notifications?workerId=${worker.id}`)
+      .then(r => r.json())
+      .then(data => {
+        const tasks = (data.notifications || [])
+          .filter((n: TaskNotif) => n.type === "editing")
+          .filter((n: TaskNotif) => {
+            if (!n.deadlineDate) return true;
+            const dd = new Date(n.deadlineDate); const now = new Date();
+            return Math.round((new Date(dd.getFullYear(), dd.getMonth(), dd.getDate()).getTime() - new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()) / 86400000) >= 0;
+          });
+        setTaskNotifs(tasks);
+      })
+      .catch(() => {});
+  }, [worker.id]);
 
   // 마운트 시 임시저장 불러오기
   useEffect(() => {
@@ -71,6 +95,12 @@ export default function EditorForm({ worker, onSubmitSuccess, onDraftSaved, onDe
       prev.map((item, i) => {
         if (i !== index) return item;
         const updated = { ...item, ...updates };
+        // 분/초가 변경되면 반올림/반내림 적용
+        if ("videoMinutes" in updates || "videoSeconds" in updates) {
+          const mins = updated.videoMinutes ?? 0;
+          const secs = updated.videoSeconds ?? 0;
+          updated.videoDuration = mins + (secs >= 30 ? 1 : 0);
+        }
         updated.amount = updated.videoDuration * EDITOR_RATE;
         return updated;
       })
@@ -179,55 +209,144 @@ export default function EditorForm({ worker, onSubmitSuccess, onDraftSaved, onDe
           <span className="text-[13px] text-toss-gray-500">분당 {EDITOR_RATE.toLocaleString()}원</span>
         </div>
 
-        {items.map((item, index) => (
-          <div key={index} className="bg-toss-gray-50 rounded-2xl p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-[13px] font-bold text-toss-blue">#{index + 1}</span>
-              {items.length > 1 && (
-                <button type="button" onClick={() => removeItem(index)}
-                  className="text-[13px] text-toss-gray-400 hover:text-toss-red transition">
-                  삭제
-                </button>
-              )}
-            </div>
+        {/* 요청된 작업 */}
+        {taskNotifs.length > 0 ? (
+          <>
+            {taskNotifs.filter(t => !items.some(item => item.notificationId === t.id)).length > 0 && (
+              <div className="space-y-1.5">
+                {taskNotifs.filter(t => !items.some(item => item.notificationId === t.id)).map(task => (
+                  <button key={task.id} type="button"
+                    onClick={() => {
+                      setDirty(true);
+                      const newItem: EditorLineItem = { performer: task.title, videoLink: "", videoDuration: 0, amount: 0, notificationId: task.id };
+                      setItems(prev => prev.length === 1 && !prev[0].performer ? [newItem] : [...prev, newItem]);
+                    }}
+                    className="w-full flex items-center gap-3 p-4 bg-toss-gray-50 rounded-2xl hover:bg-blue-50/30 active:scale-[0.98] transition-all text-left">
+                    <span className="px-2 py-1 rounded-lg text-[11px] font-bold shrink-0 bg-green-50 text-toss-green">편집</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[15px] font-bold text-toss-gray-900">{task.title}</p>
+                      <p className="text-[12px] text-toss-gray-400 mt-0.5">업로드 {task.deadlineDate ? new Date(task.deadlineDate).toLocaleDateString("ko-KR", { month: "long", day: "numeric" }) : "일정 미정"}</p>
+                    </div>
+                    <span className="text-[13px] text-toss-blue font-semibold shrink-0">+ 추가</span>
+                  </button>
+                ))}
+              </div>
+            )}
 
-            <div className="space-y-3">
-              <div>
-                <label className="block text-[13px] font-medium text-toss-gray-600 mb-1.5">출연자</label>
-                <input type="text" value={item.performer}
-                  onChange={(e) => updateItem(index, { performer: e.target.value })}
-                  className="w-full rounded-xl border border-toss-gray-200 px-4 py-3 text-[15px] text-toss-gray-900 focus:border-toss-blue focus:ring-1 focus:ring-toss-blue/30 outline-none transition-all bg-white placeholder:text-toss-gray-400"
-                  placeholder="출연자 이름" />
-              </div>
-              <div>
-                <label className="block text-[13px] font-medium text-toss-gray-600 mb-1.5">최종본 영상 링크</label>
-                <input type="url" value={item.videoLink}
-                  onChange={(e) => updateItem(index, { videoLink: e.target.value })}
-                  className="w-full rounded-xl border border-toss-gray-200 px-4 py-3 text-[15px] text-toss-gray-900 focus:border-toss-blue focus:ring-1 focus:ring-toss-blue/30 outline-none transition-all bg-white placeholder:text-toss-gray-400"
-                  placeholder="https://youtu.be/..." />
-              </div>
-              <div className="flex gap-3 items-end">
-                <div className="flex-1">
-                  <label className="block text-[13px] font-medium text-toss-gray-600 mb-1.5">영상 길이 (분)</label>
-                  <input type="number" value={item.videoDuration || ""}
-                    onChange={(e) => updateItem(index, { videoDuration: Number(e.target.value) || 0 })}
-                    className="w-full rounded-xl border border-toss-gray-200 px-4 py-3 text-[15px] text-toss-gray-900 focus:border-toss-blue focus:ring-1 focus:ring-toss-blue/30 outline-none transition-all bg-white placeholder:text-toss-gray-400"
-                    placeholder="분 단위" min="1" />
+            {/* 추가된 작업 요청 항목 */}
+            {items.filter(item => item.notificationId).map((item) => {
+              const index = items.indexOf(item);
+              const task = taskNotifs.find(t => t.id === item.notificationId);
+              return (
+                <div key={index} className="bg-blue-50/40 border border-toss-blue/20 rounded-2xl p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-1 rounded-lg text-[11px] font-bold bg-green-50 text-toss-green">편집</span>
+                      <p className="text-[15px] font-bold text-toss-gray-900">{item.performer}</p>
+                    </div>
+                    <button type="button" onClick={() => removeItem(index)} className="text-[13px] text-toss-gray-400 hover:text-toss-red transition">삭제</button>
+                  </div>
+                  <p className="text-[13px] text-toss-gray-500">업로드 {task?.deadlineDate ? new Date(task.deadlineDate).toLocaleDateString("ko-KR", { month: "long", day: "numeric" }) : "일정 미정"}</p>
+                  <div>
+                    <label className="block text-[13px] font-medium text-toss-gray-600 mb-1.5">최종본 영상 링크</label>
+                    <input type="url" value={item.videoLink} onChange={(e) => updateItem(index, { videoLink: e.target.value })}
+                      className="w-full rounded-xl border border-toss-gray-200 px-4 py-3 text-[15px] text-toss-gray-900 focus:border-toss-blue outline-none bg-white placeholder:text-toss-gray-400"
+                      placeholder="https://youtu.be/..." />
+                  </div>
+                  <div>
+                    <label className="block text-[13px] font-medium text-toss-gray-600 mb-1.5">영상 길이</label>
+                    <div className="flex gap-2 items-center">
+                      <div className="flex-1 flex items-center gap-1.5">
+                        <input type="text" inputMode="numeric" value={item.videoMinutes ?? item.videoDuration ?? ""}
+                          onChange={(e) => updateItem(index, { videoMinutes: Number(e.target.value.replace(/\D/g, "")) || 0 })}
+                          className="w-full rounded-xl border border-toss-gray-200 px-3 py-2 text-[14px] text-toss-gray-900 focus:border-toss-blue outline-none bg-white text-center" placeholder="0" />
+                        <span className="text-[14px] text-toss-gray-500 shrink-0">분</span>
+                      </div>
+                      <div className="flex-1 flex items-center gap-1.5">
+                        <input type="text" inputMode="numeric" value={item.videoSeconds ?? ""}
+                          onChange={(e) => { let sec = Number(e.target.value.replace(/\D/g, "")) || 0; if (sec > 59) sec = 59; updateItem(index, { videoSeconds: sec }); }}
+                          className="w-full rounded-xl border border-toss-gray-200 px-3 py-2 text-[14px] text-toss-gray-900 focus:border-toss-blue outline-none bg-white text-center" placeholder="0" />
+                        <span className="text-[14px] text-toss-gray-500 shrink-0">초</span>
+                      </div>
+                    </div>
+                    {(item.videoSeconds ?? 0) > 0 && (
+                      <p className="text-[12px] text-toss-gray-400 mt-1.5">{(item.videoSeconds ?? 0) >= 30 ? "반올림" : "반내림"} → 정산 <span className="font-bold text-toss-gray-700">{item.videoDuration}분</span></p>
+                    )}
+                  </div>
+                  <p className="text-[14px] text-toss-gray-500">금액 <span className="font-bold text-toss-gray-900 text-[16px] ml-1">{item.amount.toLocaleString()}원</span></p>
                 </div>
-                <div className="pb-1">
-                  <p className="text-[14px] text-toss-gray-500">
-                    금액 <span className="font-bold text-toss-gray-900 text-[16px] ml-1">{item.amount.toLocaleString()}원</span>
-                  </p>
-                </div>
-              </div>
-            </div>
+              );
+            })}
+          </>
+        ) : (
+          <div className="text-center py-8 bg-toss-gray-50 rounded-2xl">
+            <p className="text-[14px] text-toss-gray-500">정산할 내역이 없습니다</p>
+            <p className="text-[12px] text-toss-gray-400 mt-1">관리자가 작업을 요청하면 여기에 표시됩니다</p>
           </div>
-        ))}
+        )}
 
-        <button type="button" onClick={addItem}
-          className="w-full py-3.5 border-2 border-dashed border-toss-gray-200 rounded-2xl text-toss-gray-400 hover:border-toss-blue hover:text-toss-blue transition-all text-[14px] font-medium">
-          + 편집 건 추가
-        </button>
+        {/* 수동 추가 항목 */}
+        {items.filter(item => !item.notificationId && item.performer).map((item) => {
+          const index = items.indexOf(item);
+          return (
+            <div key={`manual-${index}`} className="bg-amber-50/40 border border-amber-200/50 rounded-2xl p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-1 bg-amber-50 text-amber-600 rounded-lg text-[11px] font-bold">수동</span>
+                  <p className="text-[15px] font-bold text-toss-gray-900">{item.performer}</p>
+                </div>
+                <button type="button" onClick={() => removeItem(index)} className="text-[13px] text-toss-gray-400 hover:text-toss-red transition">삭제</button>
+              </div>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-[13px] font-medium text-toss-gray-600 mb-1.5">출연자</label>
+                  <input type="text" value={item.performer} onChange={(e) => updateItem(index, { performer: e.target.value })}
+                    className="w-full rounded-xl border border-toss-gray-200 px-4 py-3 text-[15px] text-toss-gray-900 focus:border-toss-blue outline-none bg-white placeholder:text-toss-gray-400" placeholder="출연자 이름" />
+                </div>
+                <div>
+                  <label className="block text-[13px] font-medium text-toss-gray-600 mb-1.5">최종본 영상 링크</label>
+                  <input type="url" value={item.videoLink} onChange={(e) => updateItem(index, { videoLink: e.target.value })}
+                    className="w-full rounded-xl border border-toss-gray-200 px-4 py-3 text-[15px] text-toss-gray-900 focus:border-toss-blue outline-none bg-white placeholder:text-toss-gray-400" placeholder="https://youtu.be/..." />
+                </div>
+                <div>
+                  <label className="block text-[13px] font-medium text-toss-gray-600 mb-1.5">영상 길이</label>
+                  <div className="flex gap-2 items-center">
+                    <div className="flex-1 flex items-center gap-1.5">
+                      <input type="text" inputMode="numeric" value={item.videoMinutes ?? item.videoDuration ?? ""}
+                        onChange={(e) => updateItem(index, { videoMinutes: Number(e.target.value.replace(/\D/g, "")) || 0 })}
+                        className="w-full rounded-xl border border-toss-gray-200 px-3 py-2 text-[14px] text-toss-gray-900 focus:border-toss-blue outline-none bg-white text-center" placeholder="0" />
+                      <span className="text-[14px] text-toss-gray-500 shrink-0">분</span>
+                    </div>
+                    <div className="flex-1 flex items-center gap-1.5">
+                      <input type="text" inputMode="numeric" value={item.videoSeconds ?? ""}
+                        onChange={(e) => { let sec = Number(e.target.value.replace(/\D/g, "")) || 0; if (sec > 59) sec = 59; updateItem(index, { videoSeconds: sec }); }}
+                        className="w-full rounded-xl border border-toss-gray-200 px-3 py-2 text-[14px] text-toss-gray-900 focus:border-toss-blue outline-none bg-white text-center" placeholder="0" />
+                      <span className="text-[14px] text-toss-gray-500 shrink-0">초</span>
+                    </div>
+                  </div>
+                </div>
+                <p className="text-[14px] text-toss-gray-500">금액 <span className="font-bold text-toss-gray-900 text-[16px] ml-1">{item.amount.toLocaleString()}원</span></p>
+              </div>
+            </div>
+          );
+        })}
+
+        {/* 수동 추가 버튼 */}
+        {!showManualAdd ? (
+          <button type="button" onClick={() => setShowManualAdd(true)}
+            className="w-full py-3 text-[13px] text-toss-gray-400 hover:text-amber-600 transition">
+            수동으로 추가하기
+          </button>
+        ) : (
+          <div className="space-y-2">
+            <button type="button" onClick={() => { addItem(); setShowManualAdd(false); }}
+              className="w-full py-3.5 border-2 border-dashed border-amber-300 rounded-2xl text-amber-600 hover:bg-amber-50/30 transition-all text-[14px] font-medium">
+              + 수동 추가
+            </button>
+            <button type="button" onClick={() => setShowManualAdd(false)}
+              className="w-full py-2 text-[12px] text-toss-gray-400">닫기</button>
+          </div>
+        )}
       </div>
 
       {hasContent && (
@@ -257,6 +376,7 @@ export default function EditorForm({ worker, onSubmitSuccess, onDraftSaved, onDe
       {alertMsg && (
         <ConfirmModal title="알림" message={alertMsg} confirmText="확인" onConfirm={() => setAlertMsg(null)} />
       )}
+
     </div>
   );
 }

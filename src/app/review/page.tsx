@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import TopNav from "@/components/TopNav";
+import { getCache, setCache } from "@/lib/cache";
 
 interface ReviewProject {
   id: string;
@@ -30,6 +31,8 @@ export default function ReviewListPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => { const c = getCache<ReviewProject[]>("review_projects"); if (c) { setProjects(c); setLoading(false); } }, []);
+
   useEffect(() => {
     const saved = localStorage.getItem("worker");
     if (saved) {
@@ -39,14 +42,6 @@ export default function ReviewListPage() {
       setLoading(false);
     }
   }, []);
-
-  // ?new=true 쿼리 파라미터가 있으면 자동으로 업로드 모달 오픈
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (authed && params.get("new") === "true") {
-      openUploadModal();
-    }
-  }, [authed]);
 
   // 드롭다운 외부 클릭 닫기
   useEffect(() => {
@@ -64,7 +59,7 @@ export default function ReviewListPage() {
     const url = worker?.id ? `/api/review/projects?workerId=${worker.id}` : "/api/review/projects";
     fetch(url)
       .then((r) => r.json())
-      .then((data) => setProjects(data))
+      .then((data) => { setProjects(data); setCache("review_projects", data); })
       .catch(() => {})
       .finally(() => setLoading(false));
   };
@@ -195,7 +190,7 @@ export default function ReviewListPage() {
 
   if (!authed) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-6">
+      <div className="min-h-full flex items-center justify-center px-6">
         <div className="w-full max-w-xs text-center space-y-4">
           <div className="text-4xl mb-2">🔒</div>
           <h1 className="text-[20px] font-bold text-toss-gray-900">로그인이 필요합니다</h1>
@@ -207,8 +202,8 @@ export default function ReviewListPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-10">
-      <TopNav title="영상 리뷰" backHref="/" rightContent={
+    <div className="min-h-full bg-gray-50 pb-10">
+      <TopNav title="영상 피드백" backHref="/" rightContent={
         <button onClick={openUploadModal}
           className="px-4 py-2 bg-toss-blue text-white text-[13px] font-semibold rounded-xl hover:bg-toss-blue-hover transition">
           + 영상 업로드

@@ -604,7 +604,7 @@ export default function ScreenMaterialDetailPage() {
   if (loading || !worker) {
     if (!loading && !worker) {
       return (
-        <div className="min-h-screen flex items-center justify-center px-6">
+        <div className="min-h-full flex items-center justify-center px-6">
           <div className="w-full max-w-xs text-center space-y-4">
             <h1 className="text-[20px] font-bold text-toss-gray-900">
               로그인이 필요합니다
@@ -626,7 +626,7 @@ export default function ScreenMaterialDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-10">
+    <div className="min-h-full bg-gray-50 pb-10">
       <TopNav title="화면자료 제작기" backHref="/screen-material" />
 
       <div className="max-w-2xl mx-auto px-5 mt-6">
@@ -785,7 +785,7 @@ export default function ScreenMaterialDetailPage() {
                       width="28"
                       height="28"
                       fill="none"
-                      stroke="#b0b8c1"
+                      stroke="currentColor"
                       strokeWidth="1.5"
                       viewBox="0 0 24 24"
                     >
@@ -1294,7 +1294,7 @@ export default function ScreenMaterialDetailPage() {
                     width="28"
                     height="28"
                     fill="none"
-                    stroke="#b0b8c1"
+                    stroke="currentColor"
                     strokeWidth="1.5"
                     viewBox="0 0 24 24"
                   >

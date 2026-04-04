@@ -148,11 +148,11 @@ export default function AdsPage() {
   const inputCls = "w-full rounded-xl border border-toss-gray-200 px-3 py-2.5 text-[14px] text-toss-gray-900 focus:border-toss-blue focus:ring-1 focus:ring-toss-blue/30 outline-none bg-white";
   const selectCls = inputCls;
 
-  if (authed === null) return <div className="min-h-screen"></div>;
+  if (authed === null) return <div className="min-h-full"></div>;
 
   if (!authed) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-6" onClick={() => document.getElementById("ads-pin")?.focus()}>
+      <div className="min-h-full flex flex-col items-center justify-center px-6" onClick={() => document.getElementById("ads-pin")?.focus()}>
         <div className="w-full max-w-sm text-center">
           <a href="/" className="text-toss-gray-400 hover:text-toss-gray-600 text-[13px] mb-6 inline-block">← 홈</a>
           <h2 className="text-[22px] font-bold text-toss-gray-900 mb-2">광고 DB</h2>
@@ -174,7 +174,7 @@ export default function AdsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-10">
+    <div className="min-h-full bg-gray-50 pb-10">
       <TopNav title="광고 관리" backHref="/" rightContent={
         tab === "dashboard" && dashView === "all" ? (
           <button onClick={() => setEditAd({ youtube_channel: "돈벌쥐", progress: "완료", filming_fee_status: "정산 전", vat_method: "부가세 별도", tax_invoice: "발행 전", rs_settlement: "시작 전", ad_fee: 0, supply_amount: 0, vat_amount: 0, total_amount: 0, rs_rate: 0, rs_cost: 0 })}

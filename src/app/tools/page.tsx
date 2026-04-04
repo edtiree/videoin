@@ -2,6 +2,8 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { getCache, setCache } from "@/lib/cache";
+
 
 interface Worker { id: string; name: string; allowedServices?: string[]; isAdmin?: boolean; }
 
@@ -43,8 +45,14 @@ const CATEGORIES = [
 export default function ToolsPage() {
   const router = useRouter();
   const [worker, setWorker] = useState<Worker | null>(null);
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [projects, setProjects] = useState<Project[]>(() => {
+    if (typeof window === "undefined") return [];
+    return getCache<Project[]>("tools_projects") || [];
+  });
+  const [loading, setLoading] = useState(() => {
+    if (typeof window === "undefined") return true;
+    return !getCache<Project[]>("tools_projects");
+  });
   const [selectedCategory, setSelectedCategory] = useState("all");
 
   useEffect(() => {
@@ -84,10 +92,16 @@ export default function ToolsPage() {
       );
       all.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
       setProjects(all);
+      setCache("tools_projects", all);
       setLoading(false);
     };
     fetchAll();
   }, [worker]);
+
+  useEffect(() => {
+    if (!loading) // eslint-disable-next-line @typescript-eslint/no-explicit-any
+(window as any).dismissSplash?.();
+  }, [loading]);
 
   const countByCategory = useMemo(() => {
     const counts: Record<string, number> = { all: projects.length };
@@ -104,20 +118,37 @@ export default function ToolsPage() {
     return projects.filter((p) => p.tool === selectedCategory);
   }, [projects, selectedCategory]);
 
-  if (!worker) return null;
+  if (!worker) return <div className="min-h-full bg-gray-50" />;
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-10">
-      <div className="bg-white border-b border-toss-gray-100">
-        <div className="max-w-3xl mx-auto px-5 py-4">
-          <h1 className="text-[20px] font-bold text-toss-gray-900">최근 프로젝트</h1>
-          <p className="text-[13px] text-toss-gray-400 mt-1">모든 도구의 프로젝트를 한눈에</p>
+    <div className="min-h-full bg-gray-50 pb-10">
+      {/* 새 작업 시작 */}
+      <div className="max-w-3xl md:max-w-5xl mx-auto px-5 md:px-8 pt-4 pb-2">
+        <h2 className="text-[15px] font-bold text-toss-gray-900 mb-3">새 작업 시작</h2>
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1" style={{ WebkitOverflowScrolling: "touch", msOverflowStyle: "none", scrollbarWidth: "none" }}>
+          {[
+            { label: "영상 피드백", icon: "🎬", href: "/review/new" },
+            { label: "카드뉴스", icon: "📸", href: "/instagram-card" },
+            { label: "유튜브 제목", icon: "✏️", href: "/youtube-title/new" },
+            { label: "숏폼", icon: "🎬", href: "/youtube-shorts/new" },
+            { label: "화면자료", icon: "🖼️", href: "/screen-material/new" },
+          ].map((item) => (
+            <button key={item.href} onClick={() => router.push(item.href)}
+              className="flex-shrink-0 flex items-center gap-2 px-4 py-2.5 bg-white border border-toss-gray-200 rounded-xl hover:border-toss-blue hover:bg-blue-50/30 active:scale-[0.97] transition-all">
+              <span className="text-[16px]">{item.icon}</span>
+              <span className="text-[13px] font-semibold text-toss-gray-800">{item.label}</span>
+            </button>
+          ))}
         </div>
+      </div>
+
+      <div className="max-w-3xl md:max-w-5xl mx-auto px-5 md:px-8 pt-3 pb-2">
+        <h2 className="text-[15px] font-bold text-toss-gray-900">최근 프로젝트</h2>
       </div>
 
       {/* Category filter tabs */}
       <div className="sticky top-0 z-10 bg-gray-50">
-        <div className="max-w-3xl mx-auto px-5 py-3">
+        <div className="max-w-3xl md:max-w-5xl mx-auto px-5 md:px-8 py-3">
           <div className="flex gap-2 overflow-x-auto scrollbar-hide" style={{ WebkitOverflowScrolling: "touch", msOverflowStyle: "none", scrollbarWidth: "none" }}>
             {CATEGORIES.map((cat) => {
               const isActive = selectedCategory === cat.key;
@@ -140,7 +171,7 @@ export default function ToolsPage() {
         </div>
       </div>
 
-      <div className="max-w-3xl mx-auto px-5">
+      <div className="max-w-3xl md:max-w-5xl mx-auto px-5 md:px-8">
         {loading && (
           <div className="space-y-3">
             {[1, 2, 3, 4].map((i) => (
@@ -169,7 +200,7 @@ export default function ToolsPage() {
         )}
 
         {!loading && filteredProjects.length > 0 && (
-          <div className="space-y-2">
+          <div className="space-y-2 md:grid md:grid-cols-2 md:gap-3 md:space-y-0">
             {filteredProjects.map((p) => (
               <div
                 key={`${p.tool}-${p.id}`}
@@ -184,7 +215,7 @@ export default function ToolsPage() {
                     <span className="text-[11px] text-toss-gray-400">{timeAgo(p.updated_at)}</span>
                   </div>
                 </div>
-                <svg width="16" height="16" fill="none" stroke="#b0b8c1" strokeWidth="2" viewBox="0 0 24 24">
+                <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path d="M9 18l6-6-6-6" />
                 </svg>
               </div>

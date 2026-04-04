@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import TopNav from "@/components/TopNav";
+import { getCache, setCache } from "@/lib/cache";
 
 interface Worker {
   id: string;
@@ -52,7 +53,8 @@ export default function ScreenMaterialDashboard() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [deleting, setDeleting] = useState(false);
   const [creating, setCreating] = useState(false);
-  const autoCreateTriggered = useRef(false);
+
+  useEffect(() => { const c = getCache<ProjectSummary[]>("screen_projects"); if (c) { setProjects(c); setLoading(false); } }, []);
 
   useEffect(() => {
     const saved = localStorage.getItem("worker");
@@ -72,7 +74,7 @@ export default function ScreenMaterialDashboard() {
     if (!worker) return;
     fetch(`/api/screen-material/projects?workerId=${worker.id}`)
       .then((r) => r.json())
-      .then((data) => setProjects(data))
+      .then((data) => { setProjects(data); setCache("screen_projects", data); })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [worker]);
@@ -96,15 +98,6 @@ export default function ScreenMaterialDashboard() {
       setCreating(false);
     }
   };
-
-  // ?new=true 쿼리 파라미터가 있으면 자동으로 새 프로젝트 생성
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (worker && params.get("new") === "true" && !autoCreateTriggered.current) {
-      autoCreateTriggered.current = true;
-      handleNewProject();
-    }
-  }, [worker]);
 
   const handleDelete = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
@@ -146,7 +139,7 @@ export default function ScreenMaterialDashboard() {
 
   if (!worker) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-6">
+      <div className="min-h-full flex items-center justify-center px-6">
         <div className="w-full max-w-xs text-center space-y-4">
           <h1 className="text-[20px] font-bold text-toss-gray-900">로그인이 필요합니다</h1>
           <p className="text-[14px] text-toss-gray-500">홈에서 로그인 후 이용해주세요.</p>
@@ -157,7 +150,7 @@ export default function ScreenMaterialDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-10">
+    <div className="min-h-full bg-gray-50 pb-10">
       <TopNav title="화면자료 제작기" backHref="/" rightContent={
         <div className="flex items-center gap-2">
           {projects.length > 0 && (

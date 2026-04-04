@@ -141,7 +141,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
 
   if (pageLoading || !worker) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-full flex items-center justify-center">
         <svg className="animate-spin w-8 h-8 text-toss-blue" viewBox="0 0 24 24" fill="none">
           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
@@ -155,7 +155,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
   const channelThumb = store.refChannels[0]?.thumbnail;
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-10">
+    <div className="min-h-full bg-gray-50 pb-10">
       <TopNav title={store.projectName} backHref="/youtube-title" rightContent={
         store.videoType ? (
           <span className="text-[10px] font-bold bg-blue-50 text-toss-blue px-3 py-1.5 rounded-lg uppercase">

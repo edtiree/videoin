@@ -24,7 +24,7 @@ export default function SettlementSummary({
       <h3 className="text-[16px] font-bold text-toss-gray-900 mb-4">정산 요약</h3>
 
       <div className="space-y-3 text-[14px]">
-        <Row label={`${getRoleLabel(role)} 건수`} value={`${itemCount}건`} />
+        <Row label={`${getRoleLabel(role)} ${role === "숏폼" || role === "카드뉴스" ? "편수" : "건수"}`} value={`${itemCount}${role === "숏폼" || role === "카드뉴스" ? "편" : "건"}`} />
         {role === "편집비" && totalDuration !== undefined && (
           <Row label="총 영상 길이" value={`${totalDuration}분`} />
         )}

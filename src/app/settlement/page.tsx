@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { Worker } from "@/types";
 import PDForm from "@/components/PDForm";
 import EditorForm from "@/components/EditorForm";
@@ -15,7 +16,8 @@ type Tab = "write" | "history";
 type Category = "촬영비" | "숏폼" | "카드뉴스" | "편집비" | null;
 
 export default function Home() {
-  const [page, setPage] = useState<Page>("login");
+  const router = useRouter();
+  const [page, setPage] = useState<Page>("main");
   const [worker, setWorker] = useState<Worker | null>(null);
   const [tab, setTab] = useState<Tab>("write");
   const [category, setCategory] = useState<Category>(null);
@@ -71,19 +73,37 @@ export default function Home() {
         }));
       setDrafts(draftList);
       // 임시저장 전체 데이터 캐시 (items 포함)
-      setCachedDrafts((all || []).filter((s: { status: string }) => s.status === "임시저장"));
+      const draftsRaw = (all || []).filter((s: { status: string }) => s.status === "임시저장");
+      setCachedDrafts(draftsRaw);
       // 제출 이력 캐시
-      setCachedSettlements((all || []).filter((s: { status: string }) => s.status !== "임시저장"));
+      const settlementsRaw = (all || []).filter((s: { status: string }) => s.status !== "임시저장");
+      setCachedSettlements(settlementsRaw);
+      // localStorage 캐시 저장
+      try {
+        localStorage.setItem(`settle_drafts_${wId}`, JSON.stringify(draftList));
+        localStorage.setItem(`settle_drafts_full_${wId}`, JSON.stringify(draftsRaw));
+        localStorage.setItem(`settle_history_${wId}`, JSON.stringify(settlementsRaw));
+      } catch {}
     } catch {}
   };
 
   useEffect(() => {
     const saved = localStorage.getItem("worker");
+    if (!saved) { router.push("/"); return; }
     if (saved) {
       try {
         const w = JSON.parse(saved);
         setWorker(w);
-        setPage("main");
+        // localStorage 캐시에서 즉시 로드
+        try {
+          const cachedDraftList = localStorage.getItem(`settle_drafts_${w.id}`);
+          if (cachedDraftList) setDrafts(JSON.parse(cachedDraftList));
+          const cachedDraftsFull = localStorage.getItem(`settle_drafts_full_${w.id}`);
+          if (cachedDraftsFull) setCachedDrafts(JSON.parse(cachedDraftsFull));
+          const cachedHistory = localStorage.getItem(`settle_history_${w.id}`);
+          if (cachedHistory) setCachedSettlements(JSON.parse(cachedHistory));
+        } catch {}
+        // 백그라운드에서 최신 데이터 갱신
         fetchAllSettlements(w.id);
         // 최신 카테고리 반영
         fetch(`/api/worker/${w.id}`).then(r => r.ok ? r.json() : null).then(data => {
@@ -236,10 +256,12 @@ export default function Home() {
     setDraftsKey((k) => k + 1);
   };
 
+  if (!worker) return <div className="min-h-full bg-gray-50" />;
+
   // ─── 로그인 1단계: 폰번호 ───
   if (page === "login") {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-6">
+      <div className="min-h-full flex flex-col items-center justify-center px-6">
         <div className="w-full max-w-sm">
           <h1 className="text-[26px] font-bold text-toss-gray-900 text-center leading-tight mb-2">
             영상 제작팀<br />정산 관리
@@ -309,7 +331,7 @@ export default function Home() {
   if (page === "pin") {
     return (
       <div
-        className="min-h-screen flex flex-col items-center justify-center px-6"
+        className="min-h-full flex flex-col items-center justify-center px-6"
         onClick={() => pinRef.current?.focus()}
       >
         <div className="w-full max-w-sm text-center">
@@ -382,7 +404,7 @@ export default function Home() {
   // ─── 회원가입 ───
   if (page === "register") {
     return (
-      <div className="min-h-screen flex items-center justify-center px-6 py-10">
+      <div className="min-h-full flex items-center justify-center px-6 py-10">
         <RegisterForm onSuccess={() => setPage("register-done")} onBack={() => setPage("login")} />
       </div>
     );
@@ -391,7 +413,7 @@ export default function Home() {
   // ─── 가입 완료 ───
   if (page === "register-done") {
     return (
-      <div className="min-h-screen flex items-center justify-center px-6">
+      <div className="min-h-full flex items-center justify-center px-6">
         <div className="w-full max-w-sm text-center">
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#30b06e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -416,7 +438,7 @@ export default function Home() {
   // ─── 제출 완료 ───
   if (submitted && worker) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-6">
+      <div className="min-h-full flex items-center justify-center px-6">
         <div className="w-full max-w-sm text-center">
           <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#3182f6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -446,14 +468,14 @@ export default function Home() {
     );
   }
 
-  if (!worker) return null;
+  if (!worker) return <div className="min-h-full bg-gray-50" />;
 
   // ─── 메인 화면 ───
   return (
-    <div className="min-h-screen pb-10">
-      <TopNav title="정산 관리" backHref="/" />
+    <div className="min-h-full pb-10">
+      <div className="hidden md:block"><TopNav title="정산 관리" backHref="/" /></div>
 
-      <div className="max-w-lg mx-auto px-5 mt-6">
+      <div className="max-w-lg md:max-w-3xl mx-auto px-5 md:px-8 mt-6">
         {/* 탭 */}
         <div className="flex bg-toss-gray-100 rounded-2xl p-1 mb-6">
           {[
@@ -486,7 +508,7 @@ export default function Home() {
                       const shortDate = mp.length >= 3
                         ? `${mp[0].slice(2)}.${mp[1]}.${mp[2]}`
                         : `${mp[0].slice(2)}.${mp[1]}`;
-                      const catName: Record<string, string> = { "촬영비": "유튜브 촬영", "편집비": "유튜브 롱폼 편집", "숏폼": "쇼츠·릴스 편집", "카드뉴스": "인스타 카드뉴스" };
+                      const catName: Record<string, string> = { "촬영비": "영상 촬영", "편집비": "롱폼 편집", "숏폼": "쇼츠·릴스 편집", "카드뉴스": "카드뉴스 제작" };
                       return (
                         <button key={d.id} onClick={() => { setLoadDraft(true); setCategory(d.role as Category); }}
                           className="w-full flex items-center justify-between bg-white rounded-2xl border border-amber-200 bg-amber-50/50 p-4 hover:border-toss-blue hover:bg-blue-50/30 active:scale-[0.98] transition-all text-left shadow-sm">
@@ -495,11 +517,11 @@ export default function Home() {
                             <div>
                               <div className="flex items-center gap-2">
                                 <p className="text-[15px] font-bold text-toss-gray-900">
-                                  {shortDate} {catName[d.role] || d.role}
+                                  {catName[d.role] || d.role}
                                 </p>
                                 <span className="px-1.5 py-0.5 bg-amber-100 text-amber-600 rounded text-[11px] font-bold">임시저장</span>
                               </div>
-                              <p className="text-[13px] text-toss-gray-500">{d.itemCount}건</p>
+                              <p className="text-[13px] text-toss-gray-500">정산일정 {shortDate}</p>
                             </div>
                           </div>
                         </button>
@@ -516,10 +538,10 @@ export default function Home() {
               )}
               <p className="text-[15px] text-toss-gray-600 mb-2">정산 카테고리를 선택하세요</p>
               {[
-                { key: "촬영비" as Category, icon: "📹", label: "유튜브 촬영", desc: "건당 200,000원" },
-                { key: "편집비" as Category, icon: "🎬", label: "유튜브 롱폼 편집", desc: "분당 10,000원" },
-                { key: "숏폼" as Category, icon: "🎞️", label: "쇼츠·릴스 편집", desc: "건당 10,000원" },
-                { key: "카드뉴스" as Category, icon: "📰", label: "인스타 카드뉴스", desc: "건당 10,000원" },
+                { key: "촬영비" as Category, icon: "📹", label: "영상 촬영", desc: "건당 200,000원" },
+                { key: "편집비" as Category, icon: "🎬", label: "롱폼 편집", desc: "분당 10,000원" },
+                { key: "숏폼" as Category, icon: "🎞️", label: "쇼츠·릴스 편집", desc: "편당 10,000원" },
+                { key: "카드뉴스" as Category, icon: "📰", label: "카드뉴스 제작", desc: "편당 10,000원" },
               ].filter((c) => (worker.categories || ["촬영비", "숏폼", "카드뉴스", "편집비"]).includes(c.key!)).map((c) => (
                 <button key={c.key} onClick={() => { setLoadDraft(false); setCategory(c.key); }}
                   className="w-full flex items-center gap-4 bg-white rounded-2xl border border-toss-gray-100 p-5 hover:border-toss-blue hover:bg-blue-50/30 active:scale-[0.98] transition-all text-left shadow-sm">

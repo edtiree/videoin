@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTheme } from "@/components/ThemeProvider";
+
 
 interface Worker {
   id: string;
@@ -17,6 +19,7 @@ interface Worker {
 
 export default function ProfilePage() {
   const router = useRouter();
+  const { theme, toggle: toggleTheme } = useTheme();
   const [worker, setWorker] = useState<Worker | null>(null);
 
   useEffect(() => {
@@ -31,17 +34,11 @@ export default function ProfilePage() {
     router.push("/");
   };
 
-  if (!worker) return null;
+  if (!worker) return <div className="min-h-full bg-gray-50" />;
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-10">
-      <div className="bg-white border-b border-toss-gray-100">
-        <div className="max-w-3xl mx-auto px-5 py-4">
-          <h1 className="text-[20px] font-bold text-toss-gray-900">내 정보</h1>
-        </div>
-      </div>
-
-      <div className="max-w-3xl mx-auto px-5 mt-6 space-y-4">
+    <div className="min-h-full bg-gray-50 pb-10">
+      <div className="max-w-3xl md:max-w-4xl mx-auto px-5 md:px-8 mt-4 space-y-4">
         {/* Profile Card */}
         <div className="bg-white rounded-2xl border border-toss-gray-100 p-5 shadow-sm">
           <div className="flex items-center gap-4 mb-5">
@@ -96,7 +93,16 @@ export default function ProfilePage() {
             className="w-full flex items-center justify-between p-4 border-b border-toss-gray-50 hover:bg-toss-gray-50 transition"
           >
             <span className="text-[14px] text-toss-gray-900">정산 관리</span>
-            <svg width="16" height="16" fill="none" stroke="#b0b8c1" strokeWidth="2" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" /></svg>
+            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" /></svg>
+          </button>
+          <button
+            onClick={toggleTheme}
+            className="w-full flex items-center justify-between p-4 border-b border-toss-gray-50 hover:bg-toss-gray-50 transition"
+          >
+            <span className="text-[14px] text-toss-gray-900">다크 모드</span>
+            <div className={`w-11 h-6 rounded-full relative transition-colors ${theme === "dark" ? "bg-toss-blue" : "bg-toss-gray-300"}`}>
+              <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${theme === "dark" ? "translate-x-[22px]" : "translate-x-0.5"}`} />
+            </div>
           </button>
           <button
             onClick={handleLogout}

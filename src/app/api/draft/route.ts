@@ -35,32 +35,15 @@ export async function POST(request: Request) {
 
       if (data.items?.length) {
         const lineItems = data.items.map(
-          (item: Record<string, unknown>) => ({
-            settlement_id: data.draftId,
-            ...item,
-          })
+          (item: Record<string, unknown>) => {
+            const { quantity, videoMinutes, videoSeconds, notificationId, ...rest } = item;
+            return { settlement_id: data.draftId, ...rest };
+          }
         );
         await supabase.from("settlement_items").insert(lineItems);
       }
 
       return NextResponse.json({ id: data.draftId });
-    }
-
-    // 기존 임시저장 삭제 (같은 worker + role)
-    const { data: existingDrafts } = await supabase
-      .from("settlements")
-      .select("id")
-      .eq("worker_id", data.workerId)
-      .eq("role", data.role)
-      .eq("status", "임시저장");
-
-    if (existingDrafts?.length) {
-      const ids = existingDrafts.map((d: { id: string }) => d.id);
-      await supabase
-        .from("settlement_items")
-        .delete()
-        .in("settlement_id", ids);
-      await supabase.from("settlements").delete().in("id", ids);
     }
 
     // 새 임시저장 생성
@@ -85,10 +68,10 @@ export async function POST(request: Request) {
 
     if (data.items?.length) {
       const lineItems = data.items.map(
-        (item: Record<string, unknown>) => ({
-          settlement_id: settlement.id,
-          ...item,
-        })
+        (item: Record<string, unknown>) => {
+          const { quantity, videoMinutes, videoSeconds, notificationId, ...rest } = item;
+          return { settlement_id: settlement.id, ...rest };
+        }
       );
       await supabase.from("settlement_items").insert(lineItems);
     }

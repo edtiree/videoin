@@ -3,6 +3,7 @@
 :root {
   --background: #f7f8fa;
   --foreground: #191f28;
+  --surface: #ffffff;
   --blue: #3182f6;
   --blue-hover: #1b6de8;
   --gray-50: #f9fafb;
@@ -20,9 +21,32 @@
   --orange: #f97316;
 }
 
+/* ── 다크 모드 ── */
+.dark {
+  --background: #0d1117;
+  --foreground: #e6edf3;
+  --surface: #161b22;
+  --blue: #4a93f7;
+  --blue-hover: #5ca0f8;
+  --gray-50: #161b22;
+  --gray-100: #1c2128;
+  --gray-200: #2d333b;
+  --gray-300: #3d444d;
+  --gray-400: #656d76;
+  --gray-500: #8b949e;
+  --gray-600: #b1bac4;
+  --gray-700: #d0d7de;
+  --gray-800: #e6edf3;
+  --gray-900: #f0f6fc;
+  --red: #f85149;
+  --green: #3fb950;
+  --orange: #f0883e;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
   --color-toss-blue: var(--blue);
   --color-toss-blue-hover: var(--blue-hover);
   --color-toss-red: var(--red);
@@ -38,6 +62,17 @@
   --color-toss-gray-700: var(--gray-700);
   --color-toss-gray-800: var(--gray-800);
   --color-toss-gray-900: var(--gray-900);
+  /* Tailwind 기본 gray 스케일도 CSS 변수로 매핑 → 다크모드 자동 적용 */
+  --color-gray-50: var(--gray-50);
+  --color-gray-100: var(--gray-100);
+  --color-gray-200: var(--gray-200);
+  --color-gray-300: var(--gray-300);
+  --color-gray-400: var(--gray-400);
+  --color-gray-500: var(--gray-500);
+  --color-gray-600: var(--gray-600);
+  --color-gray-700: var(--gray-700);
+  --color-gray-800: var(--gray-800);
+  --color-gray-900: var(--gray-900);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -107,4 +142,116 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+}
+
+/* ── 다크 모드: bg-white 오버라이드 (text-white는 유지) ── */
+.dark .bg-white {
+  background-color: var(--surface) !important;
+}
+.dark .hover\:bg-white:hover {
+  background-color: var(--surface) !important;
+}
+
+/* ── 다크 모드: 컬러 틴트 배경 ── */
+.dark .bg-blue-50 {
+  background-color: rgba(74, 147, 247, 0.12) !important;
+}
+.dark .bg-blue-100 {
+  background-color: rgba(74, 147, 247, 0.2) !important;
+}
+.dark .bg-red-50 {
+  background-color: rgba(248, 81, 73, 0.12) !important;
+}
+.dark .bg-red-100 {
+  background-color: rgba(248, 81, 73, 0.2) !important;
+}
+.dark .bg-amber-50,
+.dark .bg-amber-50\/50 {
+  background-color: rgba(240, 136, 62, 0.1) !important;
+}
+.dark .bg-amber-100 {
+  background-color: rgba(240, 136, 62, 0.2) !important;
+}
+.dark .bg-green-50 {
+  background-color: rgba(63, 185, 80, 0.12) !important;
+}
+.dark .bg-green-100 {
+  background-color: rgba(63, 185, 80, 0.2) !important;
+}
+.dark .bg-orange-50 {
+  background-color: rgba(240, 136, 62, 0.1) !important;
+}
+.dark .bg-orange-100 {
+  background-color: rgba(240, 136, 62, 0.2) !important;
+}
+.dark .bg-yellow-50 {
+  background-color: rgba(234, 179, 8, 0.1) !important;
+}
+.dark .bg-pink-50 {
+  background-color: rgba(236, 72, 153, 0.1) !important;
+}
+.dark .bg-pink-100 {
+  background-color: rgba(236, 72, 153, 0.2) !important;
+}
+
+/* ── 다크 모드: hover 컬러 틴트 ── */
+.dark .hover\:bg-blue-50:hover,
+.dark .hover\:bg-blue-50\/30:hover {
+  background-color: rgba(74, 147, 247, 0.08) !important;
+}
+.dark .hover\:bg-red-50:hover {
+  background-color: rgba(248, 81, 73, 0.08) !important;
+}
+.dark .hover\:bg-red-100:hover {
+  background-color: rgba(248, 81, 73, 0.15) !important;
+}
+
+/* ── 다크 모드: 테두리 ── */
+.dark .border-amber-200 {
+  border-color: rgba(240, 136, 62, 0.3) !important;
+}
+.dark .border-green-200 {
+  border-color: rgba(63, 185, 80, 0.3) !important;
+}
+.dark .border-red-200 {
+  border-color: rgba(248, 81, 73, 0.3) !important;
+}
+.dark .border-orange-200 {
+  border-color: rgba(240, 136, 62, 0.3) !important;
+}
+
+/* ── 다크 모드: 텍스트 컬러 ── */
+.dark .text-amber-600,
+.dark .text-amber-700 {
+  color: #f0883e !important;
+}
+.dark .text-green-600,
+.dark .text-green-700 {
+  color: #3fb950 !important;
+}
+.dark .text-red-600,
+.dark .text-red-700 {
+  color: #f85149 !important;
+}
+.dark .text-orange-600,
+.dark .text-orange-700 {
+  color: #f0883e !important;
+}
+.dark .text-pink-600 {
+  color: #f472b6 !important;
+}
+
+/* ── 다크 모드: 그림자 ── */
+.dark .shadow-sm {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.4) !important;
+}
+.dark .shadow-xl {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 8px 10px -6px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* ── 다크 모드: input 배경 ── */
+.dark input,
+.dark textarea,
+.dark select {
+  color-scheme: dark;
 }
