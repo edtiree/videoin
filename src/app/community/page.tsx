@@ -36,6 +36,7 @@ export default function CommunityPage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState("전체");
+  const [showWriteSheet, setShowWriteSheet] = useState(false);
 
   const fetchPosts = useCallback(async () => {
     if (posts.length === 0) setLoading(true); // 첫 로딩만 스피너
@@ -137,12 +138,55 @@ export default function CommunityPage() {
 
       {/* 플로팅 글쓰기 버튼 */}
       <button
-        onClick={() => isLoggedIn ? router.push("/community/new") : openLoginModal()}
+        onClick={() => {
+          if (!isLoggedIn) { openLoginModal(); return; }
+          setShowWriteSheet(true);
+        }}
         className="fixed bottom-20 right-5 md:bottom-8 md:right-8 bg-toss-blue text-white px-5 py-3 rounded-full shadow-lg flex items-center gap-2 hover:bg-[var(--blue-hover)] transition z-40 active:scale-95"
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
         <span className="text-[14px] font-semibold">글쓰기</span>
       </button>
+
+      {/* 카테고리 선택 바텀시트 */}
+      {showWriteSheet && (
+        <div className="fixed inset-0 z-[9999] flex items-end md:items-center justify-center">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setShowWriteSheet(false)} />
+          <div className="relative bg-white dark:bg-[var(--surface)] w-full md:w-[400px] md:rounded-2xl rounded-t-2xl pb-[env(safe-area-inset-bottom,16px)] animate-slide-up">
+            <div className="flex items-center justify-between px-5 pt-5 pb-3">
+              <h3 className="text-[18px] font-bold text-toss-gray-900">어떤 글을 쓸까요?</h3>
+              <button onClick={() => setShowWriteSheet(false)} className="text-toss-gray-400 p-1">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </button>
+            </div>
+            <div className="px-3 pb-3">
+              {[
+                { key: "자유", icon: "💬", desc: "자유롭게 이야기해요" },
+                { key: "중고거래", icon: "📦", desc: "장비를 사고팔아요" },
+                { key: "장비", icon: "🎥", desc: "장비 추천/리뷰" },
+                { key: "노하우", icon: "💡", desc: "작업 팁을 공유해요" },
+                { key: "질문", icon: "❓", desc: "궁금한 걸 물어봐요" },
+                { key: "홍보", icon: "📢", desc: "내 서비스를 알려요" },
+              ].map((item) => (
+                <button
+                  key={item.key}
+                  onClick={() => {
+                    setShowWriteSheet(false);
+                    router.push(`/community/new?category=${encodeURIComponent(item.key)}`);
+                  }}
+                  className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl hover:bg-toss-gray-50 transition text-left"
+                >
+                  <span className="text-[24px]">{item.icon}</span>
+                  <div>
+                    <p className="text-[15px] font-semibold text-toss-gray-900">{item.key}</p>
+                    <p className="text-[12px] text-toss-gray-400">{item.desc}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

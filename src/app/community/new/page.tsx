@@ -1,17 +1,25 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 import TopNav from "@/components/TopNav";
 
-const CATEGORIES = ["자유", "중고거래", "장비", "노하우", "질문", "홍보"];
+const CATEGORY_LABELS: Record<string, string> = {
+  "자유": "💬 자유",
+  "중고거래": "📦 중고거래",
+  "장비": "🎥 장비",
+  "노하우": "💡 노하우",
+  "질문": "❓ 질문",
+  "홍보": "📢 홍보",
+};
 
 export default function NewPostPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { isLoggedIn, profile, openLoginModal } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [category, setCategory] = useState("자유");
+  const category = searchParams.get("category") || "자유";
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [images, setImages] = useState<{ file: File; preview: string }[]>([]);
@@ -126,29 +134,20 @@ export default function NewPostPage() {
 
   return (
     <>
-      <TopNav title="글 작성" backHref="/community" rightContent={
+      <TopNav title={`${category} 글쓰기`} backHref="/community" rightContent={
         <button onClick={handleSubmit} disabled={saving} className="text-[14px] font-semibold text-toss-blue disabled:opacity-50">
           {saving ? "등록 중" : "등록"}
         </button>
       } />
 
       <div className="max-w-[800px] mx-auto px-4 py-5 space-y-5">
-        {/* 카테고리 */}
-        <div>
-          <label className="text-[13px] font-medium text-toss-gray-500 mb-2 block">카테고리</label>
-          <div className="flex flex-wrap gap-2">
-            {CATEGORIES.map((c) => (
-              <button
-                key={c}
-                onClick={() => setCategory(c)}
-                className={`px-3 py-1.5 rounded-lg text-[13px] font-medium transition ${
-                  category === c ? "bg-toss-blue text-white" : "bg-white border border-toss-gray-100 text-toss-gray-500"
-                }`}
-              >
-                {c}
-              </button>
-            ))}
-          </div>
+        {/* 선택된 카테고리 표시 */}
+        <div className="flex items-center gap-2">
+          <span className={`text-[13px] font-semibold px-3 py-1 rounded-lg ${
+            category === "중고거래" ? "bg-orange-50 text-toss-orange" : "bg-blue-50 text-toss-blue"
+          }`}>
+            {CATEGORY_LABELS[category] || category}
+          </span>
         </div>
 
         {/* 제목 */}
