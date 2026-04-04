@@ -1,7 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { uploadToR2, getPresignedUrl } from "@/lib/r2";
 
-// POST: 이미지 업로드 (서버에서 R2로 직접 업로드)
+// GET: R2 key → presigned download URL
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const key = searchParams.get("key");
+
+  if (!key) return NextResponse.json({ error: "key 필요" }, { status: 400 });
+
+  const url = await getPresignedUrl(key, 3600); // 1시간
+  return NextResponse.json({ url });
+}
+
+// POST: 이미지 업로드 → R2 key 반환
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
@@ -17,10 +28,8 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(await file.arrayBuffer());
     await uploadToR2(key, buffer, file.type);
 
-    // presigned download URL (7일)
-    const url = await getPresignedUrl(key, 86400 * 7);
-
-    return NextResponse.json({ url, key });
+    // key를 반환 (presigned URL 아님 — 표시 시 동적 생성)
+    return NextResponse.json({ key });
   } catch (err) {
     console.error("업로드 에러:", err);
     return NextResponse.json({ error: "업로드 실패" }, { status: 500 });

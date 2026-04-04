@@ -166,7 +166,7 @@ export default function PostDetailPage() {
   }
 
   return (
-    <div className="min-h-full bg-gray-50 pb-24">
+    <div className="min-h-full bg-gray-50 pb-36">
       <TopNav title="" backHref="/community" rightContent={
         isOwner ? <button onClick={handleDelete} className="text-[14px] text-toss-red">삭제</button> : null
       } />
@@ -201,11 +201,10 @@ export default function PostDetailPage() {
             <div className={`mt-4 gap-2 ${
               post.image_urls.length === 1 ? "flex" : "grid grid-cols-2"
             }`}>
-              {post.image_urls.map((url, i) => (
-                <img
+              {post.image_urls.map((keyOrUrl, i) => (
+                <R2Image
                   key={i}
-                  src={url}
-                  alt=""
+                  src={keyOrUrl}
                   className={`rounded-xl object-cover w-full ${
                     post.image_urls.length === 1 ? "max-h-[400px]" : "aspect-square"
                   }`}
@@ -311,8 +310,8 @@ export default function PostDetailPage() {
         </div>
       </div>
 
-      {/* 댓글 입력 */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-toss-gray-100 px-4 py-3 pb-[env(safe-area-inset-bottom,12px)] z-30">
+      {/* 댓글 입력 — BottomNav(z-50) 위에 표시, 모바일에서는 BottomNav 높이만큼 올림 */}
+      <div className="fixed bottom-14 md:bottom-0 left-0 right-0 bg-white border-t border-toss-gray-100 px-4 py-3 z-[51] pb-[env(safe-area-inset-bottom,0px)] md:pb-[env(safe-area-inset-bottom,12px)]">
         <div className="max-w-[800px] mx-auto">
           {replyTo && (
             <div className="flex items-center justify-between mb-2 px-1">
@@ -375,4 +374,24 @@ function CommentItem({ comment, isLoggedIn, isReply, onReply }: {
       </div>
     </div>
   );
+}
+
+function R2Image({ src, className }: { src: string; className?: string }) {
+  const [url, setUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    // http로 시작하면 이미 URL
+    if (src.startsWith("http")) {
+      setUrl(src);
+      return;
+    }
+    // R2 key → presigned URL
+    fetch(`/api/posts/upload?key=${encodeURIComponent(src)}`)
+      .then((r) => r.json())
+      .then((data) => { if (data.url) setUrl(data.url); })
+      .catch(() => {});
+  }, [src]);
+
+  if (!url) return <div className={`${className} bg-toss-gray-100 animate-pulse`} />;
+  return <img src={url} alt="" className={className} />;
 }

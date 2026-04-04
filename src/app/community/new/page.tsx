@@ -48,7 +48,7 @@ export default function NewPostPage() {
 
   const uploadImages = async (): Promise<string[]> => {
     if (images.length === 0) return [];
-    const urls: string[] = [];
+    const keys: string[] = [];
 
     for (const img of images) {
       try {
@@ -60,13 +60,13 @@ export default function NewPostPage() {
           body: formData,
         });
         const data = await res.json();
-        if (data.url) urls.push(data.url);
+        if (data.key) keys.push(data.key);
       } catch {
         console.error("이미지 업로드 실패");
       }
     }
 
-    return urls;
+    return keys;
   };
 
   const handleSubmit = async () => {

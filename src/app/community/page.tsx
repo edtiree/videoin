@@ -118,7 +118,7 @@ export default function CommunityPage() {
                   <p className="text-[13px] text-toss-gray-500 line-clamp-2 mb-3">{post.content}</p>
                 </div>
                 {post.image_urls?.length > 0 && (
-                  <img src={post.image_urls[0]} alt="" className="w-16 h-16 rounded-lg object-cover flex-shrink-0" />
+                  <ThumbnailImage src={post.image_urls[0]} />
                 )}
               </div>
 
@@ -146,4 +146,19 @@ export default function CommunityPage() {
       )}
     </div>
   );
+}
+
+function ThumbnailImage({ src }: { src: string }) {
+  const [url, setUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (src.startsWith("http")) { setUrl(src); return; }
+    fetch(`/api/posts/upload?key=${encodeURIComponent(src)}`)
+      .then((r) => r.json())
+      .then((data) => { if (data.url) setUrl(data.url); })
+      .catch(() => {});
+  }, [src]);
+
+  if (!url) return <div className="w-16 h-16 rounded-lg bg-toss-gray-100 animate-pulse flex-shrink-0" />;
+  return <img src={url} alt="" className="w-16 h-16 rounded-lg object-cover flex-shrink-0" />;
 }
