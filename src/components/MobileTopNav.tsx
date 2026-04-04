@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import NotificationBell from "@/components/NotificationBell";
 
 const TITLES: Record<string, string> = {
@@ -17,6 +17,7 @@ const TITLES: Record<string, string> = {
 
 export default function MobileTopNav() {
   const pathname = usePathname();
+  const router = useRouter();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
@@ -46,7 +47,7 @@ export default function MobileTopNav() {
     <div className="sticky top-0 z-30 md:hidden">
       <div className="bg-white pt-[env(safe-area-inset-top,0px)]">
         <div className="flex items-center justify-between px-5 h-[52px] border-b border-toss-gray-100">
-          <h2 className="text-[18px] font-extrabold text-toss-gray-900">{title}</h2>
+          <h2 className="text-[18px] font-extrabold text-toss-gray-900 cursor-pointer" onClick={() => router.push("/")}>{title}</h2>
           <div className="flex items-center gap-2">
             {isLoggedIn && <NotificationBell />}
           </div>
