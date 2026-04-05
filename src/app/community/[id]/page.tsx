@@ -639,15 +639,15 @@ export default function PostDetailPage() {
       )}
 
       {/* 댓글 입력 */}
-      <div className="fixed bottom-0 left-0 right-0 z-[51]">
-        <div className="bg-white border-t border-toss-gray-100">
+      <div className="fixed bottom-0 left-0 right-0 z-[51] bg-white">
+        <div className="border-t border-toss-gray-100">
         {replyTo && (
           <div className="flex items-center justify-between px-4 pt-2">
             <span className="text-[12px] text-toss-blue">@{replyTo.nickname}에게 답글</span>
             <button onClick={() => { setReplyTo(null); setCommentInput(""); }} className="text-[12px] text-toss-gray-400">취소</button>
           </div>
         )}
-        <div className="flex items-center gap-2 px-4 py-2.5">
+        <div className="flex items-center gap-2 px-4 py-2">
           <button className="flex-shrink-0 p-1.5 text-toss-gray-400">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
               <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
@@ -674,7 +674,7 @@ export default function PostDetailPage() {
           )}
         </div>
         </div>
-        <div className="bg-white" style={{ height: "calc(env(safe-area-inset-bottom, 0px) + 16px)" }} />
+        <div className="pb-[env(safe-area-inset-bottom,4px)]" />
       </div>
     </div>
   );
