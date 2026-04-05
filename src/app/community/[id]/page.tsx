@@ -72,6 +72,9 @@ export default function PostDetailPage() {
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [commentSort, setCommentSort] = useState<"asc" | "desc">("asc");
   const [expandedThreads, setExpandedThreads] = useState<Set<string>>(new Set());
+  const [similarPosts, setSimilarPosts] = useState<Post[]>([]);
+  const [keywords, setKeywords] = useState<string[]>([]);
+  const [subscribedKeywords, setSubscribedKeywords] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetch(`/api/posts/${id}`)
@@ -93,6 +96,44 @@ export default function PostDetailPage() {
   }, [id]);
 
   useEffect(() => { fetchComments(); }, [fetchComments]);
+
+  // 비슷한 게시글 + 키워드 추출
+  useEffect(() => {
+    if (!post) return;
+
+    // 키워드 추출: 제목+내용에서 2글자 이상 명사성 단어 추출
+    const text = `${post.title} ${post.content}`;
+    const stopWords = new Set(["그리고","하지만","그런데","그래서","때문에","이것","저것","그것","우리","나는","너는","있는","없는","하는","되는","같은","위해","대한","통해","에서","으로","부터","까지","에게","한테","처럼","만큼","라고","이라","라는"]);
+    const words = text
+      .replace(/[^가-힣a-zA-Z0-9\s]/g, " ")
+      .split(/\s+/)
+      .filter(w => w.length >= 2 && !stopWords.has(w));
+    const freq = new Map<string, number>();
+    words.forEach(w => freq.set(w, (freq.get(w) || 0) + 1));
+    const sorted = [...freq.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([w]) => w);
+    setKeywords(sorted);
+
+    // 같은 카테고리 게시글 가져오기
+    fetch(`/api/posts?category=${encodeURIComponent(post.category)}&limit=6`)
+      .then(r => r.json())
+      .then(json => {
+        const filtered = (json.data || []).filter((p: Post) => p.id !== post.id).slice(0, 5);
+        setSimilarPosts(filtered);
+      })
+      .catch(() => {});
+  }, [post]);
+
+  const toggleKeyword = (kw: string) => {
+    setSubscribedKeywords(prev => {
+      const next = new Set(prev);
+      if (next.has(kw)) next.delete(kw);
+      else next.add(kw);
+      return next;
+    });
+  };
 
   // 더보기 메뉴 열릴 때 바깥 클릭으로 닫기
   useEffect(() => {
@@ -459,6 +500,81 @@ export default function PostDetailPage() {
             </div>
           )}
         </div>
+
+        {/* 비슷한 게시글 알림 제안 */}
+        {keywords.length > 0 && (
+          <div className="bg-white mt-2 px-5 py-5 md:rounded-2xl md:border md:border-toss-gray-100 md:mx-4">
+            <p className="text-[15px] font-bold text-toss-gray-900">비슷한 게시글이 올라오면 바로 알려드릴까요?</p>
+            <div className="flex flex-wrap gap-2 mt-3">
+              {keywords.map((kw) => {
+                const isActive = subscribedKeywords.has(kw);
+                return (
+                  <button
+                    key={kw}
+                    onClick={() => {
+                      if (!isLoggedIn) { openLoginModal(); return; }
+                      toggleKeyword(kw);
+                    }}
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-[13px] font-medium border transition ${
+                      isActive
+                        ? "border-toss-blue bg-blue-50 text-toss-blue"
+                        : "border-toss-gray-200 text-toss-gray-600"
+                    }`}
+                  >
+                    {isActive ? (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    ) : (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                    )}
+                    {kw}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* 이 글과 비슷한 게시글 */}
+        {similarPosts.length > 0 && (
+          <div className="bg-white mt-2 px-5 py-5 md:rounded-2xl md:border md:border-toss-gray-100 md:mx-4 md:mb-4">
+            <p className="text-[15px] font-bold text-toss-gray-900 flex items-center gap-1.5">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+              이 글과 비슷한 게시글
+            </p>
+            <div className="divide-y divide-toss-gray-100 mt-3">
+              {similarPosts.map((sp) => (
+                <Link
+                  key={sp.id}
+                  href={`/community/${sp.id}`}
+                  className="block py-3.5 first:pt-0 last:pb-0 active:bg-toss-gray-50 transition"
+                >
+                  <span className={`inline-block text-[11px] font-medium px-2 py-0.5 rounded ${getCategoryStyle(sp.category)}`}>
+                    {sp.category}
+                  </span>
+                  <h4 className="text-[15px] font-semibold text-toss-gray-900 mt-1.5 line-clamp-1">{sp.title}</h4>
+                  <p className="text-[13px] text-toss-gray-500 line-clamp-1 mt-0.5">{sp.content}</p>
+                  <div className="flex items-center justify-between mt-2 text-[12px] text-toss-gray-400">
+                    <span>{sp.users?.nickname || "익명"} · {timeAgo(sp.created_at)} · 조회 {sp.view_count}</span>
+                    <div className="flex items-center gap-2">
+                      {sp.like_count > 0 && (
+                        <span className="flex items-center gap-0.5">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+                          {sp.like_count}
+                        </span>
+                      )}
+                      {sp.comment_count > 0 && (
+                        <span className="flex items-center gap-0.5">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                          {sp.comment_count}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 댓글 입력 */}
