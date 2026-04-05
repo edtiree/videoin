@@ -76,6 +76,8 @@ export default function PostDetailPage() {
   const [keywords, setKeywords] = useState<string[]>([]);
   const [subscribedKeywords, setSubscribedKeywords] = useState<Set<string>>(new Set());
   const [imageViewerIndex, setImageViewerIndex] = useState<number | null>(null);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportReason, setReportReason] = useState("");
   const [keyboardOpen, setKeyboardOpen] = useState(false);
 
   useEffect(() => {
@@ -318,15 +320,23 @@ export default function PostDetailPage() {
               {showMoreMenu && (
                 <div className="absolute right-0 top-full mt-1 bg-white rounded-xl shadow-lg border border-toss-gray-100 py-1 min-w-[120px] z-50">
                   {isOwner ? (
-                    <button
-                      onClick={handleDelete}
-                      className="w-full px-4 py-2.5 text-left text-[14px] text-toss-red hover:bg-toss-gray-50"
-                    >
-                      삭제
-                    </button>
+                    <>
+                      <button
+                        onClick={() => { setShowMoreMenu(false); router.push(`/community/new?edit=${id}`); }}
+                        className="w-full px-4 py-2.5 text-left text-[14px] text-toss-gray-700 hover:bg-toss-gray-50"
+                      >
+                        수정
+                      </button>
+                      <button
+                        onClick={handleDelete}
+                        className="w-full px-4 py-2.5 text-left text-[14px] text-toss-red hover:bg-toss-gray-50"
+                      >
+                        삭제
+                      </button>
+                    </>
                   ) : (
                     <button
-                      onClick={() => { setShowMoreMenu(false); alert("신고 기능은 준비 중입니다.\n문제가 있는 게시글은 관리자에게 문의해주세요."); }}
+                      onClick={() => { setShowMoreMenu(false); setShowReportModal(true); }}
                       className="w-full px-4 py-2.5 text-left text-[14px] text-toss-gray-700 hover:bg-toss-gray-50"
                     >
                       신고하기
@@ -482,6 +492,9 @@ export default function PostDetailPage() {
                     <CommentItem
                       comment={c}
                       isLoggedIn={isLoggedIn}
+                      currentUserId={profile?.id}
+                      postId={id as string}
+                      onRefresh={fetchComments}
                       onReply={() => {
                         setReplyTo({ id: c.id, nickname: c.users?.nickname || "익명" });
                         setCommentInput("");
@@ -504,6 +517,9 @@ export default function PostDetailPage() {
                           comment={reply}
                           isLoggedIn={isLoggedIn}
                           isReply
+                          currentUserId={profile?.id}
+                          postId={id as string}
+                          onRefresh={fetchComments}
                           onReply={() => {
                             setReplyTo({ id: c.id, nickname: reply.users?.nickname || "익명" });
                             setCommentInput("");
@@ -593,6 +609,43 @@ export default function PostDetailPage() {
           </div>
         )}
       </div>
+
+      {/* 신고 모달 */}
+      {showReportModal && (
+        <div className="fixed inset-0 z-[9999] flex items-end md:items-center justify-center">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setShowReportModal(false)} />
+          <div className="relative bg-white w-full md:w-[400px] md:rounded-2xl rounded-t-2xl pb-[env(safe-area-inset-bottom,16px)] animate-slide-up">
+            <div className="px-5 pt-5 pb-3">
+              <h3 className="text-[18px] font-bold text-toss-gray-900">신고하기</h3>
+              <p className="text-[13px] text-toss-gray-400 mt-1">이 게시글을 신고하는 이유를 선택해주세요</p>
+            </div>
+            <div className="px-3 pb-3">
+              {["스팸/광고", "욕설/비방", "불법 콘텐츠", "부적절한 내용", "기타"].map((reason) => (
+                <button
+                  key={reason}
+                  onClick={async () => {
+                    if (!profile?.id) return;
+                    const res = await fetch(`/api/posts/${id}/report`, {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ user_id: profile.id, reason }),
+                    });
+                    const data = await res.json();
+                    if (res.ok) { alert("신고가 접수되었습니다"); setShowReportModal(false); }
+                    else alert(data.error || "신고 실패");
+                  }}
+                  className="w-full px-4 py-3.5 rounded-xl text-left text-[15px] text-toss-gray-700 hover:bg-toss-gray-50 transition"
+                >
+                  {reason}
+                </button>
+              ))}
+            </div>
+            <div className="px-3">
+              <button onClick={() => setShowReportModal(false)} className="w-full py-3 rounded-xl bg-toss-gray-50 text-[15px] font-semibold text-toss-gray-700">닫기</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 이미지 전체화면 뷰어 */}
       {imageViewerIndex !== null && post.image_urls?.length > 0 && (
@@ -706,15 +759,39 @@ export default function PostDetailPage() {
   );
 }
 
-function CommentItem({ comment, isLoggedIn, isReply, onReply }: {
+function CommentItem({ comment, isLoggedIn, isReply, onReply, currentUserId, postId, onRefresh }: {
   comment: Comment;
   isLoggedIn: boolean;
   isReply?: boolean;
   onReply: () => void;
+  currentUserId?: string;
+  postId: string;
+  onRefresh: () => void;
 }) {
   const [liked, setLiked] = useState(false);
   const [likes, setLikes] = useState(0);
   const [showHeart, setShowHeart] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editText, setEditText] = useState(comment.content);
+  const [showMenu, setShowMenu] = useState(false);
+  const isMyComment = currentUserId === comment.user_id;
+
+  const handleEdit = async () => {
+    if (!editText.trim()) return;
+    await fetch(`/api/posts/${postId}/comments`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ comment_id: comment.id, content: editText.trim(), user_id: currentUserId }),
+    });
+    setEditing(false);
+    onRefresh();
+  };
+
+  const handleDeleteComment = async () => {
+    if (!confirm("댓글을 삭제할까요?")) return;
+    await fetch(`/api/posts/${postId}/comments?comment_id=${comment.id}&user_id=${currentUserId}`, { method: "DELETE" });
+    onRefresh();
+  };
 
   const handleDoubleTap = () => {
     if (!isLoggedIn || liked) return;
@@ -743,7 +820,33 @@ function CommentItem({ comment, isLoggedIn, isReply, onReply }: {
             <Link href={`/community/user/${comment.user_id}?name=${encodeURIComponent(comment.users?.nickname || "")}`} className="text-[13px] font-semibold text-toss-gray-900" onClick={(e) => e.stopPropagation()}>{comment.users?.nickname || "익명"}</Link>
             <span className="text-[11px] text-toss-gray-300">{timeAgo(comment.created_at)}</span>
           </div>
-          <p className="text-[14px] text-toss-gray-700 mt-1">{comment.content}</p>
+          {editing ? (
+            <div className="mt-1 flex gap-2">
+              <input type="text" value={editText} onChange={(e) => setEditText(e.target.value)} onKeyDown={(e) => e.key === "Enter" && !e.nativeEvent.isComposing && handleEdit()} className="flex-1 h-[32px] rounded-lg border border-toss-gray-200 px-3 text-[13px] focus:outline-none focus:border-toss-blue" autoFocus />
+              <button onClick={handleEdit} className="text-[12px] font-semibold text-toss-blue">저장</button>
+              <button onClick={() => { setEditing(false); setEditText(comment.content); }} className="text-[12px] text-toss-gray-400">취소</button>
+            </div>
+          ) : (
+            <div className="flex items-start justify-between">
+              <p className="text-[14px] text-toss-gray-700 mt-1 flex-1">{comment.content}</p>
+              {isMyComment && (
+                <div className="relative flex-shrink-0">
+                  <button onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu); }} className="p-1 text-toss-gray-300">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+                  </button>
+                  {showMenu && (
+                    <>
+                      <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
+                      <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-toss-gray-100 py-1 min-w-[80px] z-50">
+                        <button onClick={() => { setShowMenu(false); setEditing(true); }} className="w-full px-3 py-2 text-left text-[13px] text-toss-gray-700 hover:bg-toss-gray-50">수정</button>
+                        <button onClick={() => { setShowMenu(false); handleDeleteComment(); }} className="w-full px-3 py-2 text-left text-[13px] text-toss-red hover:bg-toss-gray-50">삭제</button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
           {showHeart && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
               <svg width="40" height="40" viewBox="0 0 24 24" fill="#ef4444" stroke="none" className="animate-ping opacity-75">

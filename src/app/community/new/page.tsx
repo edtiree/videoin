@@ -27,6 +27,7 @@ export default function NewPostPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const titleRef = useRef<HTMLInputElement>(null);
 
+  const editId = searchParams.get("edit");
   const [category, setCategory] = useState(searchParams.get("category") || "");
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -44,6 +45,21 @@ export default function NewPostPage() {
   useEffect(() => {
     if (!isLoggedIn) openLoginModal();
   }, [isLoggedIn, openLoginModal]);
+
+  // 수정 모드: 기존 글 불러오기
+  useEffect(() => {
+    if (!editId) return;
+    fetch(`/api/posts/${editId}`)
+      .then(r => r.json())
+      .then(data => {
+        setCategory(data.category || "");
+        setTitle(data.title || "");
+        setContent(data.content || "");
+        if (data.title?.startsWith("[판매]")) { setTradeType("판매"); setTitle(data.title.replace("[판매] ", "")); }
+        if (data.title?.startsWith("[구매]")) { setTradeType("구매"); setTitle(data.title.replace("[구매] ", "")); }
+      })
+      .catch(() => {});
+  }, [editId]);
 
   // 스크롤 막기
   useEffect(() => {
@@ -105,22 +121,30 @@ export default function NewPostPage() {
     const validPollOptions = showPoll ? pollOptions.filter((o) => o.trim()) : [];
     const pollData = validPollOptions.length >= 2 ? validPollOptions.map((o) => o.trim()) : null;
 
-    const res = await fetch("/api/posts", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        user_id: profile?.id,
-        category,
-        title: (category === "장터" && tradeType ? `[${tradeType}] ` : "") + title.trim(),
-        content: content.trim(),
-        image_urls: imageUrls,
-        poll_options: pollData,
-      }),
-    });
+    const finalTitle = (category === "장터" && tradeType ? `[${tradeType}] ` : "") + title.trim();
+
+    const res = editId
+      ? await fetch(`/api/posts/${editId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ category, title: finalTitle, content: content.trim(), ...(imageUrls.length > 0 ? { image_urls: imageUrls } : {}) }),
+        })
+      : await fetch("/api/posts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            user_id: profile?.id,
+            category,
+            title: finalTitle,
+            content: content.trim(),
+            image_urls: imageUrls,
+            poll_options: pollData,
+          }),
+        });
 
     const data = await res.json();
     if (!res.ok) { setError(data.error || "작성에 실패했습니다"); setSaving(false); return; }
-    router.replace(`/community/${data.id}`);
+    router.replace(`/community/${editId || data.id}`);
   };
 
   const getCategoryIcon = (key: string) => {
@@ -153,7 +177,7 @@ export default function NewPostPage() {
               disabled={saving}
               className="px-4 py-1.5 rounded-lg text-[14px] font-semibold bg-toss-blue text-white disabled:opacity-50"
             >
-              {saving ? "등록 중..." : "등록"}
+              {saving ? (editId ? "수정 중..." : "등록 중...") : (editId ? "수정" : "등록")}
             </button>
           </div>
         </div>
