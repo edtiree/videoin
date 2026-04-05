@@ -74,22 +74,25 @@ export default function CommunityPage() {
 
   // 스크롤 방향 감지: 아래로 → 헤더 숨김, 위로 → 헤더 표시
   useEffect(() => {
+    // 실제 스크롤 컨테이너 찾기 (layout.tsx의 overflow-y-auto div)
+    const scrollContainer = document.querySelector(".overflow-y-auto") || window;
+    const getScrollY = () => {
+      if (scrollContainer instanceof HTMLElement) return scrollContainer.scrollTop;
+      return window.pageYOffset ?? window.scrollY ?? 0;
+    };
     const onScroll = () => {
-      const y = window.pageYOffset ?? window.scrollY ?? 0;
+      const y = getScrollY();
       const headerH = headerRef.current?.offsetHeight || 102;
       if (y <= 5) {
         setHeaderOffset(0);
       } else {
         const delta = y - lastScrollY.current;
-        setHeaderOffset(prev => {
-          const next = Math.max(0, Math.min(headerH, prev + delta));
-          return next;
-        });
+        setHeaderOffset(prev => Math.max(0, Math.min(headerH, prev + delta)));
       }
       lastScrollY.current = y;
     };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    scrollContainer.addEventListener("scroll", onScroll, { passive: true });
+    return () => scrollContainer.removeEventListener("scroll", onScroll);
   }, []);
 
   // 바텀시트 열릴 때 배경 스크롤 막기
@@ -165,10 +168,13 @@ export default function CommunityPage() {
   };
 
   const scrollToTop = () => {
+    const sc = document.querySelector(".overflow-y-auto");
+    if (sc) sc.scrollTop = 0;
     window.scrollTo(0, 0);
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
     topAnchorRef.current?.scrollIntoView();
+    setHeaderOffset(0);
   };
 
   // 카테고리/정렬 변경 시 첫 페이지부터
