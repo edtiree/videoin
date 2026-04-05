@@ -37,7 +37,7 @@ export default function MobileTopNav() {
 
   // 홈은 비로그인에서도 표시, 나머지는 로그인 필요
   // 커뮤니티 페이지는 자체 헤더 사용
-  if (pathname === "/community" || pathname === "/messages") return null;
+  if (pathname === "/community") return null;
 
   const mainPaths = ["/", "/community", "/tools", "/profile", "/dashboard", "/settlement", "/calendar", "/messages"];
   const isMainPage = mainPaths.some(p => p === "/" ? pathname === "/" : pathname === p);

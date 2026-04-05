@@ -147,10 +147,7 @@ export default function MessagesPage() {
 
   return (
     <>
-      {/* 모바일 TopNav */}
-      <div className="md:hidden">
-        <TopNav title="채팅" backHref="/" />
-      </div>
+      {/* MobileTopNav가 "채팅" 표시 */}
 
       <div className="max-w-[1200px] mx-auto md:px-6 md:py-6">
         <div className="md:flex md:h-[calc(100vh-160px)] md:border md:border-toss-gray-100 md:rounded-2xl md:overflow-hidden md:bg-white">
