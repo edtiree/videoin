@@ -111,6 +111,11 @@ export default function ProfilePage() {
             onClick={() => router.push("/portfolio/edit")}
           />
           <MenuItem
+            icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>}
+            label="일정 관리"
+            onClick={() => router.push("/schedule")}
+          />
+          <MenuItem
             icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>}
             label="쪽지함"
             onClick={() => router.push("/messages")}
