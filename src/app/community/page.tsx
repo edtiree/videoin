@@ -64,6 +64,7 @@ export default function CommunityPage() {
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const observerRef = useRef<HTMLDivElement>(null);
+  const topAnchorRef = useRef<HTMLDivElement>(null);
   const [pullY, setPullY] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const touchStartY = useRef(0);
@@ -140,18 +141,23 @@ export default function CommunityPage() {
     touchStartY.current = 0;
   };
 
+  const scrollToTop = () => {
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    topAnchorRef.current?.scrollIntoView();
+  };
+
   // 카테고리/정렬 변경 시 첫 페이지부터
   useEffect(() => {
     setPage(1);
     setHasMore(true);
     setPosts([]);
-    // 강제 스크롤 리셋
-    window.scrollTo(0, 0);
-    document.documentElement.scrollTop = 0;
-    document.body.scrollTop = 0;
-    requestAnimationFrame(() => window.scrollTo(0, 0));
-    fetchPosts(1, false);
-  }, [fetchPosts]);
+    scrollToTop();
+    fetchPosts(1, false).then(() => {
+      requestAnimationFrame(scrollToTop);
+    });
+  }, [fetchPosts]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 무한 스크롤: IntersectionObserver
   useEffect(() => {
@@ -205,9 +211,7 @@ export default function CommunityPage() {
 
   const handleCategoryClick = (cat: string) => {
     setCategory(prev => prev === cat ? null : cat);
-    window.scrollTo(0, 0);
-    document.documentElement.scrollTop = 0;
-    document.body.scrollTop = 0;
+    scrollToTop();
   };
 
   // 검색 화면
@@ -443,7 +447,7 @@ export default function CommunityPage() {
       </div>
 
       {/* 모바일 헤더+필터 높이만큼 스페이서 */}
-      <div className="h-[calc(52px+50px+env(safe-area-inset-top,0px))] md:hidden" />
+      <div ref={topAnchorRef} className="h-[calc(52px+50px+env(safe-area-inset-top,0px))] md:hidden" />
 
       {/* 데스크톱 헤더 */}
       <div className="hidden md:block max-w-[680px] mx-auto px-4 pt-6 pb-2">
