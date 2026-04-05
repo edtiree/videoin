@@ -367,18 +367,14 @@ export default function PostDetailPage() {
 
           {/* 이미지 */}
           {post.image_urls?.length > 0 && (
-            <div className={`mt-4 gap-2 ${
-              post.image_urls.length === 1 ? "flex" : "grid grid-cols-2"
-            }`}>
+            <div className="mt-4 space-y-2">
               {post.image_urls.map((url, i) => (
                 <img
                   key={i}
                   src={url}
                   alt=""
                   onClick={() => setImageViewerIndex(i)}
-                  className={`rounded-xl object-cover w-full cursor-pointer ${
-                    post.image_urls.length === 1 ? "max-h-[400px]" : "aspect-square"
-                  }`}
+                  className="rounded-xl w-full cursor-pointer"
                 />
               ))}
             </div>
