@@ -45,6 +45,12 @@ export default function MessagesPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "unread">("all");
   const [swipedThreadId, setSwipedThreadId] = useState<string | null>(null);
+  const [pinnedIds, setPinnedIds] = useState<Set<string>>(() => {
+    if (typeof window !== "undefined") {
+      try { const s = localStorage.getItem("pinned_threads"); if (s) return new Set(JSON.parse(s)); } catch {}
+    }
+    return new Set();
+  });
 
   // PC 전용: 선택된 스레드 + 메시지
   const [selectedThread, setSelectedThread] = useState<string | null>(null);
@@ -142,7 +148,22 @@ export default function MessagesPage() {
     setSending(false);
   };
 
-  const filteredThreads = filter === "unread" ? threads.filter((t) => t.unread_count > 0) : threads;
+  const filteredThreads = (filter === "unread" ? threads.filter((t) => t.unread_count > 0) : threads)
+    .sort((a, b) => {
+      const ap = pinnedIds.has(a.id) ? 1 : 0;
+      const bp = pinnedIds.has(b.id) ? 1 : 0;
+      return bp - ap;
+    });
+
+  const togglePin = (threadId: string) => {
+    setPinnedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(threadId)) next.delete(threadId);
+      else next.add(threadId);
+      try { localStorage.setItem("pinned_threads", JSON.stringify([...next])); } catch {}
+      return next;
+    });
+  };
   const selectedThreadData = threads.find((t) => t.id === selectedThread);
 
   if (!isLoggedIn) return null;
@@ -206,6 +227,8 @@ export default function MessagesPage() {
                         await fetch(`/api/messages/${thread.id}`, { method: "DELETE" });
                         fetchThreads();
                       }}
+                      isPinned={pinnedIds.has(thread.id)}
+                      onPin={() => togglePin(thread.id)}
                     />
                   ))}
                 </div>
@@ -301,7 +324,7 @@ export default function MessagesPage() {
   );
 }
 
-function SwipeableThread({ thread, isSelected, isSwiped, onSwipeOpen, onSwipeClose, onOpen, onDelete }: {
+function SwipeableThread({ thread, isSelected, isSwiped, onSwipeOpen, onSwipeClose, onOpen, onDelete, isPinned, onPin }: {
   thread: { id: string; last_message_preview: string | null; last_message_at: string; other_user: { id: string; nickname: string | null; profile_image: string | null } | null; unread_count: number };
   isSelected: boolean;
   isSwiped: boolean;
@@ -309,6 +332,8 @@ function SwipeableThread({ thread, isSelected, isSwiped, onSwipeOpen, onSwipeClo
   onSwipeClose: () => void;
   onOpen: () => void;
   onDelete: () => void;
+  isPinned: boolean;
+  onPin: () => void;
 }) {
   const [offsetX, setOffsetX] = useState(0);
   const [showMenu, setShowMenu] = useState(false);
@@ -406,11 +431,11 @@ function SwipeableThread({ thread, isSelected, isSwiped, onSwipeOpen, onSwipeClo
       {/* 왼쪽 배경: 고정 (오른쪽 스와이프) */}
       <div className="absolute left-0 top-0 bottom-0 flex">
         <button
-          onClick={() => { setOffsetX(0); alert("채팅방이 고정되었습니다"); }}
+          onClick={() => { setOffsetX(0); onSwipeClose(); onPin(); }}
           className="w-[70px] bg-toss-blue flex flex-col items-center justify-center text-white"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/></svg>
-          <span className="text-[10px] mt-0.5">고정</span>
+          <span className="text-[10px] mt-0.5">{isPinned ? "고정 해제" : "고정"}</span>
         </button>
       </div>
 
@@ -451,7 +476,10 @@ function SwipeableThread({ thread, isSelected, isSwiped, onSwipeOpen, onSwipeClo
         )}
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between">
-            <span className="text-[15px] font-semibold text-toss-gray-900">{thread.other_user?.nickname || "알 수 없음"}</span>
+            <span className="flex items-center gap-1 text-[15px] font-semibold text-toss-gray-900">
+              {thread.other_user?.nickname || "알 수 없음"}
+              {isPinned && <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" className="text-toss-blue"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/></svg>}
+            </span>
             <span className="text-[11px] text-toss-gray-300 flex-shrink-0">{timeAgo(thread.last_message_at)}</span>
           </div>
           <p className="text-[13px] text-toss-gray-400 truncate mt-0.5">{thread.last_message_preview || "..."}</p>
@@ -485,9 +513,9 @@ function SwipeableThread({ thread, isSelected, isSwiped, onSwipeOpen, onSwipeClo
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-toss-gray-600"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
                 <span className="text-[15px] text-toss-gray-900">알림 끄기</span>
               </button>
-              <button onClick={() => { setShowMenu(false); alert("상단에 고정되었습니다"); }} className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl hover:bg-toss-gray-50 transition">
+              <button onClick={() => { setShowMenu(false); onPin(); }} className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl hover:bg-toss-gray-50 transition">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-toss-gray-600"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/></svg>
-                <span className="text-[15px] text-toss-gray-900">상단 고정</span>
+                <span className="text-[15px] text-toss-gray-900">{isPinned ? "고정 해제" : "상단 고정"}</span>
               </button>
               <button onClick={() => { setShowMenu(false); if (confirm("채팅방을 나갈까요?")) onDelete(); }} className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl hover:bg-toss-gray-50 transition">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-toss-red"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
