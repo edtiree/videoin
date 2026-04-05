@@ -7,10 +7,29 @@ import { useAuth } from "@/components/AuthProvider";
 export default function BottomNav() {
   const pathname = usePathname();
   const router = useRouter();
-  const { isLoggedIn, openLoginModal } = useAuth();
+  const { isLoggedIn, profile, openLoginModal } = useAuth();
   const [mounted, setMounted] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => { setMounted(true); }, []);
+
+  // 안읽은 채팅 수 폴링
+  useEffect(() => {
+    if (!isLoggedIn || !profile?.id) return;
+    const fetchUnread = () => {
+      fetch(`/api/messages?user_id=${profile.id}`)
+        .then(r => r.json())
+        .then((data: { unread_count: number }[]) => {
+          if (Array.isArray(data)) {
+            setUnreadCount(data.reduce((sum, t) => sum + (t.unread_count || 0), 0));
+          }
+        })
+        .catch(() => {});
+    };
+    fetchUnread();
+    const interval = setInterval(fetchUnread, 30000);
+    return () => clearInterval(interval);
+  }, [isLoggedIn, profile?.id]);
 
   if (!mounted) return null;
 
@@ -86,10 +105,17 @@ export default function BottomNav() {
 
         {/* 채팅 */}
         <button onClick={() => handleTabClick("chat")}
-          className="flex flex-col items-center justify-center flex-1 h-full gap-0.5">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill={activeTab === "chat" ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-          </svg>
+          className="flex flex-col items-center justify-center flex-1 h-full gap-0.5 relative">
+          <div className="relative">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill={activeTab === "chat" ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            {unreadCount > 0 && (
+              <span className="absolute -top-1.5 -right-2.5 min-w-[16px] h-[16px] rounded-full bg-toss-red text-white text-[9px] font-bold flex items-center justify-center px-1">
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            )}
+          </div>
           <span className={`text-[10px] font-bold ${activeTab === "chat" ? "text-toss-gray-900" : "text-toss-gray-400"}`}>채팅</span>
         </button>
 
