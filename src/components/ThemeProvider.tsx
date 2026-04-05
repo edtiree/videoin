@@ -37,7 +37,7 @@ export default function ThemeProvider({ children }: { children: React.ReactNode 
     // meta theme-color 업데이트
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) {
-      meta.setAttribute("content", theme === "dark" ? "#0d1117" : "#f9fafb");
+      meta.setAttribute("content", theme === "dark" ? "#0d1117" : "#ffffff");
     }
   }, [theme, mounted]);
 
