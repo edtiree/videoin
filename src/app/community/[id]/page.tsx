@@ -581,17 +581,9 @@ export default function PostDetailPage() {
 
       {/* 이미지 전체화면 뷰어 */}
       {imageViewerIndex !== null && post.image_urls?.length > 0 && (
-        <div className="fixed inset-0 z-[9999] bg-black flex flex-col" onClick={() => setImageViewerIndex(null)}>
-          {/* 헤더 */}
-          <div className="flex items-center justify-between px-4 h-12 pt-[env(safe-area-inset-top,0px)] flex-shrink-0">
-            <button onClick={() => setImageViewerIndex(null)} className="w-10 h-10 flex items-center justify-center text-white">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
-            </button>
-            <span className="text-[14px] text-white/70">{imageViewerIndex + 1} / {post.image_urls.length}</span>
-            <div className="w-10" />
-          </div>
-          {/* 이미지 */}
-          <div className="flex-1 flex items-center justify-center overflow-hidden" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[9999] bg-black" onClick={() => setImageViewerIndex(null)}>
+          {/* 이미지 - 전체 화면 */}
+          <div className="absolute inset-0 flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
             <img
               src={post.image_urls[imageViewerIndex]}
               alt=""
@@ -599,13 +591,23 @@ export default function PostDetailPage() {
               draggable={false}
             />
           </div>
+          {/* 헤더 (이미지 위에 오버레이) */}
+          <div className="absolute top-0 left-0 right-0 z-10 pt-[env(safe-area-inset-top,0px)]">
+            <div className="flex items-center justify-between px-4 h-12">
+              <button onClick={() => setImageViewerIndex(null)} className="w-10 h-10 flex items-center justify-center text-white drop-shadow-lg">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </button>
+              <span className="text-[14px] text-white/80 drop-shadow-lg">{imageViewerIndex + 1} / {post.image_urls.length}</span>
+              <div className="w-10" />
+            </div>
+          </div>
           {/* 좌우 네비게이션 */}
           {post.image_urls.length > 1 && (
             <>
               {imageViewerIndex > 0 && (
                 <button
                   onClick={(e) => { e.stopPropagation(); setImageViewerIndex(imageViewerIndex - 1); }}
-                  className="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white backdrop-blur-sm"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-black/40 rounded-full flex items-center justify-center text-white backdrop-blur-sm"
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M15 18l-6-6 6-6"/></svg>
                 </button>
@@ -613,7 +615,7 @@ export default function PostDetailPage() {
               {imageViewerIndex < post.image_urls.length - 1 && (
                 <button
                   onClick={(e) => { e.stopPropagation(); setImageViewerIndex(imageViewerIndex + 1); }}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white backdrop-blur-sm"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-black/40 rounded-full flex items-center justify-center text-white backdrop-blur-sm"
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M9 18l6-6-6-6"/></svg>
                 </button>
@@ -622,7 +624,7 @@ export default function PostDetailPage() {
           )}
           {/* 인디케이터 */}
           {post.image_urls.length > 1 && (
-            <div className="flex justify-center gap-1.5 pb-8 pt-4 flex-shrink-0">
+            <div className="absolute bottom-0 left-0 right-0 z-10 flex justify-center gap-1.5 pb-[calc(env(safe-area-inset-bottom,8px)+16px)]">
               {post.image_urls.map((_, i) => (
                 <div key={i} className={`w-2 h-2 rounded-full transition ${i === imageViewerIndex ? "bg-white" : "bg-white/30"}`} />
               ))}
