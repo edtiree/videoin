@@ -463,7 +463,7 @@ export default function PostDetailPage() {
               onClick={() => setCommentSort(prev => prev === "asc" ? "desc" : "asc")}
               className="text-[13px] text-toss-gray-400 hover:text-toss-gray-600 transition"
             >
-              {commentSort === "asc" ? "등록순" : "최신순"}
+              {commentSort === "asc" ? "최신순" : "인기순"}
             </button>
           </div>
 
