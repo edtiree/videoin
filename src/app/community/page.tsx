@@ -441,11 +441,18 @@ export default function CommunityPage() {
                     <p className="text-[14px] text-toss-gray-500 line-clamp-2 mt-1 leading-relaxed">{post.content}</p>
                   </div>
                   {post.image_urls?.length > 0 && (
-                    <img
-                      src={post.image_urls[0]}
-                      alt=""
-                      className="w-14 h-14 rounded-lg object-cover flex-shrink-0"
-                    />
+                    <div className="relative flex-shrink-0">
+                      <img
+                        src={post.image_urls[0]}
+                        alt=""
+                        className="w-14 h-14 rounded-lg object-cover"
+                      />
+                      {post.image_urls.length > 1 && (
+                        <span className="absolute top-1 right-1 bg-black/60 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
+                          {post.image_urls.length}
+                        </span>
+                      )}
+                    </div>
                   )}
                 </div>
 
