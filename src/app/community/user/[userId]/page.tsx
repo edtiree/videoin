@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/components/AuthProvider";
 
@@ -56,9 +56,11 @@ function getCategoryStyle(cat: string) {
 export default function CommunityUserPage() {
   const { userId } = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { isLoggedIn, profile, openLoginModal } = useAuth();
   const isMe = profile?.id === userId;
-  const [user, setUser] = useState<UserInfo | null>(null);
+  const initialName = searchParams.get("name");
+  const [user, setUser] = useState<UserInfo | null>(initialName ? { id: userId as string, nickname: initialName, profile_image: null } : null);
   const [tab, setTab] = useState<"posts" | "comments">("posts");
   const [posts, setPosts] = useState<Post[]>([]);
   const [comments, setComments] = useState<Comment[]>([]);

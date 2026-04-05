@@ -346,7 +346,7 @@ export default function PostDetailPage() {
 
           {/* 작성자 */}
           <div className="flex items-center justify-between mt-4">
-            <Link href={`/community/user/${post.user_id}`} className="flex items-center gap-3">
+            <Link href={`/community/user/${post.user_id}?name=${encodeURIComponent(post.users?.nickname || "")}`} className="flex items-center gap-3">
               {post.users?.profile_image ? (
                 <img src={post.users.profile_image} alt="" className="w-10 h-10 rounded-full object-cover" referrerPolicy="no-referrer" />
               ) : (
@@ -728,17 +728,19 @@ function CommentItem({ comment, isLoggedIn, isReply, onReply }: {
     <div className={`px-5 py-3.5 ${isReply ? "pl-4" : ""} relative`} onDoubleClick={handleDoubleTap}>
       <div className="flex items-start gap-2.5">
         {/* 아바타 */}
-        {comment.users?.profile_image ? (
-          <img src={comment.users.profile_image} alt="" className="w-7 h-7 rounded-full object-cover flex-shrink-0 mt-0.5" referrerPolicy="no-referrer" />
-        ) : (
-          <div className="w-7 h-7 bg-toss-gray-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-            <span className="text-[10px] font-bold text-toss-gray-400">{comment.users?.nickname?.[0] || "?"}</span>
-          </div>
-        )}
+        <Link href={`/community/user/${comment.user_id}?name=${encodeURIComponent(comment.users?.nickname || "")}`} onClick={(e) => e.stopPropagation()} className="flex-shrink-0 mt-0.5">
+          {comment.users?.profile_image ? (
+            <img src={comment.users.profile_image} alt="" className="w-7 h-7 rounded-full object-cover" referrerPolicy="no-referrer" />
+          ) : (
+            <div className="w-7 h-7 bg-toss-gray-100 rounded-full flex items-center justify-center">
+              <span className="text-[10px] font-bold text-toss-gray-400">{comment.users?.nickname?.[0] || "?"}</span>
+            </div>
+          )}
+        </Link>
         {/* 내용 */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
-            <Link href={`/community/user/${comment.user_id}`} className="text-[13px] font-semibold text-toss-gray-900" onClick={(e) => e.stopPropagation()}>{comment.users?.nickname || "익명"}</Link>
+            <Link href={`/community/user/${comment.user_id}?name=${encodeURIComponent(comment.users?.nickname || "")}`} className="text-[13px] font-semibold text-toss-gray-900" onClick={(e) => e.stopPropagation()}>{comment.users?.nickname || "익명"}</Link>
             <span className="text-[11px] text-toss-gray-300">{timeAgo(comment.created_at)}</span>
           </div>
           <p className="text-[14px] text-toss-gray-700 mt-1">{comment.content}</p>
