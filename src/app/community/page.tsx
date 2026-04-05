@@ -63,6 +63,9 @@ export default function CommunityPage() {
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const observerRef = useRef<HTMLDivElement>(null);
+  const [pullY, setPullY] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
+  const touchStartY = useRef(0);
 
   // 바텀시트 열릴 때 배경 스크롤 막기
   useEffect(() => {
@@ -109,6 +112,30 @@ export default function CommunityPage() {
     setLoading(false);
     setLoadingMore(false);
   }, [category, sortMode]);
+
+  // Pull to refresh
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (window.scrollY === 0) touchStartY.current = e.touches[0].clientY;
+    else touchStartY.current = 0;
+  };
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStartY.current === 0 || refreshing) return;
+    const dy = e.touches[0].clientY - touchStartY.current;
+    if (dy > 0 && window.scrollY === 0) setPullY(Math.min(dy * 0.4, 80));
+    else setPullY(0);
+  };
+  const handleTouchEnd = async () => {
+    if (pullY >= 60 && !refreshing) {
+      setRefreshing(true);
+      setPullY(60);
+      setPage(1);
+      setHasMore(true);
+      await fetchPosts(1, false);
+      setRefreshing(false);
+    }
+    setPullY(0);
+    touchStartY.current = 0;
+  };
 
   // 카테고리/정렬 변경 시 첫 페이지부터
   useEffect(() => {
@@ -304,7 +331,30 @@ export default function CommunityPage() {
   }
 
   return (
-    <div className="min-h-screen pb-20 bg-white">
+    <div
+      className="min-h-screen pb-20 bg-white"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
+      {/* Pull to refresh 인디케이터 */}
+      {(pullY > 0 || refreshing) && (
+        <div
+          className="fixed left-0 right-0 z-[60] flex justify-center transition-transform"
+          style={{ top: `calc(env(safe-area-inset-top, 0px) + 100px)`, transform: `translateY(${pullY - 30}px)` }}
+        >
+          <div className={`w-8 h-8 rounded-full bg-white shadow-lg border border-toss-gray-100 flex items-center justify-center ${refreshing ? "animate-spin" : ""}`}>
+            {refreshing ? (
+              <div className="w-4 h-4 border-2 border-toss-gray-200 border-t-toss-blue rounded-full" />
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={`text-toss-gray-500 transition-transform ${pullY >= 60 ? "rotate-180" : ""}`}>
+                <path d="M12 5v14M5 12l7 7 7-7"/>
+              </svg>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* 커스텀 헤더 + 필터 칩 - 모바일 (fixed) */}
       <div className="fixed top-0 left-0 right-0 z-30 md:hidden bg-white">
         <div className="pt-[env(safe-area-inset-top,0px)]" />
