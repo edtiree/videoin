@@ -271,7 +271,7 @@ export default function CommunityPage() {
                 <Link
                   key={post.id}
                   href={`/community/${post.id}`}
-                  className="block px-4 py-3 active:bg-toss-gray-50 transition"
+                  className="block px-4 py-4 active:bg-toss-gray-50 transition"
                 >
                   <span className={`inline-block text-[11px] font-medium px-2 py-0.5 rounded ${getCategoryStyle(post.category)}`}>
                     {post.category}
@@ -279,13 +279,13 @@ export default function CommunityPage() {
                   <div className={`mt-2 ${post.image_urls?.length > 0 ? "flex gap-3" : ""}`}>
                     <div className="flex-1 min-w-0">
                       <h3 className="text-[16px] font-bold text-toss-gray-900 line-clamp-2">{post.title}</h3>
-                      <p className="text-[13px] text-toss-gray-500 line-clamp-1 mt-0.5">{post.content}</p>
+                      <p className="text-[14px] text-toss-gray-500 line-clamp-2 mt-1 leading-relaxed">{post.content}</p>
                     </div>
                     {post.image_urls?.length > 0 && (
                       <img src={post.image_urls[0]} alt="" className="w-20 h-20 rounded-lg object-cover flex-shrink-0" />
                     )}
                   </div>
-                  <div className="flex items-center justify-between mt-2 text-[12px] text-toss-gray-400">
+                  <div className="flex items-center justify-between mt-3 text-[12px] text-toss-gray-400">
                     <span>{post.users?.nickname || "익명"} · {timeAgo(post.created_at)} · 조회 {post.view_count}</span>
                     {post.comment_count > 0 && (
                       <span className="flex items-center gap-1">
@@ -501,7 +501,7 @@ export default function CommunityPage() {
               <Link
                 key={post.id}
                 href={`/community/${post.id}`}
-                className="block px-4 py-3 active:bg-toss-gray-50 transition"
+                className="block px-4 py-4 active:bg-toss-gray-50 transition"
               >
                 {/* 카테고리 뱃지 */}
                 <span className={`inline-block text-[11px] font-medium px-2 py-0.5 rounded ${getCategoryStyle(post.category)}`}>
@@ -512,7 +512,7 @@ export default function CommunityPage() {
                 <div className={`mt-2 ${post.image_urls?.length > 0 ? "flex gap-3" : ""}`}>
                   <div className="flex-1 min-w-0">
                     <h3 className="text-[16px] font-bold text-toss-gray-900 line-clamp-2">{post.title}</h3>
-                    <p className="text-[13px] text-toss-gray-500 line-clamp-1 mt-0.5">{post.content}</p>
+                    <p className="text-[14px] text-toss-gray-500 line-clamp-2 mt-1 leading-relaxed">{post.content}</p>
                   </div>
                   {post.image_urls?.length > 0 && (
                     <div className="relative flex-shrink-0">
@@ -531,7 +531,7 @@ export default function CommunityPage() {
                 </div>
 
                 {/* 하단 메타 */}
-                <div className="flex items-center justify-between mt-2 text-[12px] text-toss-gray-400">
+                <div className="flex items-center justify-between mt-3 text-[12px] text-toss-gray-400">
                   <span>
                     {post.users?.nickname || "익명"} · {timeAgo(post.created_at)} · 조회 {post.view_count}
                   </span>
