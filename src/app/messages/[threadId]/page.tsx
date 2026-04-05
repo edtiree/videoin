@@ -29,6 +29,7 @@ export default function ChatPage() {
   const [sending, setSending] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [otherName, setOtherName] = useState(searchParams.get("name") || "");
+  const [bottomOffset, setBottomOffset] = useState(0);
 
   const fetchMessages = useCallback(async () => {
     if (!profile) return;
@@ -50,11 +51,30 @@ export default function ChatPage() {
     return () => clearInterval(interval);
   }, [fetchMessages]);
 
+  // 메시지 추가 시 스크롤
   useEffect(() => {
     setTimeout(() => {
       scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
     }, 100);
   }, [messages]);
+
+  // iOS 키보드: visualViewport로 입력창 위치 조정
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const update = () => {
+      const offset = window.innerHeight - vv.height - vv.offsetTop;
+      setBottomOffset(Math.max(0, offset));
+      // 키보드 올라오면 스크롤
+      setTimeout(() => scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight }), 50);
+    };
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    return () => {
+      vv.removeEventListener("resize", update);
+      vv.removeEventListener("scroll", update);
+    };
+  }, []);
 
   const handleSend = async () => {
     if (!input.trim() || sending || !profile) return;
@@ -86,17 +106,20 @@ export default function ChatPage() {
 
   if (!profile) return null;
 
+  const headerH = 52;
+
   return (
     <>
       <style jsx global>{`
-        .chat-page-active .overflow-y-auto { overflow: hidden !important; }
-        .chat-page-active .pb-14 { padding-bottom: 0 !important; }
+        .chat-active .overflow-y-auto { overflow: hidden !important; }
+        .chat-active .pb-14 { padding-bottom: 0 !important; }
+        .chat-active > nav { display: none !important; }
       `}</style>
-      <div className="chat-page-active fixed inset-0 z-[100] flex flex-col bg-white">
-        {/* 헤더 */}
-        <div className="flex-shrink-0 bg-white">
+      <div className="chat-active" style={{ position: "fixed", inset: 0, zIndex: 100, display: "flex", flexDirection: "column", background: "#fff" }}>
+        {/* 헤더 - 절대 고정 */}
+        <div style={{ position: "sticky", top: 0, zIndex: 10, background: "#fff", flexShrink: 0 }}>
           <div style={{ height: "env(safe-area-inset-top, 0px)" }} />
-          <div className="flex items-center px-5 h-[52px] border-b border-toss-gray-100">
+          <div className="flex items-center px-5 border-b border-toss-gray-100" style={{ height: headerH }}>
             <button onClick={() => router.push("/messages")} className="w-9 h-9 flex items-center justify-center text-toss-gray-700 -ml-2 mr-1">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M15 18l-6-6 6-6"/></svg>
             </button>
@@ -105,7 +128,11 @@ export default function ChatPage() {
         </div>
 
         {/* 메시지 영역 */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-1">
+        <div
+          ref={scrollRef}
+          className="px-4 py-4 space-y-1"
+          style={{ flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch" }}
+        >
           {messages.map((msg, idx) => {
             const isMine = msg.sender_id === profile.id;
             const next = messages[idx + 1];
@@ -133,7 +160,7 @@ export default function ChatPage() {
         </div>
 
         {/* 입력창 */}
-        <div className="flex-shrink-0 bg-white border-t border-toss-gray-100">
+        <div style={{ flexShrink: 0, background: "#fff", borderTop: "1px solid #f2f4f6", marginBottom: bottomOffset }}>
           <div className="flex items-center gap-2 px-3 py-2">
             <input
               type="text"
@@ -153,7 +180,7 @@ export default function ChatPage() {
               </button>
             )}
           </div>
-          <div style={{ height: "env(safe-area-inset-bottom, 4px)" }} />
+          {bottomOffset === 0 && <div style={{ height: "env(safe-area-inset-bottom, 4px)" }} />}
         </div>
       </div>
     </>
