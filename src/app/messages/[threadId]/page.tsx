@@ -68,18 +68,23 @@ export default function ChatPage() {
       raf = requestAnimationFrame(() => {
         const el = containerRef.current;
         if (!el) return;
-        el.style.top = `${vv.offsetTop}px`;
+        // top은 항상 0 고정, height만 조정
         el.style.height = `${vv.height}px`;
         scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
       });
     };
 
+    // iOS에서 키보드가 페이지를 밀어올리는 걸 방지
+    const preventScroll = () => {
+      window.scrollTo(0, 0);
+    };
+
     vv.addEventListener("resize", update);
-    vv.addEventListener("scroll", update);
+    vv.addEventListener("scroll", preventScroll);
     update();
     return () => {
       vv.removeEventListener("resize", update);
-      vv.removeEventListener("scroll", update);
+      vv.removeEventListener("scroll", preventScroll);
     };
   }, []);
 
