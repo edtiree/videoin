@@ -57,13 +57,29 @@ export default function MessagesPage() {
     const jobId = searchParams.get("job");
 
     if (toUserId && profile) {
+      // 기존 스레드 찾기
       fetch(`/api/messages?user_id=${profile.id}`)
         .then((r) => r.json())
-        .then((data: Thread[]) => {
+        .then(async (data: Thread[]) => {
           const existing = data.find((t) => t.other_user?.id === toUserId);
           if (existing) {
-            setSelectedThread(existing.id);
-            router.replace(`/messages/${existing.id}${jobId ? `?job=${jobId}` : ""}`);
+            router.replace(`/messages/${existing.id}`);
+          } else {
+            // 새 스레드 생성 (빈 인사 메시지)
+            const res = await fetch("/api/messages", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                sender_id: profile.id,
+                receiver_id: toUserId,
+                content: "안녕하세요! 커뮤니티에서 프로필 보고 연락드려요 😊",
+                ...(jobId ? { job_id: jobId } : {}),
+              }),
+            });
+            const result = await res.json();
+            if (result.thread_id) {
+              router.replace(`/messages/${result.thread_id}`);
+            }
           }
         });
     }
