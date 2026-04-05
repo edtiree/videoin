@@ -150,7 +150,9 @@ export default function CommunityPage() {
               <div className="flex-1 relative">
                 <input
                   ref={searchInputRef}
-                  type="text"
+                  type="search"
+                  enterKeyHint="search"
+                  autoFocus
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && !e.nativeEvent.isComposing && handleSearch()}
@@ -167,10 +169,10 @@ export default function CommunityPage() {
                 )}
               </div>
               <button
-                onClick={() => handleSearch()}
-                className="flex-shrink-0 text-[14px] font-semibold text-toss-blue"
+                onClick={() => { setShowSearch(false); setSearchQuery(""); setSearchResults([]); }}
+                className="flex-shrink-0 text-[14px] font-medium text-toss-gray-700"
               >
-                검색
+                닫기
               </button>
             </div>
           </div>
