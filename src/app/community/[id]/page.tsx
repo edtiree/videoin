@@ -595,8 +595,24 @@ export default function PostDetailPage() {
       {/* 이미지 전체화면 뷰어 */}
       {imageViewerIndex !== null && post.image_urls?.length > 0 && (
         <div className="fixed inset-0 z-[9999] bg-black" onClick={() => setImageViewerIndex(null)}>
-          {/* 이미지 - 전체 화면 */}
-          <div className="absolute inset-0 flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+          {/* 이미지 - 전체 화면 (터치 스와이프) */}
+          <div
+            className="absolute inset-0 flex items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+            onTouchStart={(e) => {
+              (e.currentTarget as HTMLElement).dataset.touchX = String(e.touches[0].clientX);
+            }}
+            onTouchEnd={(e) => {
+              const startX = Number((e.currentTarget as HTMLElement).dataset.touchX || 0);
+              const endX = e.changedTouches[0].clientX;
+              const diff = startX - endX;
+              if (diff > 50 && imageViewerIndex < post.image_urls.length - 1) {
+                setImageViewerIndex(imageViewerIndex + 1);
+              } else if (diff < -50 && imageViewerIndex > 0) {
+                setImageViewerIndex(imageViewerIndex - 1);
+              }
+            }}
+          >
             <img
               src={post.image_urls[imageViewerIndex]}
               alt=""
