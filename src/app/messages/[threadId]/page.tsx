@@ -28,7 +28,7 @@ export default function ChatPage() {
   const [sending, setSending] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [keyboardOpen, setKeyboardOpen] = useState(false);
-  const [otherName, setOtherName] = useState("쪽지");
+  const [otherName, setOtherName] = useState("");
 
   const fetchMessages = useCallback(async () => {
     if (!profile) return;
@@ -36,7 +36,7 @@ export default function ChatPage() {
     const data = await res.json();
     setMessages(data);
     // 상대 닉네임 가져오기
-    if (data.length > 0 && otherName === "쪽지") {
+    if (data.length > 0 && !otherName) {
       const otherId = data[0].sender_id === profile.id ? data[0].receiver_id : data[0].sender_id;
       fetch(`/api/community/user/${otherId}`)
         .then(r => r.json())
