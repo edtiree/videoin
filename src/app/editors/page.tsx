@@ -62,9 +62,9 @@ export default function EditorsPage() {
     <>
       <TopNav title="편집자 찾기" backHref="/" />
 
-      <div className="max-w-[960px] mx-auto px-4 py-4">
+      <div className="max-w-[1200px] mx-auto px-4 py-4">
         {/* 검색 */}
-        <div className="relative mb-4">
+        <div className="relative mb-4 md:max-w-[400px]">
           <svg className="absolute left-4 top-1/2 -translate-y-1/2 text-toss-gray-300" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
           <input
             type="text"
@@ -118,7 +118,7 @@ export default function EditorsPage() {
             <p className="text-toss-gray-400 text-[15px]">등록된 편집자가 없습니다</p>
           </div>
         ) : (
-          <div className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
+          <div className="space-y-3 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4 md:space-y-0">
             {sortedEditors.map((editor) => (
               <div
                 key={editor.id}

@@ -154,7 +154,7 @@ export default function EditorDetailPage() {
       </div>
 
       {/* 탭 콘텐츠 */}
-      <div className="max-w-[800px] mx-auto px-4 py-5">
+      <div className="max-w-[1000px] mx-auto px-4 py-5">
         {/* 포트폴리오 */}
         {tab === "portfolio" && (
           <div>

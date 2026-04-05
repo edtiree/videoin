@@ -44,10 +44,10 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-full bg-gray-50 pb-20">
-      <div className="max-w-[800px] mx-auto px-4 mt-4 space-y-4">
+      <div className="max-w-[1000px] mx-auto px-4 md:px-6 mt-4 md:mt-8 space-y-4 md:grid md:grid-cols-[1fr_1fr] md:gap-6 md:space-y-0">
 
         {/* 프로필 헤더 */}
-        <div className="bg-white rounded-2xl border border-toss-gray-100 p-5">
+        <div className="bg-white rounded-2xl border border-toss-gray-100 p-5 md:col-span-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               {profile.profile_image ? (
@@ -156,7 +156,7 @@ export default function ProfilePage() {
         {!canManage && (
           <button
             onClick={() => router.push("/plans")}
-            className="w-full bg-gradient-to-r from-toss-blue to-indigo-500 rounded-2xl p-5 text-left"
+            className="w-full bg-gradient-to-r from-toss-blue to-indigo-500 rounded-2xl p-5 text-left md:col-span-2"
           >
             <p className="text-[13px] text-white/70">팀 플랜으로 업그레이드하고</p>
             <p className="text-[16px] font-bold text-white mt-0.5">정산·달력·직원관리를 시작하세요</p>
@@ -164,7 +164,7 @@ export default function ProfilePage() {
         )}
 
         {/* 설정 */}
-        <div className="bg-white rounded-2xl border border-toss-gray-100 overflow-hidden">
+        <div className="bg-white rounded-2xl border border-toss-gray-100 overflow-hidden md:col-span-2">
           <p className="px-5 pt-4 pb-2 text-[14px] font-bold text-toss-gray-900">설정</p>
 
           <button

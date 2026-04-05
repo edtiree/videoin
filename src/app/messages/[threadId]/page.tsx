@@ -80,7 +80,7 @@ export default function ChatPage() {
     <>
       <TopNav title="쪽지" backHref="/messages" />
 
-      <div className="flex flex-col h-[calc(100dvh-52px-56px)] md:h-[calc(100dvh-52px)] max-w-[800px] mx-auto">
+      <div className="flex flex-col h-[calc(100dvh-52px-56px)] md:h-[calc(100dvh-52px)] max-w-[900px] mx-auto">
         {/* 메시지 영역 */}
         <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
           {messages.map((msg) => {

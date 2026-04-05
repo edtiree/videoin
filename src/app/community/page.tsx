@@ -66,7 +66,7 @@ export default function CommunityPage() {
   useEffect(() => { fetchPosts(); }, [fetchPosts]);
 
   return (
-    <div className="max-w-[960px] mx-auto px-4 py-4">
+    <div className="max-w-[1200px] mx-auto px-4 py-4">
       {/* 카테고리 탭 */}
       <div className="flex gap-2 overflow-x-auto pb-3 mb-4 scrollbar-hide">
         {CATEGORIES.map((c) => (
@@ -99,7 +99,7 @@ export default function CommunityPage() {
           </button>
         </div>
       ) : (
-        <div className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
+        <div className="space-y-3 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4 md:space-y-0">
           {posts.map((post) => (
             <Link
               key={post.id}

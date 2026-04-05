@@ -74,13 +74,13 @@ export default function JobDetailPage() {
         ) : null
       } />
 
-      <div className="max-w-[800px] mx-auto px-4 py-5">
-        <div className="bg-white rounded-2xl border border-toss-gray-100 p-6 mb-4">
+      <div className="max-w-[1000px] mx-auto px-4 md:px-6 py-5 md:py-8">
+        <div className="bg-white rounded-2xl border border-toss-gray-100 p-6 md:p-8 mb-4">
           <CategoryBadge category={job.category} size="md" />
-          <h1 className="text-[22px] font-bold text-toss-gray-900 mt-3 mb-2">{job.title}</h1>
+          <h1 className="text-[22px] md:text-[28px] font-bold text-toss-gray-900 mt-3 mb-2">{job.title}</h1>
           <p className="text-[14px] text-toss-gray-500 mb-4">{job.users?.nickname || "익명"}</p>
 
-          <div className="grid grid-cols-2 gap-3 mb-5">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
             <div className="bg-toss-gray-50 rounded-xl p-3">
               <p className="text-[11px] text-toss-gray-400 mb-0.5">예산</p>
               <p className="text-[15px] font-semibold text-toss-gray-900">{formatBudget()}</p>

@@ -171,9 +171,9 @@ export default function PostDetailPage() {
         isOwner ? <button onClick={handleDelete} className="text-[14px] text-toss-red">삭제</button> : null
       } />
 
-      <div className="max-w-[800px] mx-auto">
+      <div className="max-w-[1000px] mx-auto">
         {/* 게시글 */}
-        <div className="bg-white px-5 py-5 border-b border-toss-gray-100">
+        <div className="bg-white px-5 md:px-8 py-5 md:py-8 border-b border-toss-gray-100 md:rounded-2xl md:border md:my-4 md:mx-4">
           <div className="flex items-center gap-2 mb-3">
             <span className={`text-[11px] font-medium px-2 py-0.5 rounded ${
               post.category === "중고거래" ? "text-toss-orange bg-orange-50" : "text-toss-blue bg-blue-50"
@@ -181,7 +181,7 @@ export default function PostDetailPage() {
             <span className="text-[11px] text-toss-gray-300">{timeAgo(post.created_at)}</span>
           </div>
 
-          <h1 className="text-[20px] font-bold text-toss-gray-900 mb-3">{post.title}</h1>
+          <h1 className="text-[20px] md:text-[26px] font-bold text-toss-gray-900 mb-3">{post.title}</h1>
 
           <div className="flex items-center gap-2 mb-4">
             {post.users?.profile_image ? (
@@ -194,7 +194,7 @@ export default function PostDetailPage() {
             <span className="text-[13px] font-medium text-toss-gray-700">{post.users?.nickname || "익명"}</span>
           </div>
 
-          <p className="text-[15px] text-toss-gray-700 whitespace-pre-wrap leading-relaxed">{post.content}</p>
+          <p className="text-[15px] md:text-[16px] text-toss-gray-700 whitespace-pre-wrap leading-relaxed md:leading-loose">{post.content}</p>
 
           {/* 이미지 */}
           {post.image_urls?.length > 0 && (
@@ -272,7 +272,7 @@ export default function PostDetailPage() {
         </div>
 
         {/* 댓글 */}
-        <div className="bg-white mt-2">
+        <div className="bg-white mt-2 md:rounded-2xl md:border md:border-toss-gray-100 md:mx-4 md:mb-4">
           <p className="px-5 pt-4 pb-2 text-[14px] font-bold text-toss-gray-900">댓글 {comments.length}</p>
 
           {comments.length === 0 ? (
@@ -313,7 +313,7 @@ export default function PostDetailPage() {
 
       {/* 댓글 입력 */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-toss-gray-100 px-4 py-2 pb-[env(safe-area-inset-bottom,8px)] z-[51]">
-        <div className="max-w-[800px] mx-auto">
+        <div className="max-w-[1000px] mx-auto">
           {replyTo && (
             <div className="flex items-center justify-between mb-2 px-1">
               <span className="text-[12px] text-toss-blue">@{replyTo.nickname}에게 답글</span>

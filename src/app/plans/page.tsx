@@ -96,7 +96,7 @@ export default function PlansPage() {
     <>
       <TopNav title="플랜" backHref="/" />
 
-      <div className="max-w-[960px] mx-auto px-4 py-5">
+      <div className="max-w-[1200px] mx-auto px-4 py-5">
         <div className="text-center mb-6">
           <h1 className="text-[24px] font-bold text-toss-gray-900">나에게 맞는 플랜을 선택하세요</h1>
           <p className="text-[14px] text-toss-gray-400 mt-1">모든 플랜은 언제든 변경할 수 있어요</p>

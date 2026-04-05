@@ -65,7 +65,7 @@ export default function MessagesPage() {
   return (
     <>
       <TopNav title="쪽지" backHref="/" />
-      <div className="max-w-[960px] mx-auto">
+      <div className="max-w-[1200px] mx-auto">
         {loading ? (
           <div className="flex justify-center py-20">
             <div className="w-6 h-6 border-2 border-toss-gray-200 border-t-toss-blue rounded-full animate-spin" />
