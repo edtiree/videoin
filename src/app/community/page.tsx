@@ -57,6 +57,7 @@ export default function CommunityPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Post[]>([]);
   const [searching, setSearching] = useState(false);
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   // 바텀시트 열릴 때 배경 스크롤 막기
@@ -69,10 +70,14 @@ export default function CommunityPage() {
     return () => { document.body.style.overflow = ""; };
   }, [showWriteSheet]);
 
-  // 검색 열릴 때 인풋 포커스
+  // 검색 열릴 때 인풋 포커스 + 최근검색어 로드
   useEffect(() => {
     if (showSearch) {
-      setTimeout(() => searchInputRef.current?.focus(), 100);
+      requestAnimationFrame(() => searchInputRef.current?.focus());
+      try {
+        const saved = localStorage.getItem("community_recent_searches");
+        if (saved) setRecentSearches(JSON.parse(saved));
+      } catch { /* empty */ }
     }
   }, [showSearch]);
 
@@ -92,9 +97,28 @@ export default function CommunityPage() {
 
   useEffect(() => { fetchPosts(); }, [fetchPosts]);
 
-  const handleSearch = async () => {
-    const q = searchQuery.trim();
+  const saveRecentSearch = (q: string) => {
+    const updated = [q, ...recentSearches.filter(s => s !== q)].slice(0, 10);
+    setRecentSearches(updated);
+    try { localStorage.setItem("community_recent_searches", JSON.stringify(updated)); } catch { /* empty */ }
+  };
+
+  const removeRecentSearch = (q: string) => {
+    const updated = recentSearches.filter(s => s !== q);
+    setRecentSearches(updated);
+    try { localStorage.setItem("community_recent_searches", JSON.stringify(updated)); } catch { /* empty */ }
+  };
+
+  const clearAllRecentSearches = () => {
+    setRecentSearches([]);
+    try { localStorage.removeItem("community_recent_searches"); } catch { /* empty */ }
+  };
+
+  const handleSearch = async (query?: string) => {
+    const q = (query ?? searchQuery).trim();
     if (!q) return;
+    if (query) setSearchQuery(q);
+    saveRecentSearch(q);
     setSearching(true);
     try {
       const params = new URLSearchParams({ search: q });
@@ -143,7 +167,7 @@ export default function CommunityPage() {
                 )}
               </div>
               <button
-                onClick={handleSearch}
+                onClick={() => handleSearch()}
                 className="flex-shrink-0 text-[14px] font-semibold text-toss-blue"
               >
                 검색
@@ -196,8 +220,42 @@ export default function CommunityPage() {
               <p className="text-toss-gray-300 text-[13px] mt-1">다른 키워드로 검색해보세요</p>
             </div>
           ) : (
-            <div className="text-center py-20">
-              <p className="text-toss-gray-400 text-[15px]">검색어를 입력해주세요</p>
+            /* 최근 검색어 */
+            <div className="px-4 pt-5">
+              {recentSearches.length > 0 && (
+                <>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-[15px] font-bold text-toss-gray-900">최근 검색</span>
+                    <button onClick={clearAllRecentSearches} className="text-[13px] text-toss-gray-400">전체 삭제</button>
+                  </div>
+                  <div className="space-y-1">
+                    {recentSearches.map((q) => (
+                      <div key={q} className="flex items-center justify-between py-2.5">
+                        <button
+                          onClick={() => handleSearch(q)}
+                          className="flex items-center gap-3 flex-1 min-w-0 text-left"
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-toss-gray-300 flex-shrink-0">
+                            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                          </svg>
+                          <span className="text-[14px] text-toss-gray-700 truncate">{q}</span>
+                        </button>
+                        <button
+                          onClick={() => removeRecentSearch(q)}
+                          className="flex-shrink-0 p-1 text-toss-gray-300"
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+              {recentSearches.length === 0 && (
+                <div className="text-center py-16">
+                  <p className="text-toss-gray-400 text-[15px]">검색어를 입력해주세요</p>
+                </div>
+              )}
             </div>
           )}
         </div>
