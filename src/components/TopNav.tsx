@@ -20,7 +20,7 @@ export default function TopNav({ title, backHref, rightContent }: TopNavProps) {
   };
 
   return (
-    <div className="bg-white border-b border-toss-gray-100 sticky top-0 z-30">
+    <div className="bg-white border-b border-toss-gray-100 sticky top-0 z-30 md:hidden">
       <div className="max-w-5xl mx-auto px-4 md:px-8 h-12 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <button
