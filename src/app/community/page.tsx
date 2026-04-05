@@ -400,14 +400,10 @@ export default function CommunityPage() {
         </div>
       )}
 
-      {/* 커스텀 헤더 + 필터 칩 - 모바일 (fixed) */}
-      <div
-        ref={headerRef}
-        className="fixed top-0 left-0 right-0 z-30 md:hidden bg-white will-change-transform"
-        style={{ transform: `translateY(${-headerOffset}px)`, transition: headerOffset === 0 ? "transform 0.2s ease" : "none" }}
-      >
+      {/* 타이틀 바 - 항상 고정 */}
+      <div className="fixed top-0 left-0 right-0 z-40 md:hidden bg-white">
         <div className="pt-[env(safe-area-inset-top,0px)]" />
-        <div className="flex items-center justify-between px-5 h-[52px]">
+        <div className="flex items-center justify-between px-5 h-[52px] border-b border-toss-gray-100">
           <h2 className="text-[18px] font-extrabold text-toss-gray-900">커뮤니티</h2>
           <div className="flex items-center gap-2">
             <button
@@ -422,8 +418,19 @@ export default function CommunityPage() {
             <NotificationBell />
           </div>
         </div>
-        {/* 필터 칩 (헤더에 포함) */}
-        <div className="border-t border-b border-toss-gray-100" data-no-pull>
+      </div>
+
+      {/* 필터 칩 - 스크롤에 따라 숨김/표시 */}
+      <div
+        ref={headerRef}
+        className="fixed left-0 right-0 z-30 md:hidden bg-white will-change-transform"
+        style={{
+          top: `calc(env(safe-area-inset-top, 0px) + 52px)`,
+          transform: `translateY(${-headerOffset}px)`,
+          transition: headerOffset === 0 ? "transform 0.2s ease" : "none",
+        }}
+      >
+        <div className="border-b border-toss-gray-100" data-no-pull>
         <div className="max-w-[680px] mx-auto flex items-center px-4 py-3">
           {/* 정렬 드롭다운 (고정) */}
           <div className="relative flex-shrink-0">
@@ -438,7 +445,7 @@ export default function CommunityPage() {
               <>
                 <div className="fixed inset-0 z-[9998]" onClick={() => setShowSortDropdown(false)} />
                 <div className="fixed z-[9999] bg-white rounded-xl shadow-lg border border-toss-gray-100 py-1 min-w-[120px]"
-                  style={{ top: `calc(env(safe-area-inset-top, 0px) + 52px + 44px)`, left: "16px" }}>
+                  style={{ top: `calc(env(safe-area-inset-top, 0px) + 52px + 50px)`, left: "16px" }}>
                   <button
                     onClick={() => { setSortMode("latest"); setShowSortDropdown(false); window.scrollTo({ top: 0 }); }}
                     className={`w-full px-4 py-2.5 text-left text-[14px] hover:bg-toss-gray-50 ${sortMode === "latest" ? "text-toss-blue font-semibold" : "text-toss-gray-700"}`}
