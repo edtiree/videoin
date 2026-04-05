@@ -174,7 +174,7 @@ export default function MessagesPage() {
             </div>
 
             {/* 스레드 목록 */}
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto" onScroll={() => { if (swipedThreadId) setSwipedThreadId(null); }}>
               {loading ? (
                 <div className="flex justify-center py-20">
                   <div className="w-6 h-6 border-2 border-toss-gray-200 border-t-toss-blue rounded-full animate-spin" />
@@ -336,6 +336,7 @@ function SwipeableThread({ thread, isSelected, isSwiped, onSwipeOpen, onSwipeClo
   }, []);
 
   const openedDir = useRef<"left" | "right" | null>(null);
+  const justClosed = useRef(false);
 
   const onTouchStart = (e: React.TouchEvent) => {
     startX.current = e.touches[0].clientX;
@@ -353,6 +354,11 @@ function SwipeableThread({ thread, isSelected, isSwiped, onSwipeOpen, onSwipeClo
     const dy = e.touches[0].clientY - startY.current;
     if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
       if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; }
+    }
+    // 세로 스크롤 감지 → 열린 상태면 즉시 닫기
+    if (!swiping.current && Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 5) {
+      if (offsetX !== 0) { setOffsetX(0); onSwipeClose(); }
+      return;
     }
     if (!swiping.current && Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 10) {
       swiping.current = true;
@@ -372,20 +378,25 @@ function SwipeableThread({ thread, isSelected, isSwiped, onSwipeOpen, onSwipeClo
 
   const onTouchEnd = () => {
     if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; }
-    // 열린 상태에서 스와이프한 경우 → 닫기
-    if (openedDir.current) {
-      setOffsetX(0);
-      onSwipeClose();
-    } else {
-      if (offsetX < -70) { setOffsetX(-140); onSwipeOpen(); }
-      else if (offsetX > 35) { setOffsetX(70); onSwipeOpen(); }
-      else { setOffsetX(0); onSwipeClose(); }
+    if (openedDir.current || swiping.current) {
+      // 열린 상태에서 스와이프 또는 스와이프 동작 → 닫기만
+      if (openedDir.current) {
+        setOffsetX(0);
+        onSwipeClose();
+        justClosed.current = true;
+        setTimeout(() => { justClosed.current = false; }, 300);
+      } else {
+        if (offsetX < -70) { setOffsetX(-140); onSwipeOpen(); }
+        else if (offsetX > 35) { setOffsetX(70); onSwipeOpen(); }
+        else { setOffsetX(0); onSwipeClose(); }
+      }
     }
     swiping.current = false;
     openedDir.current = null;
   };
 
   const handleClick = () => {
+    if (justClosed.current) return;
     if (offsetX !== 0) { setOffsetX(0); onSwipeClose(); return; }
     onOpen();
   };
