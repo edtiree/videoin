@@ -67,35 +67,29 @@ export default function CommunityPage() {
   const topAnchorRef = useRef<HTMLDivElement>(null);
   const [pullY, setPullY] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
-  const [headerVisible, setHeaderVisible] = useState(true);
+  const [headerOffset, setHeaderOffset] = useState(0);
   const lastScrollY = useRef(0);
+  const headerRef = useRef<HTMLDivElement>(null);
   const touchStartY = useRef(0);
 
   // 스크롤 방향 감지: 아래로 → 헤더 숨김, 위로 → 헤더 표시
   useEffect(() => {
-    let ticking = false;
     const onScroll = () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(() => {
-        const y = window.pageYOffset || document.documentElement.scrollTop || 0;
-        if (y <= 10) {
-          setHeaderVisible(true);
-        } else {
-          const diff = y - lastScrollY.current;
-          if (diff > 3) setHeaderVisible(false);
-          else if (diff < -3) setHeaderVisible(true);
-        }
-        lastScrollY.current = y;
-        ticking = false;
-      });
+      const y = window.pageYOffset ?? window.scrollY ?? 0;
+      const headerH = headerRef.current?.offsetHeight || 102;
+      if (y <= 5) {
+        setHeaderOffset(0);
+      } else {
+        const delta = y - lastScrollY.current;
+        setHeaderOffset(prev => {
+          const next = Math.max(0, Math.min(headerH, prev + delta));
+          return next;
+        });
+      }
+      lastScrollY.current = y;
     };
     window.addEventListener("scroll", onScroll, { passive: true });
-    document.addEventListener("scroll", onScroll, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      document.removeEventListener("scroll", onScroll);
-    };
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   // 바텀시트 열릴 때 배경 스크롤 막기
@@ -402,8 +396,9 @@ export default function CommunityPage() {
 
       {/* 커스텀 헤더 + 필터 칩 - 모바일 (fixed) */}
       <div
-        className="fixed top-0 left-0 right-0 z-30 md:hidden bg-white"
-        style={{ transform: headerVisible ? "translateY(0)" : "translateY(-100%)", transition: "transform 0.3s ease" }}
+        ref={headerRef}
+        className="fixed top-0 left-0 right-0 z-30 md:hidden bg-white will-change-transform"
+        style={{ transform: `translateY(${-headerOffset}px)`, transition: headerOffset === 0 ? "transform 0.2s ease" : "none" }}
       >
         <div className="pt-[env(safe-area-inset-top,0px)]" />
         <div className="flex items-center justify-between px-5 h-[52px]">
