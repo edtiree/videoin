@@ -175,11 +175,41 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
         if (p) {
           setProfile(p);
           bridgeToLocalStorage(currentSession.user, p);
-          // 첫 로그인이면 역할 선택 모달 표시
           if (p.role.length === 0) {
             setShowRoleModal(true);
           }
         }
+      } else {
+        // [임시] 테스트용 자동 로그인 — Auth 세션 없어도 장승종 계정으로 로그인 처리
+        const testProfile: UserProfile = {
+          id: "908e917d-0268-4681-b07a-f705bfd61800",
+          auth_id: "c53bb8c3-79a0-420e-83a7-0f3bdc542317",
+          role: ["크리에이터/사장"],
+          plan: "enterprise",
+          nickname: "장승종",
+          region: null,
+          profile_image: "https://lh3.googleusercontent.com/a/ACg8ocKw26BcqswyH04l7tnL8w3cXsH4_YqBom5P1ate4WNEOLdCqw=s96-c",
+          worker_id: null,
+        };
+        setProfile(testProfile);
+        const fakeWorker = {
+          id: testProfile.id,
+          name: testProfile.nickname || "장승종",
+          phone: "",
+          role: testProfile.role?.[0] || "",
+          contractType: "프리랜서",
+          approved: true,
+          isAdmin: false,
+          allowedServices: getServicesFromPlan(testProfile.plan),
+          plan: testProfile.plan,
+          nickname: testProfile.nickname,
+          userRoles: testProfile.role,
+          profileImage: testProfile.profile_image,
+          authId: testProfile.auth_id,
+          userId: testProfile.id,
+        };
+        localStorage.setItem("worker", JSON.stringify(fakeWorker));
+        window.dispatchEvent(new Event("worker-login"));
       }
       setIsLoading(false);
     };
@@ -222,7 +252,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
         user,
         profile,
         session,
-        isLoggedIn: !!user && !!profile,
+        isLoggedIn: !!profile, // [임시] Auth 없어도 profile만 있으면 로그인 처리
         isLoading,
         showLoginModal,
         showRoleModal,
