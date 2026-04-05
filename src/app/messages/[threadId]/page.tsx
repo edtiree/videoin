@@ -99,15 +99,17 @@ export default function ChatPage() {
   return (
     <div className="h-[100dvh] flex flex-col bg-white">
       {/* 헤더 - 고정 */}
-      <div className="flex-shrink-0 bg-white z-30">
+      <div className="fixed top-0 left-0 right-0 z-30 bg-white">
         <div className="pt-[env(safe-area-inset-top,0px)]" />
-        <div className="flex items-center px-2 h-12 border-b border-toss-gray-100">
-          <button onClick={() => router.push("/messages")} className="w-10 h-10 flex items-center justify-center text-toss-gray-700">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+        <div className="flex items-center px-5 h-[52px] border-b border-toss-gray-100">
+          <button onClick={() => router.push("/messages")} className="w-9 h-9 flex items-center justify-center text-toss-gray-700 -ml-2 mr-1">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M15 18l-6-6 6-6"/></svg>
           </button>
-          <h2 className="text-[16px] font-bold text-toss-gray-900 ml-1">{otherName}</h2>
+          <h2 className="text-[18px] font-extrabold text-toss-gray-900">{otherName}</h2>
         </div>
       </div>
+      {/* 헤더 스페이서 */}
+      <div className="flex-shrink-0 h-[calc(52px+env(safe-area-inset-top,0px))]" />
 
       {/* 메시지 영역 - 스크롤 */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
