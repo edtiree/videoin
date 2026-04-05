@@ -185,10 +185,11 @@ export default function MessagesPage() {
               ) : (
                 <div className="divide-y divide-toss-gray-50">
                   {filteredThreads.map((thread) => (
-                    <button
+                    <SwipeableThread
                       key={thread.id}
-                      onClick={() => {
-                        // 모바일: 페이지 이동, PC: 인라인 선택
+                      thread={thread}
+                      isSelected={selectedThread === thread.id}
+                      onOpen={() => {
                         if (window.innerWidth < 768) {
                           router.push(`/messages/${thread.id}?name=${encodeURIComponent(thread.other_user?.nickname || "")}`);
                         } else {
@@ -196,30 +197,11 @@ export default function MessagesPage() {
                           setMessages([]);
                         }
                       }}
-                      className={`w-full flex items-center gap-3 px-5 py-4 hover:bg-toss-gray-50 transition text-left ${
-                        selectedThread === thread.id ? "bg-blue-50 md:bg-blue-50" : ""
-                      }`}
-                    >
-                      {thread.other_user?.profile_image ? (
-                        <img src={thread.other_user.profile_image} alt="" className="w-11 h-11 rounded-full object-cover flex-shrink-0" referrerPolicy="no-referrer" />
-                      ) : (
-                        <div className="w-11 h-11 rounded-full bg-toss-gray-100 flex items-center justify-center flex-shrink-0">
-                          <span className="text-[16px] font-bold text-toss-gray-400">{thread.other_user?.nickname?.[0] || "?"}</span>
-                        </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[15px] font-semibold text-toss-gray-900">{thread.other_user?.nickname || "알 수 없음"}</span>
-                          <span className="text-[11px] text-toss-gray-300 flex-shrink-0">{timeAgo(thread.last_message_at)}</span>
-                        </div>
-                        <p className="text-[13px] text-toss-gray-400 truncate mt-0.5">{thread.last_message_preview || "..."}</p>
-                      </div>
-                      {thread.unread_count > 0 && (
-                        <span className="w-5 h-5 rounded-full bg-toss-red text-white text-[11px] font-bold flex items-center justify-center flex-shrink-0">
-                          {thread.unread_count > 9 ? "9+" : thread.unread_count}
-                        </span>
-                      )}
-                    </button>
+                      onDelete={async () => {
+                        await fetch(`/api/messages/${thread.id}`, { method: "DELETE" });
+                        fetchThreads();
+                      }}
+                    />
                   ))}
                 </div>
               )}
@@ -311,5 +293,113 @@ export default function MessagesPage() {
         </div>
       </div>
     </>
+  );
+}
+
+function SwipeableThread({ thread, isSelected, onOpen, onDelete }: {
+  thread: { id: string; last_message_preview: string | null; last_message_at: string; other_user: { id: string; nickname: string | null; profile_image: string | null } | null; unread_count: number };
+  isSelected: boolean;
+  onOpen: () => void;
+  onDelete: () => void;
+}) {
+  const [offsetX, setOffsetX] = useState(0);
+  const startX = useRef(0);
+  const startY = useRef(0);
+  const swiping = useRef(false);
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    startX.current = e.touches[0].clientX;
+    startY.current = e.touches[0].clientY;
+    swiping.current = false;
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    const dx = e.touches[0].clientX - startX.current;
+    const dy = e.touches[0].clientY - startY.current;
+    // 가로 움직임이 세로보다 크면 스와이프
+    if (!swiping.current && Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 10) {
+      swiping.current = true;
+    }
+    if (swiping.current) {
+      // 왼쪽 스와이프: 알림끄기 + 삭제 (최대 -140)
+      // 오른쪽 스와이프: 고정 (최대 70)
+      const clamped = Math.max(-140, Math.min(70, dx));
+      setOffsetX(clamped);
+    }
+  };
+
+  const onTouchEnd = () => {
+    if (offsetX < -70) setOffsetX(-140); // 왼쪽 열림
+    else if (offsetX > 35) setOffsetX(70); // 오른쪽 열림
+    else setOffsetX(0); // 닫힘
+    swiping.current = false;
+  };
+
+  const handleClick = () => {
+    if (offsetX !== 0) { setOffsetX(0); return; }
+    onOpen();
+  };
+
+  return (
+    <div className="relative overflow-hidden">
+      {/* 왼쪽 배경: 고정 (오른쪽 스와이프) */}
+      <div className="absolute left-0 top-0 bottom-0 flex">
+        <button
+          onClick={() => { setOffsetX(0); alert("채팅방이 고정되었습니다"); }}
+          className="w-[70px] bg-toss-blue flex flex-col items-center justify-center text-white"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/></svg>
+          <span className="text-[10px] mt-0.5">고정</span>
+        </button>
+      </div>
+
+      {/* 오른쪽 배경: 알림끄기 + 삭제 (왼쪽 스와이프) */}
+      <div className="absolute right-0 top-0 bottom-0 flex">
+        <button
+          onClick={() => { setOffsetX(0); alert("알림이 꺼졌습니다"); }}
+          className="w-[70px] bg-toss-gray-400 flex flex-col items-center justify-center text-white"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+          <span className="text-[10px] mt-0.5">알림끄기</span>
+        </button>
+        <button
+          onClick={() => { if (confirm("채팅방을 삭제할까요?")) { setOffsetX(0); onDelete(); } }}
+          className="w-[70px] bg-toss-red flex flex-col items-center justify-center text-white"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          <span className="text-[10px] mt-0.5">삭제</span>
+        </button>
+      </div>
+
+      {/* 메인 콘텐츠 */}
+      <div
+        className={`relative bg-white flex items-center gap-3 px-5 py-4 text-left ${isSelected ? "bg-blue-50" : ""}`}
+        style={{ transform: `translateX(${offsetX}px)`, transition: swiping.current ? "none" : "transform 0.3s ease" }}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+        onClick={handleClick}
+      >
+        {thread.other_user?.profile_image ? (
+          <img src={thread.other_user.profile_image} alt="" className="w-11 h-11 rounded-full object-cover flex-shrink-0" referrerPolicy="no-referrer" />
+        ) : (
+          <div className="w-11 h-11 rounded-full bg-toss-gray-100 flex items-center justify-center flex-shrink-0">
+            <span className="text-[16px] font-bold text-toss-gray-400">{thread.other_user?.nickname?.[0] || "?"}</span>
+          </div>
+        )}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between">
+            <span className="text-[15px] font-semibold text-toss-gray-900">{thread.other_user?.nickname || "알 수 없음"}</span>
+            <span className="text-[11px] text-toss-gray-300 flex-shrink-0">{timeAgo(thread.last_message_at)}</span>
+          </div>
+          <p className="text-[13px] text-toss-gray-400 truncate mt-0.5">{thread.last_message_preview || "..."}</p>
+        </div>
+        {thread.unread_count > 0 && (
+          <span className="w-5 h-5 rounded-full bg-toss-red text-white text-[11px] font-bold flex items-center justify-center flex-shrink-0">
+            {thread.unread_count > 9 ? "9+" : thread.unread_count}
+          </span>
+        )}
+      </div>
+    </div>
   );
 }
