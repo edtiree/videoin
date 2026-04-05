@@ -457,7 +457,7 @@ export default function CommunityPage() {
       <button
         onClick={() => {
           if (!isLoggedIn) { openLoginModal(); return; }
-          setShowWriteSheet(true);
+          router.push("/community/new");
         }}
         className="fixed bottom-24 right-5 md:bottom-8 md:right-8 bg-toss-blue text-white px-5 py-3 rounded-full shadow-lg flex items-center gap-2 hover:bg-[var(--blue-hover)] transition z-40 active:scale-95"
       >
