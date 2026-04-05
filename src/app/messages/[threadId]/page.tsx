@@ -32,20 +32,37 @@ export default function ChatPage() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [otherName, setOtherName] = useState(searchParams.get("name") || "");
+  const [source, setSource] = useState<string | null>(null);
+  const [otherId, setOtherId] = useState<string | null>(null);
 
   const fetchMessages = useCallback(async () => {
     if (!profile) return;
     const res = await fetch(`/api/messages/${threadId}?user_id=${profile.id}`);
     const data = await res.json();
     setMessages(data);
-    if (data.length > 0 && !otherName) {
-      const otherId = data[0].sender_id === profile.id ? data[0].receiver_id : data[0].sender_id;
-      fetch(`/api/community/user/${otherId}`)
-        .then(r => r.json())
-        .then(u => { if (u.nickname) setOtherName(u.nickname); })
-        .catch(() => {});
+    if (data.length > 0) {
+      const oid = data[0].sender_id === profile.id ? data[0].receiver_id : data[0].sender_id;
+      setOtherId(oid);
+      if (!otherName) {
+        fetch(`/api/community/user/${oid}`)
+          .then(r => r.json())
+          .then(u => { if (u.nickname) setOtherName(u.nickname); })
+          .catch(() => {});
+      }
     }
   }, [threadId, profile]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 스레드 source 가져오기
+  useEffect(() => {
+    if (!profile) return;
+    fetch(`/api/messages?user_id=${profile.id}`)
+      .then(r => r.json())
+      .then((threads: { id: string; source: string | null }[]) => {
+        const t = threads.find(t => t.id === threadId);
+        if (t?.source) setSource(t.source);
+      })
+      .catch(() => {});
+  }, [threadId, profile]);
 
   useEffect(() => {
     fetchMessages();
@@ -150,8 +167,40 @@ export default function ChatPage() {
             <button onClick={() => router.push("/messages")} className="w-9 h-9 flex items-center justify-center text-toss-gray-700 -ml-2 mr-1">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M15 18l-6-6 6-6"/></svg>
             </button>
-            <h2 className="text-[18px] font-extrabold text-toss-gray-900">{otherName}</h2>
+            <h2 className="text-[18px] font-extrabold text-toss-gray-900 flex-1">{otherName}</h2>
+            {otherId && (
+              <button
+                onClick={() => router.push(`/community/user/${otherId}`)}
+                className="w-9 h-9 flex items-center justify-center text-toss-gray-400"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              </button>
+            )}
           </div>
+          {/* 출처 컨텍스트 바 */}
+          {source && (
+            <button
+              onClick={() => {
+                if (source === "community" && otherId) router.push(`/community/user/${otherId}`);
+                else if (source === "job") router.push("/jobs");
+                else if (source === "sponsorship") router.push("/sponsorship");
+              }}
+              className="flex items-center gap-2 px-5 py-2.5 border-b border-toss-gray-100 bg-toss-gray-50 active:bg-toss-gray-100 transition"
+            >
+              <span className={`text-[11px] font-semibold px-2 py-0.5 rounded ${
+                source === "community" ? "text-toss-blue bg-blue-50" :
+                source === "job" ? "text-green-600 bg-green-50" :
+                "text-toss-orange bg-orange-50"
+              }`}>
+                {source === "community" ? "커뮤니티" : source === "job" ? "구인구직" : "광고매칭"}
+              </span>
+              <span className="text-[13px] text-toss-gray-500 flex-1">
+                {source === "community" ? "커뮤니티에서 시작된 대화" :
+                 source === "job" ? "구인구직에서 시작된 대화" : "광고매칭에서 시작된 대화"}
+              </span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-toss-gray-300"><path d="M9 18l6-6-6-6"/></svg>
+            </button>
+          )}
         </div>
 
         {/* 메시지 영역 */}
