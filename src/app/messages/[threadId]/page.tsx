@@ -28,13 +28,22 @@ export default function ChatPage() {
   const [sending, setSending] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [keyboardOpen, setKeyboardOpen] = useState(false);
+  const [otherName, setOtherName] = useState("쪽지");
 
   const fetchMessages = useCallback(async () => {
     if (!profile) return;
     const res = await fetch(`/api/messages/${threadId}?user_id=${profile.id}`);
     const data = await res.json();
     setMessages(data);
-  }, [threadId, profile]);
+    // 상대 닉네임 가져오기
+    if (data.length > 0 && otherName === "쪽지") {
+      const otherId = data[0].sender_id === profile.id ? data[0].receiver_id : data[0].sender_id;
+      fetch(`/api/community/user/${otherId}`)
+        .then(r => r.json())
+        .then(u => { if (u.nickname) setOtherName(u.nickname); })
+        .catch(() => {});
+    }
+  }, [threadId, profile]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     fetchMessages();
@@ -96,7 +105,7 @@ export default function ChatPage() {
           <button onClick={() => router.push("/messages")} className="w-10 h-10 flex items-center justify-center text-toss-gray-700">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M15 18l-6-6 6-6"/></svg>
           </button>
-          <h2 className="text-[16px] font-bold text-toss-gray-900 ml-1">쪽지</h2>
+          <h2 className="text-[16px] font-bold text-toss-gray-900 ml-1">{otherName}</h2>
         </div>
       </div>
 
