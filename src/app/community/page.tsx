@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -53,6 +53,11 @@ export default function CommunityPage() {
   const [category, setCategory] = useState<string | null>(null);
   const [sortMode, setSortMode] = useState<"latest" | "popular">("latest");
   const [showWriteSheet, setShowWriteSheet] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<Post[]>([]);
+  const [searching, setSearching] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // 바텀시트 열릴 때 배경 스크롤 막기
   useEffect(() => {
@@ -63,6 +68,13 @@ export default function CommunityPage() {
     }
     return () => { document.body.style.overflow = ""; };
   }, [showWriteSheet]);
+
+  // 검색 열릴 때 인풋 포커스
+  useEffect(() => {
+    if (showSearch) {
+      setTimeout(() => searchInputRef.current?.focus(), 100);
+    }
+  }, [showSearch]);
 
   const fetchPosts = useCallback(async () => {
     if (posts.length === 0) setLoading(true);
@@ -80,12 +92,121 @@ export default function CommunityPage() {
 
   useEffect(() => { fetchPosts(); }, [fetchPosts]);
 
+  const handleSearch = async () => {
+    const q = searchQuery.trim();
+    if (!q) return;
+    setSearching(true);
+    try {
+      const params = new URLSearchParams({ search: q });
+      const res = await fetch(`/api/posts?${params}`);
+      const json = await res.json();
+      setSearchResults(json.data || []);
+    } catch { /* empty */ }
+    setSearching(false);
+  };
+
   const handleCategoryClick = (cat: string) => {
     setCategory(prev => prev === cat ? null : cat);
   };
 
+  // 검색 화면
+  if (showSearch) {
+    return (
+      <div className="min-h-screen">
+        {/* 검색 헤더 */}
+        <div className="sticky top-0 z-30 bg-white">
+          <div className="pt-[env(safe-area-inset-top,0px)]">
+            <div className="flex items-center gap-3 px-4 h-[52px] border-b border-toss-gray-100">
+              <button
+                onClick={() => { setShowSearch(false); setSearchQuery(""); setSearchResults([]); }}
+                className="flex-shrink-0 w-8 h-8 flex items-center justify-center text-toss-gray-700"
+              >
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+              </button>
+              <div className="flex-1 relative">
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && !e.nativeEvent.isComposing && handleSearch()}
+                  placeholder="커뮤니티 글 검색"
+                  className="w-full h-[38px] bg-toss-gray-50 rounded-lg px-4 pr-10 text-[14px] border-none focus:outline-none placeholder:text-toss-gray-300"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => { setSearchQuery(""); setSearchResults([]); searchInputRef.current?.focus(); }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-toss-gray-300"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6" stroke="white" strokeWidth="2" strokeLinecap="round"/></svg>
+                  </button>
+                )}
+              </div>
+              <button
+                onClick={handleSearch}
+                className="flex-shrink-0 text-[14px] font-semibold text-toss-blue"
+              >
+                검색
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* 검색 결과 */}
+        <div className="max-w-[680px] mx-auto">
+          {searching ? (
+            <div className="flex justify-center py-20">
+              <div className="w-6 h-6 border-2 border-toss-gray-200 border-t-toss-blue rounded-full animate-spin" />
+            </div>
+          ) : searchResults.length > 0 ? (
+            <div className="divide-y divide-toss-gray-100">
+              {searchResults.map((post) => (
+                <Link
+                  key={post.id}
+                  href={`/community/${post.id}`}
+                  className="block px-4 py-4 active:bg-toss-gray-50 transition"
+                >
+                  <span className={`inline-block text-[11px] font-medium px-2 py-0.5 rounded ${getCategoryStyle(post.category)}`}>
+                    {post.category}
+                  </span>
+                  <div className={`mt-2 ${post.image_urls?.length > 0 ? "flex gap-3" : ""}`}>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-[16px] font-bold text-toss-gray-900 line-clamp-2">{post.title}</h3>
+                      <p className="text-[14px] text-toss-gray-500 line-clamp-2 mt-1 leading-relaxed">{post.content}</p>
+                    </div>
+                    {post.image_urls?.length > 0 && (
+                      <img src={post.image_urls[0]} alt="" className="w-14 h-14 rounded-lg object-cover flex-shrink-0" />
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between mt-3 text-[12px] text-toss-gray-400">
+                    <span>{post.users?.nickname || "익명"} · {timeAgo(post.created_at)} · 조회 {post.view_count}</span>
+                    {post.comment_count > 0 && (
+                      <span className="flex items-center gap-1">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        {post.comment_count}
+                      </span>
+                    )}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : searchQuery && !searching ? (
+            <div className="text-center py-20">
+              <p className="text-toss-gray-400 text-[15px]">검색 결과가 없습니다</p>
+              <p className="text-toss-gray-300 text-[13px] mt-1">다른 키워드로 검색해보세요</p>
+            </div>
+          ) : (
+            <div className="text-center py-20">
+              <p className="text-toss-gray-400 text-[15px]">검색어를 입력해주세요</p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pb-20">
       {/* 커스텀 헤더 - 모바일 */}
       <div className="sticky top-0 z-30 md:hidden">
         <div className="bg-white pt-[env(safe-area-inset-top,0px)]">
@@ -93,7 +214,7 @@ export default function CommunityPage() {
             <h2 className="text-[18px] font-extrabold text-toss-gray-900">커뮤니티</h2>
             <div className="flex items-center gap-2">
               <button
-                onClick={() => router.push("/community?search=true")}
+                onClick={() => setShowSearch(true)}
                 className="w-9 h-9 flex items-center justify-center text-toss-gray-700"
               >
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -132,7 +253,7 @@ export default function CommunityPage() {
             onClick={() => setSortMode("popular")}
             className={`flex-shrink-0 px-3 h-[32px] rounded-full text-[13px] font-medium transition flex items-center gap-1.5 ${
               sortMode === "popular"
-                ? "bg-toss-orange text-white"
+                ? "bg-toss-blue text-white"
                 : "bg-white border border-toss-gray-200 text-toss-gray-600"
             }`}
           >
@@ -229,7 +350,7 @@ export default function CommunityPage() {
           if (!isLoggedIn) { openLoginModal(); return; }
           setShowWriteSheet(true);
         }}
-        className="fixed bottom-20 right-5 md:bottom-8 md:right-8 bg-toss-orange text-white px-5 py-3 rounded-full shadow-lg flex items-center gap-2 hover:bg-orange-600 transition z-40 active:scale-95"
+        className="fixed bottom-24 right-5 md:bottom-8 md:right-8 bg-toss-blue text-white px-5 py-3 rounded-full shadow-lg flex items-center gap-2 hover:bg-[var(--blue-hover)] transition z-40 active:scale-95"
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
         <span className="text-[14px] font-semibold">글쓰기</span>
