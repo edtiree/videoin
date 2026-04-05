@@ -27,8 +27,11 @@ export default function BottomNav() {
         .catch(() => {});
     };
     fetchUnread();
-    const interval = setInterval(fetchUnread, 30000);
-    return () => clearInterval(interval);
+    const interval = setInterval(fetchUnread, 5000);
+    const onFocus = () => fetchUnread();
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) fetchUnread(); });
+    return () => { clearInterval(interval); window.removeEventListener("focus", onFocus); };
   }, [isLoggedIn, profile?.id]);
 
   if (!mounted) return null;
