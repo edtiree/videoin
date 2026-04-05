@@ -73,15 +73,29 @@ export default function CommunityPage() {
 
   // 스크롤 방향 감지: 아래로 → 헤더 숨김, 위로 → 헤더 표시
   useEffect(() => {
+    let ticking = false;
     const onScroll = () => {
-      const y = window.scrollY;
-      if (y < 10) { setHeaderVisible(true); }
-      else if (y > lastScrollY.current + 5) { setHeaderVisible(false); }
-      else if (y < lastScrollY.current - 5) { setHeaderVisible(true); }
-      lastScrollY.current = y;
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const y = window.pageYOffset || document.documentElement.scrollTop || 0;
+        if (y <= 10) {
+          setHeaderVisible(true);
+        } else {
+          const diff = y - lastScrollY.current;
+          if (diff > 3) setHeaderVisible(false);
+          else if (diff < -3) setHeaderVisible(true);
+        }
+        lastScrollY.current = y;
+        ticking = false;
+      });
     };
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    document.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      document.removeEventListener("scroll", onScroll);
+    };
   }, []);
 
   // 바텀시트 열릴 때 배경 스크롤 막기
