@@ -317,10 +317,23 @@ function SwipeableThread({ thread, isSelected, isSwiped, onSwipeOpen, onSwipeClo
   const swiping = useRef(false);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const rowRef = useRef<HTMLDivElement>(null);
+
   // 다른 스레드가 열리면 이 스레드 닫기
   useEffect(() => {
     if (!isSwiped && offsetX !== 0) setOffsetX(0);
   }, [isSwiped]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // passive: false 터치 리스너 등록
+  useEffect(() => {
+    const el = rowRef.current;
+    if (!el) return;
+    const handler = (e: TouchEvent) => {
+      if (swiping.current) e.preventDefault();
+    };
+    el.addEventListener("touchmove", handler, { passive: false });
+    return () => el.removeEventListener("touchmove", handler);
+  }, []);
 
   const onTouchStart = (e: React.TouchEvent) => {
     startX.current = e.touches[0].clientX;
@@ -339,8 +352,7 @@ function SwipeableThread({ thread, isSelected, isSwiped, onSwipeOpen, onSwipeClo
       swiping.current = true;
     }
     if (swiping.current) {
-      // 왼쪽 스와이프: 알림끄기 + 삭제 (최대 -140)
-      // 오른쪽 스와이프: 고정 (최대 70)
+      e.preventDefault();
       const clamped = Math.max(-140, Math.min(70, dx));
       setOffsetX(clamped);
     }
@@ -392,6 +404,7 @@ function SwipeableThread({ thread, isSelected, isSwiped, onSwipeOpen, onSwipeClo
 
       {/* 메인 콘텐츠 */}
       <div
+        ref={rowRef}
         className={`relative bg-white flex items-center gap-3 px-5 py-4 text-left ${isSelected ? "bg-blue-50" : ""}`}
         style={{ transform: `translateX(${offsetX}px)`, transition: swiping.current ? "none" : "transform 0.3s ease" }}
         onTouchStart={onTouchStart}
