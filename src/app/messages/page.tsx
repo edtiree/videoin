@@ -44,6 +44,7 @@ export default function MessagesPage() {
   const [threads, setThreads] = useState<Thread[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "unread">("all");
+  const [swipedThreadId, setSwipedThreadId] = useState<string | null>(null);
 
   // PC 전용: 선택된 스레드 + 메시지
   const [selectedThread, setSelectedThread] = useState<string | null>(null);
@@ -190,6 +191,9 @@ export default function MessagesPage() {
                       key={thread.id}
                       thread={thread}
                       isSelected={selectedThread === thread.id}
+                      isSwiped={swipedThreadId === thread.id}
+                      onSwipeOpen={() => setSwipedThreadId(thread.id)}
+                      onSwipeClose={() => setSwipedThreadId(null)}
                       onOpen={() => {
                         if (window.innerWidth < 768) {
                           router.push(`/messages/${thread.id}?name=${encodeURIComponent(thread.other_user?.nickname || "")}`);
@@ -297,9 +301,12 @@ export default function MessagesPage() {
   );
 }
 
-function SwipeableThread({ thread, isSelected, onOpen, onDelete }: {
+function SwipeableThread({ thread, isSelected, isSwiped, onSwipeOpen, onSwipeClose, onOpen, onDelete }: {
   thread: { id: string; last_message_preview: string | null; last_message_at: string; other_user: { id: string; nickname: string | null; profile_image: string | null } | null; unread_count: number };
   isSelected: boolean;
+  isSwiped: boolean;
+  onSwipeOpen: () => void;
+  onSwipeClose: () => void;
   onOpen: () => void;
   onDelete: () => void;
 }) {
@@ -309,6 +316,11 @@ function SwipeableThread({ thread, isSelected, onOpen, onDelete }: {
   const startY = useRef(0);
   const swiping = useRef(false);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // 다른 스레드가 열리면 이 스레드 닫기
+  useEffect(() => {
+    if (!isSwiped && offsetX !== 0) setOffsetX(0);
+  }, [isSwiped]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const onTouchStart = (e: React.TouchEvent) => {
     startX.current = e.touches[0].clientX;
@@ -336,14 +348,14 @@ function SwipeableThread({ thread, isSelected, onOpen, onDelete }: {
 
   const onTouchEnd = () => {
     if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; }
-    if (offsetX < -70) setOffsetX(-140);
-    else if (offsetX > 35) setOffsetX(70);
-    else setOffsetX(0);
+    if (offsetX < -70) { setOffsetX(-140); onSwipeOpen(); }
+    else if (offsetX > 35) { setOffsetX(70); onSwipeOpen(); }
+    else { setOffsetX(0); onSwipeClose(); }
     swiping.current = false;
   };
 
   const handleClick = () => {
-    if (offsetX !== 0) { setOffsetX(0); return; }
+    if (offsetX !== 0) { setOffsetX(0); onSwipeClose(); return; }
     onOpen();
   };
 
