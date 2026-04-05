@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
-import AIRecommendation from "@/components/home/AIRecommendation";
 import { CATEGORIES } from "@/lib/categories";
 
 type FeedTab = "jobs" | "editors";
@@ -201,9 +200,6 @@ export default function HomePage() {
             <span className="text-[36px]">🤝</span>
           </div>
         </button>
-
-        {/* AI 추천 섹션 */}
-        <AIRecommendation />
 
         {/* ====== 오늘의 추천 전문가 ====== */}
         <div className="mb-8">
