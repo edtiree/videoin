@@ -76,6 +76,7 @@ export default function PostDetailPage() {
   const [keywords, setKeywords] = useState<string[]>([]);
   const [subscribedKeywords, setSubscribedKeywords] = useState<Set<string>>(new Set());
   const [imageViewerIndex, setImageViewerIndex] = useState<number | null>(null);
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
 
   useEffect(() => {
     fetch(`/api/posts/${id}`)
@@ -97,6 +98,17 @@ export default function PostDetailPage() {
   }, [id]);
 
   useEffect(() => { fetchComments(); }, [fetchComments]);
+
+  // iOS 키보드 감지
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const onResize = () => {
+      setKeyboardOpen(vv.height < window.innerHeight * 0.75);
+    };
+    vv.addEventListener("resize", onResize);
+    return () => vv.removeEventListener("resize", onResize);
+  }, []);
 
   // 비슷한 게시글 + 키워드 추출
   useEffect(() => {
@@ -674,7 +686,7 @@ export default function PostDetailPage() {
           )}
         </div>
         </div>
-        <div className="pb-[env(safe-area-inset-bottom,4px)]" />
+        {!keyboardOpen && <div className="pb-[env(safe-area-inset-bottom,4px)]" />}
       </div>
     </div>
   );
