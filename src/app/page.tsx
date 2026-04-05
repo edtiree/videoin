@@ -147,6 +147,21 @@ export default function HomePage() {
           </div>
         </div>
 
+        {/* 광고 매칭 배너 */}
+        <button
+          onClick={() => router.push("/sponsorship")}
+          className="w-full bg-gradient-to-r from-toss-blue to-blue-400 rounded-2xl p-5 mb-6 text-left hover:opacity-95 transition"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[11px] font-semibold text-white/70 mb-1">광고 매칭</p>
+              <h3 className="text-[17px] md:text-[20px] font-bold text-white mb-1">브랜드 × 크리에이터 연결</h3>
+              <p className="text-[13px] text-white/80">YouTube · Instagram · TikTok 광고 매칭</p>
+            </div>
+            <span className="text-[36px]">🤝</span>
+          </div>
+        </button>
+
         {/* AI 추천 섹션 */}
         <AIRecommendation />
 
