@@ -113,9 +113,11 @@ export default function ChatPage() {
       <div className="flex-shrink-0 h-[calc(52px+env(safe-area-inset-top,0px))]" />
 
       {/* 메시지 영역 - 스크롤 */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
-        {messages.map((msg) => {
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-1">
+        {messages.map((msg, idx) => {
           const isMine = msg.sender_id === profile.id;
+          const next = messages[idx + 1];
+          const isLast = !next || next.sender_id !== msg.sender_id;
           return (
             <div key={msg.id} className={`flex ${isMine ? "justify-end" : "justify-start"}`}>
               <div className="max-w-[75%]">
@@ -126,10 +128,12 @@ export default function ChatPage() {
                 }`}>
                   {msg.content}
                 </div>
-                <p className={`text-[10px] text-toss-gray-300 mt-1 ${isMine ? "text-right" : "text-left"}`}>
+                {isLast && (
+                <p className={`text-[10px] text-toss-gray-300 mt-1 mb-2 ${isMine ? "text-right" : "text-left"}`}>
                   {formatTime(msg.created_at)}
                   {isMine && msg.is_read && " · 읽음"}
                 </p>
+                )}
               </div>
             </div>
           );
