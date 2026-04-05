@@ -79,12 +79,11 @@ export default function CommunityUserPage() {
         setPosts(data);
         setPostCount(json.total || data.length);
         if (data.length > 0 && data[0].users) {
-          setUser(data[0].users);
-        } else {
-          // 유저 정보 별도 조회
+          setUser(prev => ({ ...prev, ...data[0].users }));
+        } else if (!user?.nickname || user.nickname === initialName) {
           fetch(`/api/community/user/${userId}`)
             .then(r => r.json())
-            .then(u => setUser(u))
+            .then(u => { if (u?.nickname) setUser(prev => ({ ...prev, ...u })); })
             .catch(() => {});
         }
         fetched.current.posts = true;
@@ -132,7 +131,7 @@ export default function CommunityUserPage() {
           </div>
         )}
         <div>
-          <h2 className="text-[20px] font-bold text-toss-gray-900">{user?.nickname || "사용자"}</h2>
+          <h2 className="text-[20px] font-bold text-toss-gray-900">{user?.nickname || ""}</h2>
           <div className="flex items-center gap-3 mt-1 text-[13px] text-toss-gray-400">
             <span>게시글 {postCount}</span>
             <span>댓글 {commentCount}</span>
