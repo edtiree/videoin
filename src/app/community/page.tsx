@@ -412,6 +412,8 @@ export default function CommunityPage() {
             )}
           </div>
 
+          <div className="w-px h-[20px] bg-toss-gray-200 self-center flex-shrink-0" />
+
           {/* 카테고리 칩 */}
           {CATEGORIES.map((c) => (
             <button
