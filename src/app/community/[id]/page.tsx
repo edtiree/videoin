@@ -712,9 +712,18 @@ function CommentItem({ comment, isLoggedIn, isReply, onReply }: {
 }) {
   const [liked, setLiked] = useState(false);
   const [likes, setLikes] = useState(0);
+  const [showHeart, setShowHeart] = useState(false);
+
+  const handleDoubleTap = () => {
+    if (!isLoggedIn || liked) return;
+    setLiked(true);
+    setLikes(l => l + 1);
+    setShowHeart(true);
+    setTimeout(() => setShowHeart(false), 600);
+  };
 
   return (
-    <div className={`px-5 py-3.5 ${isReply ? "pl-4" : ""}`}>
+    <div className={`px-5 py-3.5 ${isReply ? "pl-4" : ""} relative`} onDoubleClick={handleDoubleTap}>
       <div className="flex items-start gap-2.5">
         {/* 아바타 */}
         {comment.users?.profile_image ? (
@@ -731,6 +740,13 @@ function CommentItem({ comment, isLoggedIn, isReply, onReply }: {
             <span className="text-[11px] text-toss-gray-300">{timeAgo(comment.created_at)}</span>
           </div>
           <p className="text-[14px] text-toss-gray-700 mt-1">{comment.content}</p>
+          {showHeart && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="#ef4444" stroke="none" className="animate-ping opacity-75">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+              </svg>
+            </div>
+          )}
           <div className="flex items-center gap-3 mt-2">
             <button
               onClick={() => { if (!isLoggedIn) return; setLiked(!liked); setLikes(l => liked ? l - 1 : l + 1); }}
