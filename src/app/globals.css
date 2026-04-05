@@ -187,6 +187,9 @@ input[type="number"]::-webkit-outer-spin-button {
 .dark .bg-yellow-50 {
   background-color: rgba(234, 179, 8, 0.1) !important;
 }
+.dark .bg-purple-50 {
+  background-color: rgba(168, 85, 247, 0.1) !important;
+}
 .dark .bg-pink-50 {
   background-color: rgba(236, 72, 153, 0.1) !important;
 }

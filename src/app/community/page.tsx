@@ -5,8 +5,21 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
+import NotificationBell from "@/components/NotificationBell";
 
-const CATEGORIES = ["전체", "자유", "중고거래", "장비", "노하우", "질문", "홍보"];
+const CATEGORIES = ["자유", "중고거래", "장비", "노하우", "질문", "홍보"];
+
+function getCategoryStyle(cat: string) {
+  switch (cat) {
+    case "자유": return "text-toss-blue bg-blue-50";
+    case "중고거래": return "text-toss-orange bg-orange-50";
+    case "장비": return "text-green-600 bg-green-50";
+    case "노하우": return "text-purple-600 bg-purple-50";
+    case "질문": return "text-amber-600 bg-amber-50";
+    case "홍보": return "text-pink-600 bg-pink-50";
+    default: return "text-toss-blue bg-blue-50";
+  }
+}
 
 interface Post {
   id: string;
@@ -37,7 +50,8 @@ export default function CommunityPage() {
   const { isLoggedIn, openLoginModal } = useAuth();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
-  const [category, setCategory] = useState("전체");
+  const [category, setCategory] = useState<string | null>(null);
+  const [sortMode, setSortMode] = useState<"latest" | "popular">("latest");
   const [showWriteSheet, setShowWriteSheet] = useState(false);
 
   // 바텀시트 열릴 때 배경 스크롤 막기
@@ -51,9 +65,10 @@ export default function CommunityPage() {
   }, [showWriteSheet]);
 
   const fetchPosts = useCallback(async () => {
-    if (posts.length === 0) setLoading(true); // 첫 로딩만 스피너
+    if (posts.length === 0) setLoading(true);
     const params = new URLSearchParams();
-    if (category !== "전체") params.set("category", category);
+    if (category) params.set("category", category);
+    if (sortMode === "popular") params.set("sort", "popular");
 
     try {
       const res = await fetch(`/api/posts?${params}`);
@@ -61,92 +76,152 @@ export default function CommunityPage() {
       setPosts(json.data || []);
     } catch { /* empty */ }
     setLoading(false);
-  }, [category]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [category, sortMode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { fetchPosts(); }, [fetchPosts]);
 
+  const handleCategoryClick = (cat: string) => {
+    setCategory(prev => prev === cat ? null : cat);
+  };
+
   return (
-    <div className="max-w-[1200px] mx-auto px-4 py-4">
-      {/* 카테고리 탭 */}
-      <div className="flex gap-2 overflow-x-auto pb-3 mb-4 scrollbar-hide">
-        {CATEGORIES.map((c) => (
-          <button
-            key={c}
-            onClick={() => setCategory(c)}
-            className={`flex-shrink-0 px-4 h-[34px] rounded-full text-[13px] font-medium transition ${
-              category === c ? "bg-toss-gray-900 text-white" : "bg-white border border-toss-gray-100 text-toss-gray-500"
-            }`}
-          >
-            {c}
-          </button>
-        ))}
+    <div className="min-h-screen">
+      {/* 커스텀 헤더 - 모바일 */}
+      <div className="sticky top-0 z-30 md:hidden">
+        <div className="bg-white pt-[env(safe-area-inset-top,0px)]">
+          <div className="flex items-center justify-between px-5 h-[52px] border-b border-toss-gray-100">
+            <h2 className="text-[18px] font-extrabold text-toss-gray-900">커뮤니티</h2>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => router.push("/community?search=true")}
+                className="w-9 h-9 flex items-center justify-center text-toss-gray-700"
+              >
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <circle cx="11" cy="11" r="8"/>
+                  <path d="M21 21l-4.35-4.35"/>
+                </svg>
+              </button>
+              <NotificationBell />
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* 글쓰기 버튼 */}
-      {/* 게시글 목록 */}
-      {loading ? (
-        <div className="flex justify-center py-20">
-          <div className="w-6 h-6 border-2 border-toss-gray-200 border-t-toss-blue rounded-full animate-spin" />
-        </div>
-      ) : posts.length === 0 ? (
-        <div className="text-center py-20">
-          <p className="text-toss-gray-400 text-[15px]">아직 게시글이 없습니다</p>
+      {/* 데스크톱 헤더 */}
+      <div className="hidden md:block max-w-[680px] mx-auto px-4 pt-6 pb-2">
+        <h1 className="text-[24px] font-extrabold text-toss-gray-900">커뮤니티</h1>
+      </div>
+
+      {/* 필터 칩 */}
+      <div className="sticky top-[52px] md:top-0 z-20 bg-white border-b border-toss-gray-100">
+        <div className="max-w-[680px] mx-auto flex gap-2 overflow-x-auto px-4 py-3 scrollbar-hide">
+          {/* 최신/인기 정렬 */}
           <button
-            onClick={() => isLoggedIn ? router.push("/community/new") : openLoginModal()}
-            className="mt-3 text-[14px] font-semibold text-toss-blue"
+            onClick={() => setSortMode("latest")}
+            className={`flex-shrink-0 px-3 h-[32px] rounded-full text-[13px] font-medium transition flex items-center gap-1 ${
+              sortMode === "latest"
+                ? "bg-toss-gray-900 text-white"
+                : "bg-white border border-toss-gray-200 text-toss-gray-600"
+            }`}
           >
-            첫 글 작성하기
+            최신
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M6 9l6 6 6-6"/></svg>
           </button>
-        </div>
-      ) : (
-        <div className="space-y-3 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4 md:space-y-0">
-          {posts.map((post) => (
-            <Link
-              key={post.id}
-              href={`/community/${post.id}`}
-              className="bg-white rounded-2xl border border-toss-gray-100 p-4 block hover:border-toss-gray-200 transition"
+
+          <button
+            onClick={() => setSortMode("popular")}
+            className={`flex-shrink-0 px-3 h-[32px] rounded-full text-[13px] font-medium transition flex items-center gap-1.5 ${
+              sortMode === "popular"
+                ? "bg-toss-orange text-white"
+                : "bg-white border border-toss-gray-200 text-toss-gray-600"
+            }`}
+          >
+            <span className="text-[12px]">🔥</span>
+            인기
+          </button>
+
+          <div className="w-px h-[20px] bg-toss-gray-200 self-center flex-shrink-0" />
+
+          {/* 카테고리 칩 */}
+          {CATEGORIES.map((c) => (
+            <button
+              key={c}
+              onClick={() => handleCategoryClick(c)}
+              className={`flex-shrink-0 px-3 h-[32px] rounded-full text-[13px] font-medium transition ${
+                category === c
+                  ? "bg-toss-gray-900 text-white"
+                  : "bg-white border border-toss-gray-200 text-toss-gray-600"
+              }`}
             >
-              {/* 카테고리 + 시간 */}
-              <div className="flex items-center gap-2 mb-2">
-                <span className={`text-[11px] font-medium px-2 py-0.5 rounded ${
-                  post.category === "중고거래" ? "text-toss-orange bg-orange-50" : "text-toss-blue bg-blue-50"
-                }`}>{post.category}</span>
-                <span className="text-[11px] text-toss-gray-300">{timeAgo(post.created_at)}</span>
-              </div>
-
-              {/* 제목 + 썸네일 */}
-              <div className="flex gap-3">
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-[15px] font-semibold text-toss-gray-900 mb-1 line-clamp-1">{post.title}</h3>
-                  <p className="text-[13px] text-toss-gray-500 line-clamp-2 mb-3">{post.content}</p>
-                </div>
-                {post.image_urls?.length > 0 && (
-                  <img src={post.image_urls[0]} alt="" className="w-16 h-16 rounded-lg object-cover flex-shrink-0" />
-                )}
-              </div>
-
-              {/* 하단: 작성자 + 통계 */}
-              <div className="flex items-center justify-between">
-                <span className="text-[12px] text-toss-gray-400">{post.users?.nickname || "익명"}</span>
-                <div className="flex items-center gap-3 text-[12px] text-toss-gray-400">
-                  <span className="flex items-center gap-1">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                    {post.view_count}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-                    {post.like_count}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                    {post.comment_count}
-                  </span>
-                </div>
-              </div>
-            </Link>
+              {c}
+            </button>
           ))}
         </div>
-      )}
+      </div>
+
+      {/* 게시글 목록 */}
+      <div className="max-w-[680px] mx-auto">
+        {loading ? (
+          <div className="flex justify-center py-20">
+            <div className="w-6 h-6 border-2 border-toss-gray-200 border-t-toss-blue rounded-full animate-spin" />
+          </div>
+        ) : posts.length === 0 ? (
+          <div className="text-center py-20">
+            <p className="text-toss-gray-400 text-[15px]">아직 게시글이 없습니다</p>
+            <button
+              onClick={() => isLoggedIn ? setShowWriteSheet(true) : openLoginModal()}
+              className="mt-3 text-[14px] font-semibold text-toss-blue"
+            >
+              첫 글 작성하기
+            </button>
+          </div>
+        ) : (
+          <div className="divide-y divide-toss-gray-100">
+            {posts.map((post) => (
+              <Link
+                key={post.id}
+                href={`/community/${post.id}`}
+                className="block px-4 py-4 active:bg-toss-gray-50 transition"
+              >
+                {/* 카테고리 뱃지 */}
+                <span className={`inline-block text-[11px] font-medium px-2 py-0.5 rounded ${getCategoryStyle(post.category)}`}>
+                  {post.category}
+                </span>
+
+                {/* 제목 + 썸네일 */}
+                <div className={`mt-2 ${post.image_urls?.length > 0 ? "flex gap-3" : ""}`}>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-[16px] font-bold text-toss-gray-900 line-clamp-2">{post.title}</h3>
+                    <p className="text-[14px] text-toss-gray-500 line-clamp-2 mt-1 leading-relaxed">{post.content}</p>
+                  </div>
+                  {post.image_urls?.length > 0 && (
+                    <img
+                      src={post.image_urls[0]}
+                      alt=""
+                      className="w-14 h-14 rounded-lg object-cover flex-shrink-0"
+                    />
+                  )}
+                </div>
+
+                {/* 하단 메타 */}
+                <div className="flex items-center justify-between mt-3 text-[12px] text-toss-gray-400">
+                  <span>
+                    {post.users?.nickname || "익명"} · {timeAgo(post.created_at)} · 조회 {post.view_count}
+                  </span>
+                  {post.comment_count > 0 && (
+                    <span className="flex items-center gap-1">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                      </svg>
+                      {post.comment_count}
+                    </span>
+                  )}
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* 플로팅 글쓰기 버튼 */}
       <button
@@ -154,7 +229,7 @@ export default function CommunityPage() {
           if (!isLoggedIn) { openLoginModal(); return; }
           setShowWriteSheet(true);
         }}
-        className="fixed bottom-20 right-5 md:bottom-8 md:right-8 bg-toss-blue text-white px-5 py-3 rounded-full shadow-lg flex items-center gap-2 hover:bg-[var(--blue-hover)] transition z-40 active:scale-95"
+        className="fixed bottom-20 right-5 md:bottom-8 md:right-8 bg-toss-orange text-white px-5 py-3 rounded-full shadow-lg flex items-center gap-2 hover:bg-orange-600 transition z-40 active:scale-95"
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
         <span className="text-[14px] font-semibold">글쓰기</span>
@@ -203,4 +278,3 @@ export default function CommunityPage() {
     </div>
   );
 }
-

@@ -11,12 +11,22 @@ export async function GET(request: NextRequest) {
   const page = parseInt(searchParams.get("page") || "1");
   const limit = parseInt(searchParams.get("limit") || "20");
 
+  const sort = searchParams.get("sort");
+
   const supabase = getSupabase();
   let query = supabase
     .from("posts")
-    .select("*", { count: "exact" })
-    .order("created_at", { ascending: false })
-    .range((page - 1) * limit, page * limit - 1);
+    .select("*", { count: "exact" });
+
+  if (sort === "popular") {
+    query = query
+      .order("like_count", { ascending: false })
+      .order("created_at", { ascending: false });
+  } else {
+    query = query.order("created_at", { ascending: false });
+  }
+
+  query = query.range((page - 1) * limit, page * limit - 1);
 
   if (category && category !== "전체") query = query.eq("category", category);
   if (userId) query = query.eq("user_id", userId);
