@@ -184,15 +184,20 @@ export default function ChatPage() {
           })}
         </div>
 
-        {/* 입력창 */}
-        <div style={{ flexShrink: 0, background: "#fff", borderTop: "1px solid #f2f4f6" }}>
+        {/* 입력창 - 커뮤니티 댓글 입력창과 동일 */}
+        <div style={{ flexShrink: 0 }} className="bg-white border-t border-toss-gray-100">
           <div className="flex items-center gap-2 px-3 py-1.5">
+            <button className="flex-shrink-0 p-1 text-toss-gray-400">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+              </svg>
+            </button>
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && !e.nativeEvent.isComposing && handleSend()}
-              placeholder="메시지를 입력하세요"
+              placeholder="메시지를 입력해주세요.."
               className="flex-1 h-[36px] bg-toss-gray-50 rounded-full px-4 text-[14px] border-none focus:outline-none placeholder:text-toss-gray-300"
             />
             {input.trim() && (
@@ -205,6 +210,7 @@ export default function ChatPage() {
               </button>
             )}
           </div>
+          <div className="pb-[env(safe-area-inset-bottom,4px)]" />
         </div>
       </div>
     </>
