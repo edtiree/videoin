@@ -62,13 +62,16 @@ export default function ChatPage() {
     const vv = window.visualViewport;
     if (!vv || !containerRef.current) return;
 
+    let raf: number;
     const update = () => {
-      const el = containerRef.current;
-      if (!el) return;
-      // visualViewport의 offsetTop은 키보드가 올라와서 화면이 밀린 양
-      el.style.top = `${vv.offsetTop}px`;
-      el.style.height = `${vv.height}px`;
-      setTimeout(() => scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight }), 30);
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const el = containerRef.current;
+        if (!el) return;
+        el.style.top = `${vv.offsetTop}px`;
+        el.style.height = `${vv.height}px`;
+        scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
+      });
     };
 
     vv.addEventListener("resize", update);
@@ -134,7 +137,7 @@ export default function ChatPage() {
         }}
       >
         {/* 헤더 */}
-        <div style={{ flexShrink: 0, background: "#fff", zIndex: 10 }}>
+        <div style={{ flexShrink: 0, background: "#fff", zIndex: 10, willChange: "transform" }}>
           <div style={{ height: "env(safe-area-inset-top, 0px)" }} />
           <div className="flex items-center px-5 border-b border-toss-gray-100" style={{ height: 52 }}>
             <button onClick={() => router.push("/messages")} className="w-9 h-9 flex items-center justify-center text-toss-gray-700 -ml-2 mr-1">
@@ -178,7 +181,7 @@ export default function ChatPage() {
 
         {/* 입력창 */}
         <div style={{ flexShrink: 0, background: "#fff", borderTop: "1px solid #f2f4f6" }}>
-          <div className="flex items-center gap-2 px-3 py-2">
+          <div className="flex items-center gap-2 px-3 py-1.5">
             <input
               type="text"
               value={input}
