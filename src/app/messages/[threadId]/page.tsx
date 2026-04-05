@@ -179,8 +179,11 @@ export default function ChatPage() {
               </button>
             )}
           </div>
-          {/* 출처 컨텍스트 바 */}
-          {source && (
+        </div>
+
+        {/* 출처 컨텍스트 바 */}
+        {source && (
+          <div style={{ flexShrink: 0 }}>
             <button
               onClick={() => {
                 if (source === "community" && otherId) router.push(`/community/user/${otherId}`);
@@ -189,7 +192,7 @@ export default function ChatPage() {
                 else if (source === "sponsorship" && sourceId) router.push(`/sponsorship/campaigns/${sourceId}`);
                 else if (source === "sponsorship") router.push("/sponsorship");
               }}
-              className="flex items-center gap-2 px-5 py-2.5 border-b border-toss-gray-100 bg-toss-gray-50 active:bg-toss-gray-100 transition"
+              className="w-full flex items-center gap-2 px-5 py-2 border-b border-toss-gray-100 bg-toss-gray-50 active:bg-toss-gray-100 transition"
             >
               <span className={`text-[11px] font-semibold px-2 py-0.5 rounded flex-shrink-0 ${
                 source === "community" ? "text-toss-blue bg-blue-50" :
@@ -203,8 +206,8 @@ export default function ChatPage() {
               </span>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-toss-gray-300 flex-shrink-0"><path d="M9 18l6-6-6-6"/></svg>
             </button>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* 메시지 영역 */}
         <div
