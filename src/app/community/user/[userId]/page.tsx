@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { useAuth } from "@/components/AuthProvider";
 
 interface UserInfo {
   id: string;
@@ -55,6 +56,8 @@ function getCategoryStyle(cat: string) {
 export default function CommunityUserPage() {
   const { userId } = useParams();
   const router = useRouter();
+  const { isLoggedIn, profile, openLoginModal } = useAuth();
+  const isMe = profile?.id === userId;
   const [user, setUser] = useState<UserInfo | null>(null);
   const [tab, setTab] = useState<"posts" | "comments">("posts");
   const [posts, setPosts] = useState<Post[]>([]);
@@ -134,6 +137,22 @@ export default function CommunityUserPage() {
           </div>
         </div>
       </div>
+
+      {/* 1:1 채팅 버튼 */}
+      {!isMe && user && (
+        <div className="px-5 pb-4">
+          <button
+            onClick={() => {
+              if (!isLoggedIn) { openLoginModal(); return; }
+              router.push(`/messages?to=${userId}`);
+            }}
+            className="w-full h-[44px] rounded-xl bg-toss-blue text-white text-[14px] font-semibold flex items-center justify-center gap-2 hover:bg-[var(--blue-hover)] transition active:scale-[0.98]"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            1:1 채팅하기
+          </button>
+        </div>
+      )}
 
       {/* 탭 */}
       <div className="flex border-b border-toss-gray-100">
