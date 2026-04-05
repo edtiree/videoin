@@ -349,7 +349,7 @@ export default function CreatorDetailPage() {
           <button
             onClick={() => {
               if (!isLoggedIn) { openLoginModal(); return; }
-              router.push(`/messages?to=${creator.user_id}&source=sponsorship`);
+              router.push(`/messages?to=${creator.user_id}&source=sponsorship&source_id=${creator.id}&source_title=${encodeURIComponent(creator.platforms?.[0]?.name || "크리에이터 프로필")}`);
             }}
             className="w-full h-[52px] rounded-xl bg-toss-blue text-white text-[16px] font-semibold hover:bg-[var(--blue-hover)] transition"
           >

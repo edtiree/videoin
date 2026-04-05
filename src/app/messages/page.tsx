@@ -65,6 +65,8 @@ export default function MessagesPage() {
     const toUserId = searchParams.get("to");
     const jobId = searchParams.get("job");
     const source = searchParams.get("source");
+    const sourceId = searchParams.get("source_id");
+    const sourceTitle = searchParams.get("source_title");
 
     if (toUserId && profile) {
       fetch(`/api/messages?user_id=${profile.id}`)
@@ -88,6 +90,8 @@ export default function MessagesPage() {
                 content: greetings[source || ""] || "안녕하세요! 연락드립니다 😊",
                 ...(jobId ? { job_id: jobId } : {}),
                 ...(source ? { source } : {}),
+                ...(sourceId ? { source_id: sourceId } : {}),
+                ...(sourceTitle ? { source_title: sourceTitle } : {}),
               }),
             });
             const result = await res.json();

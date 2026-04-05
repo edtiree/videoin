@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
 
 // POST: 새 메시지 보내기
 export async function POST(request: NextRequest) {
-  const { sender_id, receiver_id, content, job_id, source } = await request.json();
+  const { sender_id, receiver_id, content, job_id, source, source_id, source_title } = await request.json();
 
   if (!sender_id || !receiver_id || !content?.trim()) {
     return NextResponse.json({ error: "필수 항목 누락" }, { status: 400 });
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
   if (!thread) {
     const { data: newThread, error: threadErr } = await supabase
       .from("message_threads")
-      .insert({ participant_a: a, participant_b: b, last_message_preview: content.trim().slice(0, 100), source: source || null })
+      .insert({ participant_a: a, participant_b: b, last_message_preview: content.trim().slice(0, 100), source: source || null, source_id: source_id || null, source_title: source_title || null })
       .select()
       .single();
     if (threadErr || !newThread) return NextResponse.json({ error: threadErr?.message || "스레드 생성 실패" }, { status: 500 });

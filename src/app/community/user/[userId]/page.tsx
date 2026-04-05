@@ -144,7 +144,7 @@ export default function CommunityUserPage() {
           <button
             onClick={() => {
               if (!isLoggedIn) { openLoginModal(); return; }
-              router.push(`/messages?to=${userId}&source=community`);
+              router.push(`/messages?to=${userId}&source=community&source_title=${encodeURIComponent(user?.nickname + "님의 프로필")}`);
             }}
             className="w-full h-[44px] rounded-xl bg-toss-blue text-white text-[14px] font-semibold flex items-center justify-center gap-2 hover:bg-[var(--blue-hover)] transition active:scale-[0.98]"
           >

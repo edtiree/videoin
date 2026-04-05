@@ -33,6 +33,8 @@ export default function ChatPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [otherName, setOtherName] = useState(searchParams.get("name") || "");
   const [source, setSource] = useState<string | null>(null);
+  const [sourceId, setSourceId] = useState<string | null>(null);
+  const [sourceTitle, setSourceTitle] = useState<string | null>(null);
   const [otherId, setOtherId] = useState<string | null>(null);
 
   const fetchMessages = useCallback(async () => {
@@ -57,9 +59,9 @@ export default function ChatPage() {
     if (!profile) return;
     fetch(`/api/messages?user_id=${profile.id}`)
       .then(r => r.json())
-      .then((threads: { id: string; source: string | null }[]) => {
+      .then((threads: { id: string; source: string | null; source_id: string | null; source_title: string | null }[]) => {
         const t = threads.find(t => t.id === threadId);
-        if (t?.source) setSource(t.source);
+        if (t?.source) { setSource(t.source); setSourceId(t.source_id); setSourceTitle(t.source_title); }
       })
       .catch(() => {});
   }, [threadId, profile]);
@@ -182,23 +184,24 @@ export default function ChatPage() {
             <button
               onClick={() => {
                 if (source === "community" && otherId) router.push(`/community/user/${otherId}`);
+                else if (source === "job" && sourceId) router.push(`/jobs/${sourceId}`);
                 else if (source === "job") router.push("/jobs");
+                else if (source === "sponsorship" && sourceId) router.push(`/sponsorship/campaigns/${sourceId}`);
                 else if (source === "sponsorship") router.push("/sponsorship");
               }}
               className="flex items-center gap-2 px-5 py-2.5 border-b border-toss-gray-100 bg-toss-gray-50 active:bg-toss-gray-100 transition"
             >
-              <span className={`text-[11px] font-semibold px-2 py-0.5 rounded ${
+              <span className={`text-[11px] font-semibold px-2 py-0.5 rounded flex-shrink-0 ${
                 source === "community" ? "text-toss-blue bg-blue-50" :
                 source === "job" ? "text-green-600 bg-green-50" :
                 "text-toss-orange bg-orange-50"
               }`}>
                 {source === "community" ? "커뮤니티" : source === "job" ? "구인구직" : "광고매칭"}
               </span>
-              <span className="text-[13px] text-toss-gray-500 flex-1">
-                {source === "community" ? "커뮤니티에서 시작된 대화" :
-                 source === "job" ? "구인구직에서 시작된 대화" : "광고매칭에서 시작된 대화"}
+              <span className="text-[13px] text-toss-gray-600 flex-1 truncate">
+                {sourceTitle || (source === "community" ? "프로필에서 시작된 대화" : source === "job" ? "공고에서 시작된 대화" : "광고매칭에서 시작된 대화")}
               </span>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-toss-gray-300"><path d="M9 18l6-6-6-6"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-toss-gray-300 flex-shrink-0"><path d="M9 18l6-6-6-6"/></svg>
             </button>
           )}
         </div>
