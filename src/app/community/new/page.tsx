@@ -127,7 +127,7 @@ export default function NewPostPage() {
     const data = await res.json();
     if (!res.ok) { setError(data.error || "작성에 실패했습니다"); setSaving(false); return; }
 
-    router.push(`/community/${data.id}`);
+    router.replace(`/community/${data.id}`);
   };
 
   if (!isLoggedIn) return null;

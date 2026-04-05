@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 
@@ -100,10 +101,10 @@ export default function CommunityPage() {
       ) : (
         <div className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
           {posts.map((post) => (
-            <div
+            <Link
               key={post.id}
-              onClick={() => router.push(`/community/${post.id}`)}
-              className="bg-white rounded-2xl border border-toss-gray-100 p-4 cursor-pointer hover:border-toss-gray-200 transition"
+              href={`/community/${post.id}`}
+              className="bg-white rounded-2xl border border-toss-gray-100 p-4 block hover:border-toss-gray-200 transition"
             >
               {/* 카테고리 + 시간 */}
               <div className="flex items-center gap-2 mb-2">
@@ -142,7 +143,7 @@ export default function CommunityPage() {
                   </span>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       )}
