@@ -56,6 +56,7 @@ export default function CommunityPage() {
   const [category, setCategory] = useState<string | null>(null);
   const [sortMode, setSortMode] = useState<"latest" | "popular">("latest");
   const [showWriteSheet, setShowWriteSheet] = useState(false);
+  const [showSortDropdown, setShowSortDropdown] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Post[]>([]);
@@ -376,21 +377,38 @@ export default function CommunityPage() {
         {/* 필터 칩 (헤더에 포함) */}
         <div className="border-t border-b border-toss-gray-100">
         <div className="max-w-[680px] mx-auto flex gap-2 overflow-x-auto px-4 py-3 scrollbar-hide">
-          {/* 최신/인기 정렬 */}
-          <button
-            onClick={() => setSortMode("latest")}
-            className={`flex-shrink-0 px-3 h-[32px] rounded-full text-[13px] font-medium transition flex items-center gap-1 ${
-              sortMode === "latest"
-                ? "bg-toss-gray-900 text-white"
-                : "bg-white border border-toss-gray-200 text-toss-gray-600"
-            }`}
-          >
-            최신
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M6 9l6 6 6-6"/></svg>
-          </button>
+          {/* 정렬 드롭다운 */}
+          <div className="relative flex-shrink-0">
+            <button
+              onClick={() => setShowSortDropdown(!showSortDropdown)}
+              className="px-3 h-[32px] rounded-full text-[13px] font-medium transition flex items-center gap-1 bg-white border border-toss-gray-200 text-toss-gray-700"
+            >
+              {sortMode === "latest" ? "최신" : sortMode === "popular" ? "인기" : "추천"}
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={`transition-transform ${showSortDropdown ? "rotate-180" : ""}`}><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+            {showSortDropdown && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowSortDropdown(false)} />
+                <div className="absolute left-0 top-full mt-1 bg-white rounded-xl shadow-lg border border-toss-gray-100 py-1 min-w-[100px] z-50">
+                  <button
+                    onClick={() => { setSortMode("latest"); setShowSortDropdown(false); }}
+                    className={`w-full px-4 py-2.5 text-left text-[14px] hover:bg-toss-gray-50 ${sortMode === "latest" ? "text-toss-blue font-semibold" : "text-toss-gray-700"}`}
+                  >
+                    최신순
+                  </button>
+                  <button
+                    onClick={() => { setSortMode("popular"); setShowSortDropdown(false); }}
+                    className={`w-full px-4 py-2.5 text-left text-[14px] hover:bg-toss-gray-50 ${sortMode === "popular" ? "text-toss-blue font-semibold" : "text-toss-gray-700"}`}
+                  >
+                    추천순
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
 
           <button
-            onClick={() => setSortMode("popular")}
+            onClick={() => setSortMode(sortMode === "popular" ? "latest" : "popular")}
             className={`flex-shrink-0 px-3 h-[32px] rounded-full text-[13px] font-medium transition flex items-center gap-1.5 ${
               sortMode === "popular"
                 ? "bg-toss-blue text-white"
