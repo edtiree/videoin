@@ -29,6 +29,8 @@ export default function ChatPage() {
   const [sending, setSending] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [keyboardOpen, setKeyboardOpen] = useState(false);
+  const [viewHeight, setViewHeight] = useState("100dvh");
+  const containerRef = useRef<HTMLDivElement>(null);
   const [otherName, setOtherName] = useState(searchParams.get("name") || "");
 
   const fetchMessages = useCallback(async () => {
@@ -58,13 +60,25 @@ export default function ChatPage() {
     }, 100);
   }, [messages]);
 
-  // iOS 키보드 감지
+  // iOS 키보드 감지 + 높이 조정
   useEffect(() => {
     const vv = window.visualViewport;
     if (!vv) return;
-    const onResize = () => setKeyboardOpen(vv.height < window.innerHeight * 0.75);
+    const onResize = () => {
+      const isOpen = vv.height < window.innerHeight * 0.75;
+      setKeyboardOpen(isOpen);
+      setViewHeight(`${vv.height}px`);
+      // 키보드 열릴 때 스크롤 맨 아래로
+      if (isOpen) {
+        setTimeout(() => scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight }), 50);
+      }
+    };
     vv.addEventListener("resize", onResize);
-    return () => vv.removeEventListener("resize", onResize);
+    vv.addEventListener("scroll", onResize);
+    return () => {
+      vv.removeEventListener("resize", onResize);
+      vv.removeEventListener("scroll", onResize);
+    };
   }, []);
 
   const handleSend = async () => {
@@ -98,7 +112,7 @@ export default function ChatPage() {
   if (!profile) return null;
 
   return (
-    <div className="h-[100dvh] flex flex-col bg-white">
+    <div ref={containerRef} className="flex flex-col bg-white" style={{ height: viewHeight }}>
       {/* 헤더 - 고정 */}
       <div className="fixed top-0 left-0 right-0 z-30 bg-white">
         <div className="pt-[env(safe-area-inset-top,0px)]" />
