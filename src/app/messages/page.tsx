@@ -44,7 +44,7 @@ export default function MessagesPage() {
   const { isLoggedIn, profile, openLoginModal } = useAuth();
   const [threads, setThreads] = useState<Thread[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<"all" | "unread">("all");
+  const [filter, setFilter] = useState<"all" | "unread" | "community" | "job" | "sponsorship">("all");
   const [swipedThreadId, setSwipedThreadId] = useState<string | null>(null);
   const [pinnedIds, setPinnedIds] = useState<Set<string>>(() => {
     if (typeof window !== "undefined") {
@@ -154,7 +154,14 @@ export default function MessagesPage() {
     setSending(false);
   };
 
-  const filteredThreads = (filter === "unread" ? threads.filter((t) => t.unread_count > 0) : threads)
+  const filteredThreads = threads
+    .filter((t) => {
+      if (filter === "unread") return t.unread_count > 0;
+      if (filter === "community") return t.source === "community";
+      if (filter === "job") return t.source === "job";
+      if (filter === "sponsorship") return t.source === "sponsorship";
+      return true;
+    })
     .sort((a, b) => {
       const ap = pinnedIds.has(a.id) ? 1 : 0;
       const bp = pinnedIds.has(b.id) ? 1 : 0;
@@ -188,14 +195,20 @@ export default function MessagesPage() {
               <h2 className="text-[18px] font-bold text-toss-gray-900">채팅</h2>
             </div>
 
-            {/* 필터 탭 */}
-            <div className="hidden md:flex gap-2 px-5 py-3 border-b border-toss-gray-50">
-              {(["all", "unread"] as const).map((f) => (
-                <button key={f} onClick={() => setFilter(f)}
-                  className={`px-3 py-1.5 rounded-full text-[12px] font-semibold transition ${
-                    filter === f ? "bg-toss-gray-900 text-white" : "bg-toss-gray-50 text-toss-gray-500"
+            {/* 필터 칩 */}
+            <div className="flex gap-2 px-4 py-2.5 overflow-x-auto scrollbar-hide border-b border-toss-gray-100">
+              {([
+                { key: "all", label: "전체" },
+                { key: "unread", label: "안읽음" },
+                { key: "community", label: "커뮤니티" },
+                { key: "job", label: "구인구직" },
+                { key: "sponsorship", label: "광고매칭" },
+              ] as const).map((f) => (
+                <button key={f.key} onClick={() => setFilter(f.key)}
+                  className={`flex-shrink-0 px-3 h-[30px] rounded-full text-[13px] font-medium transition ${
+                    filter === f.key ? "bg-toss-gray-900 text-white" : "bg-white border border-toss-gray-200 text-toss-gray-500"
                   }`}>
-                  {f === "all" ? "전체" : "안 읽음"}
+                  {f.label}
                 </button>
               ))}
             </div>
