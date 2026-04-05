@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 import { CATEGORIES } from "@/lib/categories";
@@ -72,6 +72,17 @@ export default function HomePage() {
   const [tab, setTab] = useState<FeedTab>("jobs");
   const [searchQuery, setSearchQuery] = useState("");
   const [expertCat, setExpertCat] = useState("영상 편집");
+  const [searchSticky, setSearchSticky] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => setSearchSticky(!entry.isIntersecting),
+      { threshold: 0, rootMargin: "-1px 0px 0px 0px" }
+    );
+    if (searchRef.current) observer.observe(searchRef.current);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     if (profile?.role?.includes("편집자/스태프")) setTab("jobs");
@@ -154,8 +165,8 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* ====== 모바일 검색바 (md 미만에서만 표시) ====== */}
-      <div className="md:hidden px-4 pt-4 pb-2">
+      {/* ====== 모바일 검색바 (원래 위치 - 관찰 대상) ====== */}
+      <div ref={searchRef} className="md:hidden px-4 pt-4 pb-2">
         <div
           onClick={() => router.push("/jobs?focus=search")}
           className="flex items-center gap-3 w-full h-[52px] px-5 rounded-full border border-toss-gray-200 bg-white cursor-pointer active:bg-toss-gray-50 transition"
@@ -166,6 +177,23 @@ export default function HomePage() {
           <span className="text-[15px] text-toss-gray-300">어떤 전문가가 필요하세요?</span>
         </div>
       </div>
+
+      {/* ====== 모바일 검색바 (스크롤 시 상단 고정) ====== */}
+      {searchSticky && (
+        <div className="fixed top-0 left-0 right-0 z-40 md:hidden bg-white pt-[env(safe-area-inset-top,0px)]">
+          <div className="px-4 py-2">
+            <div
+              onClick={() => router.push("/jobs?focus=search")}
+              className="flex items-center gap-3 w-full h-[48px] px-5 rounded-full border border-toss-gray-200 bg-toss-gray-50 cursor-pointer active:bg-toss-gray-100 transition"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" className="text-toss-gray-400 flex-shrink-0">
+                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+              </svg>
+              <span className="text-[14px] text-toss-gray-300">어떤 전문가가 필요하세요?</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ====== 메인 콘텐츠 ====== */}
       <div className="max-w-[1200px] mx-auto px-4 md:px-6 py-5">
