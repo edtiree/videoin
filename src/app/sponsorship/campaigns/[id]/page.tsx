@@ -309,7 +309,7 @@ export default function CampaignDetailPage() {
                 openLoginModal();
                 return;
               }
-              router.push(`/messages?to=${campaign.user_id}`);
+              router.push(`/messages?to=${campaign.user_id}&source=sponsorship`);
             }}
             className="w-full h-[52px] rounded-xl bg-toss-blue text-white font-semibold text-[15px] transition hover:bg-[var(--blue-hover)]"
           >

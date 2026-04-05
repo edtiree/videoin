@@ -112,7 +112,7 @@ export default function JobDetailPage() {
           <button
             onClick={() => {
               if (!isLoggedIn) { openLoginModal(); return; }
-              router.push(`/messages?job=${job.id}&to=${job.user_id}`);
+              router.push(`/messages?job=${job.id}&to=${job.user_id}&source=job`);
             }}
             className="w-full h-[52px] rounded-xl bg-toss-blue text-white font-semibold text-[15px] transition hover:bg-[var(--blue-hover)]"
           >

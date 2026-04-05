@@ -122,7 +122,7 @@ export default function EditorDetailPage() {
               <button
                 onClick={() => {
                   if (!isLoggedIn) { openLoginModal(); return; }
-                  router.push(`/messages?to=${editor.user_id}`);
+                  router.push(`/messages?to=${editor.user_id}&source=job`);
                 }}
                 className="px-6 py-2.5 rounded-xl border border-toss-gray-200 text-[14px] font-semibold text-toss-gray-900 hover:bg-toss-gray-50 transition"
               >
@@ -131,7 +131,7 @@ export default function EditorDetailPage() {
               <button
                 onClick={() => {
                   if (!isLoggedIn) { openLoginModal(); return; }
-                  router.push(`/messages?to=${editor.user_id}`);
+                  router.push(`/messages?to=${editor.user_id}&source=job`);
                 }}
                 className="px-6 py-2.5 rounded-xl bg-toss-blue text-white text-[14px] font-semibold hover:bg-[var(--blue-hover)] transition"
               >
@@ -318,7 +318,7 @@ export default function EditorDetailPage() {
             <button
               onClick={() => {
                 if (!isLoggedIn) { openLoginModal(); return; }
-                router.push(`/messages?to=${editor.user_id}`);
+                router.push(`/messages?to=${editor.user_id}&source=job`);
               }}
               className="w-full h-[48px] mt-6 rounded-xl border border-toss-gray-200 text-[14px] font-semibold text-toss-gray-900 hover:bg-toss-gray-50 transition"
             >
@@ -391,7 +391,7 @@ export default function EditorDetailPage() {
         <button
           onClick={() => {
             if (!isLoggedIn) { openLoginModal(); return; }
-            router.push(`/messages?to=${editor.user_id}`);
+            router.push(`/messages?to=${editor.user_id}&source=job`);
           }}
           className="flex-1 h-12 rounded-xl border border-toss-gray-200 text-[14px] font-semibold text-toss-gray-900 hover:bg-toss-gray-50 transition"
         >
@@ -400,7 +400,7 @@ export default function EditorDetailPage() {
         <button
           onClick={() => {
             if (!isLoggedIn) { openLoginModal(); return; }
-            router.push(`/messages?to=${editor.user_id}`);
+            router.push(`/messages?to=${editor.user_id}&source=job`);
           }}
           className="flex-1 h-12 rounded-xl bg-toss-blue text-white text-[14px] font-semibold hover:bg-[var(--blue-hover)] transition"
         >

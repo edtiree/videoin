@@ -10,6 +10,7 @@ interface Thread {
   id: string;
   last_message_preview: string | null;
   last_message_at: string;
+  source: string | null;
   other_user: { id: string; nickname: string | null; profile_image: string | null } | null;
   unread_count: number;
 }
@@ -63,9 +64,9 @@ export default function MessagesPage() {
     if (!isLoggedIn) { openLoginModal(); return; }
     const toUserId = searchParams.get("to");
     const jobId = searchParams.get("job");
+    const source = searchParams.get("source");
 
     if (toUserId && profile) {
-      // 기존 스레드 찾기
       fetch(`/api/messages?user_id=${profile.id}`)
         .then((r) => r.json())
         .then(async (data: Thread[]) => {
@@ -73,15 +74,20 @@ export default function MessagesPage() {
           if (existing) {
             router.replace(`/messages/${existing.id}?name=${encodeURIComponent(existing.other_user?.nickname || "")}`);
           } else {
-            // 새 스레드 생성 (빈 인사 메시지)
+            const greetings: Record<string, string> = {
+              community: "안녕하세요! 커뮤니티에서 프로필 보고 연락드려요 😊",
+              job: "안녕하세요! 구인 공고 보고 연락드립니다 📋",
+              sponsorship: "안녕하세요! 광고 매칭에서 프로필 보고 연락드려요 📣",
+            };
             const res = await fetch("/api/messages", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 sender_id: profile.id,
                 receiver_id: toUserId,
-                content: "안녕하세요! 커뮤니티에서 프로필 보고 연락드려요 😊",
+                content: greetings[source || ""] || "안녕하세요! 연락드립니다 😊",
                 ...(jobId ? { job_id: jobId } : {}),
+                ...(source ? { source } : {}),
               }),
             });
             const result = await res.json();
@@ -325,7 +331,7 @@ export default function MessagesPage() {
 }
 
 function SwipeableThread({ thread, isSelected, isSwiped, onSwipeOpen, onSwipeClose, onOpen, onDelete, isPinned, onPin }: {
-  thread: { id: string; last_message_preview: string | null; last_message_at: string; other_user: { id: string; nickname: string | null; profile_image: string | null } | null; unread_count: number };
+  thread: { id: string; last_message_preview: string | null; last_message_at: string; source: string | null; other_user: { id: string; nickname: string | null; profile_image: string | null } | null; unread_count: number };
   isSelected: boolean;
   isSwiped: boolean;
   onSwipeOpen: () => void;
@@ -487,6 +493,9 @@ function SwipeableThread({ thread, isSelected, isSwiped, onSwipeOpen, onSwipeClo
             <span className="flex items-center gap-1 text-[15px] font-semibold text-toss-gray-900">
               {thread.other_user?.nickname || "알 수 없음"}
               {isPinned && <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" className="text-toss-blue"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/></svg>}
+              {thread.source === "community" && <span className="text-[10px] font-medium text-toss-blue bg-blue-50 px-1.5 py-0.5 rounded">커뮤니티</span>}
+              {thread.source === "job" && <span className="text-[10px] font-medium text-green-600 bg-green-50 px-1.5 py-0.5 rounded">구인구직</span>}
+              {thread.source === "sponsorship" && <span className="text-[10px] font-medium text-toss-orange bg-orange-50 px-1.5 py-0.5 rounded">광고매칭</span>}
             </span>
             <span className="text-[11px] text-toss-gray-300 flex-shrink-0">{timeAgo(thread.last_message_at)}</span>
           </div>
