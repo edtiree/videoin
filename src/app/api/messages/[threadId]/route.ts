@@ -28,3 +28,15 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
   return NextResponse.json(data);
 }
+
+// DELETE: 스레드 삭제 (메시지도 함께)
+export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ threadId: string }> }) {
+  const { threadId } = await params;
+  const supabase = getSupabase();
+
+  await supabase.from("messages").delete().eq("thread_id", threadId);
+  const { error } = await supabase.from("message_threads").delete().eq("id", threadId);
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ success: true });
+}
