@@ -50,6 +50,9 @@ export default function CommunityPage() {
   const { isLoggedIn, openLoginModal } = useAuth();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const [category, setCategory] = useState<string | null>(null);
   const [sortMode, setSortMode] = useState<"latest" | "popular">("latest");
   const [showWriteSheet, setShowWriteSheet] = useState(false);
@@ -59,6 +62,7 @@ export default function CommunityPage() {
   const [searching, setSearching] = useState(false);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const observerRef = useRef<HTMLDivElement>(null);
 
   // 바텀시트 열릴 때 배경 스크롤 막기
   useEffect(() => {
@@ -81,21 +85,54 @@ export default function CommunityPage() {
     }
   }, [showSearch]);
 
-  const fetchPosts = useCallback(async () => {
-    if (posts.length === 0) setLoading(true);
+  const fetchPosts = useCallback(async (pageNum: number, append = false) => {
+    if (pageNum === 1 && !append) setLoading(true);
+    else setLoadingMore(true);
+
     const params = new URLSearchParams();
     if (category) params.set("category", category);
     if (sortMode === "popular") params.set("sort", "popular");
+    params.set("page", String(pageNum));
+    params.set("limit", "20");
 
     try {
       const res = await fetch(`/api/posts?${params}`);
       const json = await res.json();
-      setPosts(json.data || []);
+      const newPosts = json.data || [];
+      if (append) {
+        setPosts(prev => [...prev, ...newPosts]);
+      } else {
+        setPosts(newPosts);
+      }
+      setHasMore(newPosts.length >= 20);
     } catch { /* empty */ }
     setLoading(false);
-  }, [category, sortMode]); // eslint-disable-line react-hooks/exhaustive-deps
+    setLoadingMore(false);
+  }, [category, sortMode]);
 
-  useEffect(() => { fetchPosts(); }, [fetchPosts]);
+  // 카테고리/정렬 변경 시 첫 페이지부터
+  useEffect(() => {
+    setPage(1);
+    setHasMore(true);
+    fetchPosts(1, false);
+  }, [fetchPosts]);
+
+  // 무한 스크롤: IntersectionObserver
+  useEffect(() => {
+    if (!observerRef.current || !hasMore || loadingMore || loading) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loadingMore) {
+          const nextPage = page + 1;
+          setPage(nextPage);
+          fetchPosts(nextPage, true);
+        }
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(observerRef.current);
+    return () => observer.disconnect();
+  }, [hasMore, loadingMore, loading, page, fetchPosts]);
 
   const saveRecentSearch = (q: string) => {
     const updated = [q, ...recentSearches.filter(s => s !== q)].slice(0, 10);
@@ -401,6 +438,14 @@ export default function CommunityPage() {
                 </div>
               </Link>
             ))}
+          </div>
+        )}
+        {/* 무한 스크롤 트리거 */}
+        {!loading && hasMore && (
+          <div ref={observerRef} className="flex justify-center py-6">
+            {loadingMore && (
+              <div className="w-5 h-5 border-2 border-toss-gray-200 border-t-toss-blue rounded-full animate-spin" />
+            )}
           </div>
         )}
       </div>
