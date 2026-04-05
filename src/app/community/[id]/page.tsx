@@ -224,15 +224,16 @@ export default function PostDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen">
-        <div className="sticky top-0 z-30 bg-white border-b border-toss-gray-100">
-          <div className="flex items-center px-2 h-12 pt-[env(safe-area-inset-top,0px)]">
+      <div className="min-h-screen bg-white">
+        <div className="fixed top-0 left-0 right-0 z-30 bg-white">
+          <div className="pt-[env(safe-area-inset-top,0px)]" />
+          <div className="flex items-center px-2 h-12 border-b border-toss-gray-100">
             <button onClick={() => router.back()} className="w-10 h-10 flex items-center justify-center text-toss-gray-700">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M15 18l-6-6 6-6"/></svg>
             </button>
           </div>
         </div>
-        <div className="flex justify-center py-20">
+        <div className="flex justify-center py-20 pt-32">
           <div className="w-6 h-6 border-2 border-toss-gray-200 border-t-toss-blue rounded-full animate-spin" />
         </div>
       </div>
@@ -241,23 +242,24 @@ export default function PostDetailPage() {
 
   if (!post) {
     return (
-      <div className="min-h-screen">
-        <div className="sticky top-0 z-30 bg-white border-b border-toss-gray-100">
-          <div className="flex items-center px-2 h-12 pt-[env(safe-area-inset-top,0px)]">
+      <div className="min-h-screen bg-white">
+        <div className="fixed top-0 left-0 right-0 z-30 bg-white">
+          <div className="pt-[env(safe-area-inset-top,0px)]" />
+          <div className="flex items-center px-2 h-12 border-b border-toss-gray-100">
             <button onClick={() => router.back()} className="w-10 h-10 flex items-center justify-center text-toss-gray-700">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M15 18l-6-6 6-6"/></svg>
             </button>
           </div>
         </div>
-        <div className="text-center py-20 text-toss-gray-400">게시글을 찾을 수 없습니다</div>
+        <div className="text-center py-20 pt-32 text-toss-gray-400">게시글을 찾을 수 없습니다</div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen pb-24 bg-white">
-      {/* 커스텀 헤더 */}
-      <div className="sticky top-0 z-30 bg-white">
+      {/* 커스텀 헤더 (fixed) */}
+      <div className="fixed top-0 left-0 right-0 z-30 bg-white">
         <div className="pt-[env(safe-area-inset-top,0px)]" />
         <div className="flex items-center justify-between px-2 h-12 border-b border-toss-gray-100">
           <button onClick={() => router.back()} className="w-10 h-10 flex items-center justify-center text-toss-gray-700">
@@ -315,6 +317,8 @@ export default function PostDetailPage() {
           </div>
         </div>
       </div>
+      {/* 헤더 높이 스페이서 */}
+      <div className="h-[calc(12px+env(safe-area-inset-top,0px)+48px)]" />
 
       <div className="max-w-[680px] mx-auto">
         {/* 게시글 */}
@@ -635,7 +639,8 @@ export default function PostDetailPage() {
       )}
 
       {/* 댓글 입력 */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-toss-gray-100 z-[51]">
+      <div className="fixed bottom-0 left-0 right-0 z-[51]" style={{ backgroundColor: "var(--surface, #ffffff)" }}>
+        <div className="border-t border-toss-gray-100 bg-white">
         {replyTo && (
           <div className="flex items-center justify-between px-4 pt-2">
             <span className="text-[12px] text-toss-blue">@{replyTo.nickname}에게 답글</span>
@@ -668,7 +673,8 @@ export default function PostDetailPage() {
             </button>
           )}
         </div>
-        <div className="h-[env(safe-area-inset-bottom,8px)]" />
+        </div>
+        <div className="h-[env(safe-area-inset-bottom,8px)] bg-white" />
       </div>
     </div>
   );
