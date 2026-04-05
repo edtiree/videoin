@@ -386,10 +386,11 @@ export default function CommunityPage() {
               {sortMode === "latest" ? "최신" : sortMode === "popular" ? "인기" : "추천"}
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={`transition-transform ${showSortDropdown ? "rotate-180" : ""}`}><path d="M6 9l6 6 6-6"/></svg>
             </button>
-            {showSortDropdown && (
+            {showSortDropdown && typeof window !== "undefined" && createPortal(
               <>
-                <div className="fixed inset-0 z-40" onClick={() => setShowSortDropdown(false)} />
-                <div className="absolute left-0 top-full mt-1 bg-white rounded-xl shadow-lg border border-toss-gray-100 py-1 min-w-[100px] z-50">
+                <div className="fixed inset-0 z-[9998]" onClick={() => setShowSortDropdown(false)} />
+                <div className="fixed z-[9999] bg-white rounded-xl shadow-lg border border-toss-gray-100 py-1 min-w-[120px]"
+                  style={{ top: `calc(env(safe-area-inset-top, 0px) + 52px + 44px)`, left: "16px" }}>
                   <button
                     onClick={() => { setSortMode("latest"); setShowSortDropdown(false); }}
                     className={`w-full px-4 py-2.5 text-left text-[14px] hover:bg-toss-gray-50 ${sortMode === "latest" ? "text-toss-blue font-semibold" : "text-toss-gray-700"}`}
@@ -403,7 +404,8 @@ export default function CommunityPage() {
                     추천순
                   </button>
                 </div>
-              </>
+              </>,
+              document.body
             )}
           </div>
 
