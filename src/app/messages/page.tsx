@@ -390,13 +390,21 @@ function SwipeableThread({ thread, isSelected, isSwiped, onSwipeOpen, onSwipeClo
     }
     if (swiping.current) {
       e.preventDefault();
-      // 이미 열린 상태에서 반대로 스와이프하면 닫기만
+      // 고무줄 효과: 제한 넘으면 저항감 (1/4 속도)
+      const rubber = (val: number, limit: number) => {
+        if (Math.abs(val) <= Math.abs(limit)) return val;
+        const over = Math.abs(val) - Math.abs(limit);
+        const sign = val > 0 ? 1 : -1;
+        return sign * (Math.abs(limit) + over * 0.25);
+      };
+
       if (openedDir.current === "right" && dx < 0) {
         setOffsetX(Math.max(0, 70 + dx));
       } else if (openedDir.current === "left" && dx > 0) {
         setOffsetX(Math.min(0, -140 + dx));
       } else if (!openedDir.current) {
-        setOffsetX(Math.max(-140, Math.min(70, dx)));
+        if (dx < 0) setOffsetX(rubber(dx, -140));
+        else setOffsetX(rubber(dx, 70));
       }
     }
   };
@@ -461,7 +469,7 @@ function SwipeableThread({ thread, isSelected, isSwiped, onSwipeOpen, onSwipeClo
       <div
         ref={rowRef}
         className={`relative bg-white flex items-center gap-3 px-5 py-4 text-left ${isSelected ? "bg-blue-50" : ""}`}
-        style={{ transform: `translateX(${offsetX}px)`, transition: swiping.current ? "none" : "transform 0.3s ease" }}
+        style={{ transform: `translateX(${offsetX}px)`, transition: swiping.current ? "none" : "transform 0.4s cubic-bezier(0.25, 1.5, 0.5, 1)" }}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
