@@ -145,7 +145,11 @@ export default function CommunityPage() {
     setPage(1);
     setHasMore(true);
     setPosts([]);
+    // 강제 스크롤 리셋
     window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    requestAnimationFrame(() => window.scrollTo(0, 0));
     fetchPosts(1, false);
   }, [fetchPosts]);
 
@@ -201,7 +205,9 @@ export default function CommunityPage() {
 
   const handleCategoryClick = (cat: string) => {
     setCategory(prev => prev === cat ? null : cat);
-    window.scrollTo({ top: 0 });
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
   };
 
   // 검색 화면
