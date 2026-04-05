@@ -305,8 +305,8 @@ export default function CommunityPage() {
 
   return (
     <div className="min-h-screen pb-20">
-      {/* 커스텀 헤더 - 모바일 */}
-      <div className="sticky top-0 z-30 md:hidden">
+      {/* 커스텀 헤더 - 모바일 (fixed) */}
+      <div className="fixed top-0 left-0 right-0 z-30 md:hidden">
         <div className="bg-white pt-[env(safe-area-inset-top,0px)]">
           <div className="flex items-center justify-between px-5 h-[52px] border-b border-toss-gray-100">
             <h2 className="text-[18px] font-extrabold text-toss-gray-900">커뮤니티</h2>
@@ -326,13 +326,16 @@ export default function CommunityPage() {
         </div>
       </div>
 
+      {/* 모바일 헤더 높이만큼 스페이서 */}
+      <div className="h-[calc(52px+env(safe-area-inset-top,0px))] md:hidden" />
+
       {/* 데스크톱 헤더 */}
       <div className="hidden md:block max-w-[680px] mx-auto px-4 pt-6 pb-2">
         <h1 className="text-[24px] font-extrabold text-toss-gray-900">커뮤니티</h1>
       </div>
 
       {/* 필터 칩 */}
-      <div className="sticky top-[52px] md:top-0 z-20 bg-white border-b border-toss-gray-100">
+      <div className="sticky top-[calc(52px+env(safe-area-inset-top,0px))] md:top-0 z-20 bg-white border-b border-toss-gray-100">
         <div className="max-w-[680px] mx-auto flex gap-2 overflow-x-auto px-4 py-3 scrollbar-hide">
           {/* 최신/인기 정렬 */}
           <button

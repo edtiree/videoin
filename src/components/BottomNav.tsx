@@ -25,22 +25,26 @@ export default function BottomNav() {
     : pathname.startsWith("/profile") || pathname.startsWith("/dashboard") || pathname.startsWith("/settlement") || pathname.startsWith("/calendar") || pathname.startsWith("/admin") ? "me"
     : null;
 
+  const tabPaths: Record<string, string> = {
+    home: "/",
+    community: "/community",
+    ai: "/tools",
+    chat: "/messages",
+    me: "/profile",
+  };
+
   const handleTabClick = (tab: string) => {
-    switch (tab) {
-      case "home": router.push("/"); break;
-      case "community": router.push("/community"); break;
-      case "ai":
-        if (!isLoggedIn) { openLoginModal(); return; }
-        router.push("/tools");
-        break;
-      case "chat":
-        if (!isLoggedIn) { openLoginModal(); return; }
-        router.push("/messages");
-        break;
-      case "me":
-        if (!isLoggedIn) { openLoginModal(); return; }
-        router.push("/profile");
-        break;
+    if (tab !== "home" && tab !== "community" && !isLoggedIn) {
+      openLoginModal();
+      return;
+    }
+    const targetPath = tabPaths[tab];
+    if (activeTab === tab) {
+      // 이미 해당 탭이면 새로고침
+      router.refresh();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      router.push(targetPath);
     }
   };
 
