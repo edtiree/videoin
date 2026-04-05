@@ -28,9 +28,6 @@ export default function ChatPage() {
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [keyboardOpen, setKeyboardOpen] = useState(false);
-  const [viewHeight, setViewHeight] = useState("100dvh");
-  const containerRef = useRef<HTMLDivElement>(null);
   const [otherName, setOtherName] = useState(searchParams.get("name") || "");
 
   const fetchMessages = useCallback(async () => {
@@ -38,7 +35,6 @@ export default function ChatPage() {
     const res = await fetch(`/api/messages/${threadId}?user_id=${profile.id}`);
     const data = await res.json();
     setMessages(data);
-    // 상대 닉네임 가져오기
     if (data.length > 0 && !otherName) {
       const otherId = data[0].sender_id === profile.id ? data[0].receiver_id : data[0].sender_id;
       fetch(`/api/community/user/${otherId}`)
@@ -59,27 +55,6 @@ export default function ChatPage() {
       scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
     }, 100);
   }, [messages]);
-
-  // iOS 키보드 감지 + 높이 조정
-  useEffect(() => {
-    const vv = window.visualViewport;
-    if (!vv) return;
-    const onResize = () => {
-      const isOpen = vv.height < window.innerHeight * 0.75;
-      setKeyboardOpen(isOpen);
-      setViewHeight(`${vv.height}px`);
-      // 키보드 열릴 때 스크롤 맨 아래로
-      if (isOpen) {
-        setTimeout(() => scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight }), 50);
-      }
-    };
-    vv.addEventListener("resize", onResize);
-    vv.addEventListener("scroll", onResize);
-    return () => {
-      vv.removeEventListener("resize", onResize);
-      vv.removeEventListener("scroll", onResize);
-    };
-  }, []);
 
   const handleSend = async () => {
     if (!input.trim() || sending || !profile) return;
@@ -112,71 +87,75 @@ export default function ChatPage() {
   if (!profile) return null;
 
   return (
-    <div ref={containerRef} className="flex flex-col bg-white" style={{ height: viewHeight }}>
-      {/* 헤더 - 고정 */}
-      <div className="fixed top-0 left-0 right-0 z-30 bg-white">
-        <div className="pt-[env(safe-area-inset-top,0px)]" />
-        <div className="flex items-center px-5 h-[52px] border-b border-toss-gray-100">
-          <button onClick={() => router.push("/messages")} className="w-9 h-9 flex items-center justify-center text-toss-gray-700 -ml-2 mr-1">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M15 18l-6-6 6-6"/></svg>
-          </button>
-          <h2 className="text-[18px] font-extrabold text-toss-gray-900">{otherName}</h2>
-        </div>
-      </div>
-      {/* 헤더 스페이서 */}
-      <div className="flex-shrink-0 h-[calc(52px+env(safe-area-inset-top,0px))]" />
-
-      {/* 메시지 영역 - 스크롤 */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-1">
-        {messages.map((msg, idx) => {
-          const isMine = msg.sender_id === profile.id;
-          const next = messages[idx + 1];
-          const isLast = !next || next.sender_id !== msg.sender_id;
-          return (
-            <div key={msg.id} className={`flex ${isMine ? "justify-end" : "justify-start"}`}>
-              <div className="max-w-[75%]">
-                <div className={`px-4 py-2.5 rounded-2xl text-[14px] leading-relaxed ${
-                  isMine
-                    ? "bg-toss-blue text-white rounded-br-md"
-                    : "bg-toss-gray-50 border border-toss-gray-100 text-toss-gray-900 rounded-bl-md"
-                }`}>
-                  {msg.content}
-                </div>
-                {isLast && (
-                <p className={`text-[10px] text-toss-gray-300 mt-1 mb-2 ${isMine ? "text-right" : "text-left"}`}>
-                  {formatTime(msg.created_at)}
-                  {isMine && msg.is_read && " · 읽음"}
-                </p>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* 입력창 - 하단 고정 */}
-      <div className="flex-shrink-0 bg-white border-t border-toss-gray-100">
-        <div className="flex items-center gap-2 px-3 py-2">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && !e.nativeEvent.isComposing && handleSend()}
-            placeholder="메시지를 입력하세요"
-            className="flex-1 h-[36px] bg-toss-gray-50 rounded-full px-4 text-[14px] border-none focus:outline-none placeholder:text-toss-gray-300"
-          />
-          {input.trim() && (
-            <button
-              onClick={handleSend}
-              disabled={sending}
-              className="flex-shrink-0 text-toss-blue font-semibold text-[14px] disabled:opacity-50"
-            >
-              전송
+    <>
+      <style jsx global>{`
+        .chat-page-active .overflow-y-auto { overflow: hidden !important; }
+        .chat-page-active .pb-14 { padding-bottom: 0 !important; }
+      `}</style>
+      <div className="chat-page-active fixed inset-0 z-[100] flex flex-col bg-white">
+        {/* 헤더 */}
+        <div className="flex-shrink-0 bg-white">
+          <div style={{ height: "env(safe-area-inset-top, 0px)" }} />
+          <div className="flex items-center px-5 h-[52px] border-b border-toss-gray-100">
+            <button onClick={() => router.push("/messages")} className="w-9 h-9 flex items-center justify-center text-toss-gray-700 -ml-2 mr-1">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M15 18l-6-6 6-6"/></svg>
             </button>
-          )}
+            <h2 className="text-[18px] font-extrabold text-toss-gray-900">{otherName}</h2>
+          </div>
         </div>
-        {!keyboardOpen && <div className="pb-[env(safe-area-inset-bottom,4px)]" />}
+
+        {/* 메시지 영역 */}
+        <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-1">
+          {messages.map((msg, idx) => {
+            const isMine = msg.sender_id === profile.id;
+            const next = messages[idx + 1];
+            const isLast = !next || next.sender_id !== msg.sender_id;
+            return (
+              <div key={msg.id} className={`flex ${isMine ? "justify-end" : "justify-start"}`}>
+                <div className="max-w-[75%]">
+                  <div className={`px-4 py-2.5 rounded-2xl text-[14px] leading-relaxed ${
+                    isMine
+                      ? "bg-toss-blue text-white rounded-br-md"
+                      : "bg-toss-gray-50 border border-toss-gray-100 text-toss-gray-900 rounded-bl-md"
+                  }`}>
+                    {msg.content}
+                  </div>
+                  {isLast && (
+                    <p className={`text-[10px] text-toss-gray-300 mt-1 mb-2 ${isMine ? "text-right" : "text-left"}`}>
+                      {formatTime(msg.created_at)}
+                      {isMine && msg.is_read && " · 읽음"}
+                    </p>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* 입력창 */}
+        <div className="flex-shrink-0 bg-white border-t border-toss-gray-100">
+          <div className="flex items-center gap-2 px-3 py-2">
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && !e.nativeEvent.isComposing && handleSend()}
+              placeholder="메시지를 입력하세요"
+              className="flex-1 h-[36px] bg-toss-gray-50 rounded-full px-4 text-[14px] border-none focus:outline-none placeholder:text-toss-gray-300"
+            />
+            {input.trim() && (
+              <button
+                onClick={handleSend}
+                disabled={sending}
+                className="flex-shrink-0 text-toss-blue font-semibold text-[14px] disabled:opacity-50"
+              >
+                전송
+              </button>
+            )}
+          </div>
+          <div style={{ height: "env(safe-area-inset-bottom, 4px)" }} />
+        </div>
       </div>
-    </div>
+    </>
   );
 }
