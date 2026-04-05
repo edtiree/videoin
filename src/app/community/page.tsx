@@ -379,8 +379,8 @@ export default function CommunityPage() {
         </div>
         {/* 필터 칩 (헤더에 포함) */}
         <div className="border-t border-b border-toss-gray-100" data-no-pull>
-        <div className="max-w-[680px] mx-auto flex gap-2 overflow-x-auto overflow-y-hidden px-4 py-3 scrollbar-hide touch-pan-x">
-          {/* 정렬 드롭다운 */}
+        <div className="max-w-[680px] mx-auto flex items-center px-4 py-3">
+          {/* 정렬 드롭다운 (고정) */}
           <div className="relative flex-shrink-0">
             <button
               onClick={() => setShowSortDropdown(!showSortDropdown)}
@@ -412,22 +412,24 @@ export default function CommunityPage() {
             )}
           </div>
 
-          <div className="w-px h-[20px] bg-toss-gray-200 self-center flex-shrink-0" />
+          <div className="w-px h-[20px] bg-toss-gray-200 mx-2 flex-shrink-0" />
 
-          {/* 카테고리 칩 */}
-          {CATEGORIES.map((c) => (
-            <button
-              key={c}
-              onClick={() => handleCategoryClick(c)}
-              className={`flex-shrink-0 px-3 h-[32px] rounded-full text-[13px] font-medium transition ${
-                category === c
-                  ? "bg-toss-gray-900 text-white"
-                  : "bg-white border border-toss-gray-200 text-toss-gray-600"
-              }`}
-            >
-              {c}
-            </button>
-          ))}
+          {/* 카테고리 칩 (스크롤) */}
+          <div className="flex gap-2 overflow-x-auto overflow-y-hidden scrollbar-hide touch-pan-x">
+            {CATEGORIES.map((c) => (
+              <button
+                key={c}
+                onClick={() => handleCategoryClick(c)}
+                className={`flex-shrink-0 px-3 h-[32px] rounded-full text-[13px] font-medium transition ${
+                  category === c
+                    ? "bg-toss-gray-900 text-white"
+                    : "bg-white border border-toss-gray-200 text-toss-gray-600"
+                }`}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
         </div>
         </div>
       </div>
