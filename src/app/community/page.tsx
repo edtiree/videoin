@@ -144,6 +144,8 @@ export default function CommunityPage() {
   useEffect(() => {
     setPage(1);
     setHasMore(true);
+    setPosts([]);
+    window.scrollTo(0, 0);
     fetchPosts(1, false);
   }, [fetchPosts]);
 
