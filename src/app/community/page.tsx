@@ -376,7 +376,7 @@ export default function CommunityPage() {
         </div>
         {/* 필터 칩 (헤더에 포함) */}
         <div className="border-t border-b border-toss-gray-100">
-        <div className="max-w-[680px] mx-auto flex gap-2 overflow-x-auto px-4 py-3 scrollbar-hide">
+        <div className="max-w-[680px] mx-auto flex gap-2 overflow-x-auto overflow-y-hidden px-4 py-3 scrollbar-hide touch-pan-x">
           {/* 정렬 드롭다운 */}
           <div className="relative flex-shrink-0">
             <button
