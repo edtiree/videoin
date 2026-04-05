@@ -7,16 +7,16 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 import NotificationBell from "@/components/NotificationBell";
 
-const CATEGORIES = ["자유", "중고거래", "장비", "노하우", "질문", "홍보"];
+const CATEGORIES = ["자유", "질문", "노하우", "장터", "홍보", "피드백"];
 
 function getCategoryStyle(cat: string) {
   switch (cat) {
     case "자유": return "text-toss-blue bg-blue-50";
-    case "중고거래": return "text-toss-orange bg-orange-50";
-    case "장비": return "text-green-600 bg-green-50";
-    case "노하우": return "text-purple-600 bg-purple-50";
     case "질문": return "text-amber-600 bg-amber-50";
+    case "노하우": return "text-purple-600 bg-purple-50";
+    case "장터": return "text-toss-orange bg-orange-50";
     case "홍보": return "text-pink-600 bg-pink-50";
+    case "피드백": return "text-green-600 bg-green-50";
     default: return "text-toss-blue bg-blue-50";
   }
 }
@@ -431,11 +431,11 @@ export default function CommunityPage() {
             <div className="px-3 pb-3">
               {[
                 { key: "자유", icon: "💬", desc: "자유롭게 이야기해요" },
-                { key: "중고거래", icon: "📦", desc: "장비를 사고팔아요" },
-                { key: "장비", icon: "🎥", desc: "장비 추천/리뷰" },
-                { key: "노하우", icon: "💡", desc: "작업 팁을 공유해요" },
                 { key: "질문", icon: "❓", desc: "궁금한 걸 물어봐요" },
+                { key: "노하우", icon: "💡", desc: "작업 팁을 공유해요" },
+                { key: "장터", icon: "🏪", desc: "장비·라이선스 사고팔아요" },
                 { key: "홍보", icon: "📢", desc: "내 서비스를 알려요" },
+                { key: "피드백", icon: "🎬", desc: "내 작업물 피드백 받아요" },
               ].map((item) => (
                 <button
                   key={item.key}

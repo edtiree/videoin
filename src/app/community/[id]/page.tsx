@@ -47,11 +47,11 @@ function timeAgo(iso: string): string {
 function getCategoryStyle(cat: string) {
   switch (cat) {
     case "자유": return "text-toss-blue bg-blue-50";
-    case "중고거래": return "text-toss-orange bg-orange-50";
-    case "장비": return "text-green-600 bg-green-50";
-    case "노하우": return "text-purple-600 bg-purple-50";
     case "질문": return "text-amber-600 bg-amber-50";
+    case "노하우": return "text-purple-600 bg-purple-50";
+    case "장터": return "text-toss-orange bg-orange-50";
     case "홍보": return "text-pink-600 bg-pink-50";
+    case "피드백": return "text-green-600 bg-green-50";
     default: return "text-toss-blue bg-blue-50";
   }
 }
