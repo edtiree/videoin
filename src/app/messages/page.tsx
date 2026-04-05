@@ -63,7 +63,7 @@ export default function MessagesPage() {
         .then(async (data: Thread[]) => {
           const existing = data.find((t) => t.other_user?.id === toUserId);
           if (existing) {
-            router.replace(`/messages/${existing.id}`);
+            router.replace(`/messages/${existing.id}?name=${encodeURIComponent(existing.other_user?.nickname || "")}`);
           } else {
             // 새 스레드 생성 (빈 인사 메시지)
             const res = await fetch("/api/messages", {
@@ -78,7 +78,7 @@ export default function MessagesPage() {
             });
             const result = await res.json();
             if (result.thread_id) {
-              router.replace(`/messages/${result.thread_id}`);
+              router.replace(`/messages/${result.thread_id}?name=${encodeURIComponent(result.other_nickname || "")}`);
             }
           }
         });
@@ -190,7 +190,7 @@ export default function MessagesPage() {
                       onClick={() => {
                         // 모바일: 페이지 이동, PC: 인라인 선택
                         if (window.innerWidth < 768) {
-                          router.push(`/messages/${thread.id}`);
+                          router.push(`/messages/${thread.id}?name=${encodeURIComponent(thread.other_user?.nickname || "")}`);
                         } else {
                           setSelectedThread(thread.id);
                           setMessages([]);

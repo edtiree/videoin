@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 
 interface Message {
@@ -22,13 +22,14 @@ function formatTime(iso: string): string {
 export default function ChatPage() {
   const { threadId } = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { profile } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [keyboardOpen, setKeyboardOpen] = useState(false);
-  const [otherName, setOtherName] = useState("");
+  const [otherName, setOtherName] = useState(searchParams.get("name") || "");
 
   const fetchMessages = useCallback(async () => {
     if (!profile) return;
