@@ -28,18 +28,11 @@ export default function HomePage() {
   const router = useRouter();
   const { isLoggedIn, openLoginModal, profile } = useAuth();
   const [tab, setTab] = useState<FeedTab>("jobs");
-  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     if (profile?.role?.includes("편집자/스태프")) setTab("jobs");
     else if (profile?.role?.includes("크리에이터/사장")) setTab("editors");
   }, [profile]);
-
-  const handleSearch = () => {
-    if (searchQuery.trim()) {
-      router.push(`/jobs?search=${encodeURIComponent(searchQuery.trim())}`);
-    }
-  };
 
   return (
     <div>
@@ -47,46 +40,15 @@ export default function HomePage() {
       <div className="hidden md:block bg-gradient-to-br from-blue-50 via-white to-indigo-50 border-b border-toss-gray-100">
         <div className="max-w-[1200px] mx-auto px-6 py-16">
           <div className="flex items-start justify-between gap-12">
-            {/* 왼쪽: 텍스트 + 검색 */}
+            {/* 왼쪽: 텍스트 */}
             <div className="flex-1 max-w-[600px]">
               <h1 className="text-[36px] font-extrabold text-toss-gray-900 leading-tight mb-3">
                 영상 전문가가 필요한 순간,<br />
                 딱 맞는 전문가를 찾아보세요
               </h1>
-              <p className="text-[16px] text-toss-gray-500 mb-8">
+              <p className="text-[16px] text-toss-gray-500">
                 영상 편집, 촬영, 썸네일, 모션그래픽 등 8개 분야 전문가를 만나보세요
               </p>
-
-              {/* 검색바 */}
-              <div className="relative mb-6">
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                  placeholder="어떤 전문가가 필요하세요?"
-                  className="w-full h-[56px] pl-6 pr-14 rounded-2xl bg-white border border-toss-gray-200 text-[16px] placeholder:text-toss-gray-300 focus:outline-none focus:border-toss-blue shadow-sm transition"
-                />
-                <button
-                  onClick={handleSearch}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-xl bg-toss-blue flex items-center justify-center hover:bg-[var(--blue-hover)] transition"
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-                </button>
-              </div>
-
-              {/* 인기 검색어 */}
-              <div className="flex flex-wrap gap-2">
-                {["유튜브 편집", "썸네일", "숏폼", "모션그래픽", "인터뷰 촬영"].map((tag) => (
-                  <button
-                    key={tag}
-                    onClick={() => router.push(`/jobs?search=${encodeURIComponent(tag)}`)}
-                    className="px-4 py-2 rounded-full bg-white border border-toss-gray-100 text-[13px] text-toss-gray-500 hover:border-toss-blue hover:text-toss-blue transition"
-                  >
-                    {tag}
-                  </button>
-                ))}
-              </div>
             </div>
 
             {/* 오른쪽: CTA 카드 */}
@@ -108,23 +70,6 @@ export default function HomePage() {
               </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* ====== 모바일 검색바 (md 미만에서만 표시) ====== */}
-      <div className="md:hidden px-4 pt-5 pb-2">
-        <div className="relative">
-          <svg className="absolute left-4 top-1/2 -translate-y-1/2 text-toss-gray-300" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-          </svg>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-            placeholder="어떤 전문가가 필요하세요?"
-            className="w-full h-[48px] pl-12 pr-4 rounded-xl bg-white border border-toss-gray-100 text-[15px] placeholder:text-toss-gray-300 focus:outline-none focus:border-toss-blue transition"
-          />
         </div>
       </div>
 
