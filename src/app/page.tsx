@@ -4,19 +4,9 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 import AIRecommendation from "@/components/home/AIRecommendation";
+import { CATEGORIES } from "@/lib/categories";
 
 type FeedTab = "jobs" | "editors";
-
-const MAIN_CATEGORIES = [
-  { key: "영상 편집", label: "영상 편집", icon: "🎬" },
-  { key: "영상 촬영", label: "영상 촬영", icon: "📸" },
-  { key: "썸네일", label: "썸네일", icon: "🖼️" },
-  { key: "모션그래픽", label: "모션그래픽", icon: "✨" },
-  { key: "스크립트", label: "스크립트", icon: "✏️" },
-  { key: "성우", label: "성우", icon: "🎙️" },
-  { key: "출연자", label: "출연자", icon: "🎭" },
-  { key: "스튜디오", label: "스튜디오", icon: "🏠" },
-];
 
 const RECOMMENDED_EDITORS = [
   { id: "1", name: "편집왕민수", desc: "유튜브 롱폼 편집 전문", rate: "10만원~", rating: 4.8, reviews: 23 },
@@ -144,7 +134,7 @@ export default function HomePage() {
         {/* 카테고리 아이콘 그리드 */}
         <div className="bg-white rounded-2xl border border-toss-gray-100 p-4 md:p-6 mb-6">
           <div className="grid grid-cols-4 md:grid-cols-8 gap-3 md:gap-4">
-            {MAIN_CATEGORIES.map((item) => (
+            {CATEGORIES.map((item) => (
               <button
                 key={item.key}
                 onClick={() => router.push(`/editors?category=${encodeURIComponent(item.key)}`)}

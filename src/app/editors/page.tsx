@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 import StarRating from "@/components/common/StarRating";
 import TopNav from "@/components/TopNav";
+import { CATEGORIES as ALL_CATS, getCategoryByKey } from "@/lib/categories";
 
-const CATEGORIES = ["전체", "영상 편집", "영상 촬영", "썸네일", "모션그래픽", "스크립트", "성우", "출연자", "스튜디오"];
+const MAIN_CATS = ["전체", ...ALL_CATS.map((c) => c.key)];
 const SORT_OPTIONS = [
   { key: "rating", label: "인기순" },
   { key: "recent", label: "최신순" },
@@ -29,12 +30,16 @@ interface EditorProfile {
 
 export default function EditorsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { isLoggedIn, openLoginModal } = useAuth();
   const [editors, setEditors] = useState<EditorProfile[]>([]);
   const [loading, setLoading] = useState(true);
-  const [category, setCategory] = useState("전체");
+  const [category, setCategory] = useState(searchParams.get("category") || "전체");
+  const [subCategory, setSubCategory] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("rating");
+
+  const activeSubs = getCategoryByKey(category)?.subs || [];
 
   const fetchEditors = useCallback(async () => {
     setLoading(true);
@@ -75,12 +80,12 @@ export default function EditorsPage() {
           />
         </div>
 
-        {/* 카테고리 */}
-        <div className="flex gap-2 overflow-x-auto pb-3 mb-2 scrollbar-hide">
-          {CATEGORIES.map((c) => (
+        {/* 메인 카테고리 */}
+        <div className="flex gap-2 overflow-x-auto pb-2 mb-2 scrollbar-hide">
+          {MAIN_CATS.map((c) => (
             <button
               key={c}
-              onClick={() => setCategory(c)}
+              onClick={() => { setCategory(c); setSubCategory(null); }}
               className={`flex-shrink-0 px-4 h-[34px] rounded-full text-[13px] font-medium transition ${
                 category === c ? "bg-toss-gray-900 text-white" : "bg-white border border-toss-gray-100 text-toss-gray-500"
               }`}
@@ -89,6 +94,31 @@ export default function EditorsPage() {
             </button>
           ))}
         </div>
+
+        {/* 세부 카테고리 */}
+        {activeSubs.length > 0 && (
+          <div className="flex gap-2 overflow-x-auto pb-3 mb-2 scrollbar-hide">
+            <button
+              onClick={() => setSubCategory(null)}
+              className={`flex-shrink-0 px-3 h-[30px] rounded-lg text-[12px] font-medium transition ${
+                !subCategory ? "bg-toss-blue text-white" : "bg-toss-gray-50 text-toss-gray-500"
+              }`}
+            >
+              전체
+            </button>
+            {activeSubs.map((s) => (
+              <button
+                key={s.key}
+                onClick={() => setSubCategory(s.key)}
+                className={`flex-shrink-0 px-3 h-[30px] rounded-lg text-[12px] font-medium transition ${
+                  subCategory === s.key ? "bg-toss-blue text-white" : "bg-toss-gray-50 text-toss-gray-500"
+                }`}
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* 정렬 + 카운트 */}
         <div className="flex items-center justify-between mb-4">

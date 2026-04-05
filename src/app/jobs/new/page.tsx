@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 import TopNav from "@/components/TopNav";
 
-const CATEGORIES = ["영상 편집", "영상 촬영", "썸네일", "모션그래픽"];
+import { CATEGORIES as ALL_CATS } from "@/lib/categories";
+const JOB_CATEGORIES = ALL_CATS.map((c) => c.key);
 const BUDGET_TYPES = [
   { key: "per_project", label: "건당" },
   { key: "per_minute", label: "분당" },
@@ -82,7 +83,7 @@ export default function NewJobPage() {
           <div>
             <label className="text-[13px] font-medium text-toss-gray-500 mb-2 block">카테고리 *</label>
             <div className="flex flex-wrap gap-2">
-              {CATEGORIES.map((c) => (
+              {JOB_CATEGORIES.map((c) => (
                 <button
                   key={c}
                   onClick={() => setForm((f) => ({ ...f, category: c }))}
