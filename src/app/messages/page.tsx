@@ -335,10 +335,16 @@ function SwipeableThread({ thread, isSelected, isSwiped, onSwipeOpen, onSwipeClo
     return () => el.removeEventListener("touchmove", handler);
   }, []);
 
+  const openedDir = useRef<"left" | "right" | null>(null);
+
   const onTouchStart = (e: React.TouchEvent) => {
     startX.current = e.touches[0].clientX;
     startY.current = e.touches[0].clientY;
     swiping.current = false;
+    // 이미 열린 상태 기억
+    if (offsetX > 0) openedDir.current = "right";
+    else if (offsetX < 0) openedDir.current = "left";
+    else openedDir.current = null;
     longPressTimer.current = setTimeout(() => { setShowMenu(true); }, 500);
   };
 
@@ -353,17 +359,30 @@ function SwipeableThread({ thread, isSelected, isSwiped, onSwipeOpen, onSwipeClo
     }
     if (swiping.current) {
       e.preventDefault();
-      const clamped = Math.max(-140, Math.min(70, dx));
-      setOffsetX(clamped);
+      // 이미 열린 상태에서 반대로 스와이프하면 닫기만
+      if (openedDir.current === "right" && dx < 0) {
+        setOffsetX(Math.max(0, 70 + dx));
+      } else if (openedDir.current === "left" && dx > 0) {
+        setOffsetX(Math.min(0, -140 + dx));
+      } else if (!openedDir.current) {
+        setOffsetX(Math.max(-140, Math.min(70, dx)));
+      }
     }
   };
 
   const onTouchEnd = () => {
     if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; }
-    if (offsetX < -70) { setOffsetX(-140); onSwipeOpen(); }
-    else if (offsetX > 35) { setOffsetX(70); onSwipeOpen(); }
-    else { setOffsetX(0); onSwipeClose(); }
+    // 열린 상태에서 스와이프한 경우 → 닫기
+    if (openedDir.current) {
+      setOffsetX(0);
+      onSwipeClose();
+    } else {
+      if (offsetX < -70) { setOffsetX(-140); onSwipeOpen(); }
+      else if (offsetX > 35) { setOffsetX(70); onSwipeOpen(); }
+      else { setOffsetX(0); onSwipeClose(); }
+    }
     swiping.current = false;
+    openedDir.current = null;
   };
 
   const handleClick = () => {
