@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 import TopNav from "@/components/TopNav";
@@ -303,20 +304,25 @@ function SwipeableThread({ thread, isSelected, onOpen, onDelete }: {
   onDelete: () => void;
 }) {
   const [offsetX, setOffsetX] = useState(0);
+  const [showMenu, setShowMenu] = useState(false);
   const startX = useRef(0);
   const startY = useRef(0);
   const swiping = useRef(false);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const onTouchStart = (e: React.TouchEvent) => {
     startX.current = e.touches[0].clientX;
     startY.current = e.touches[0].clientY;
     swiping.current = false;
+    longPressTimer.current = setTimeout(() => { setShowMenu(true); }, 500);
   };
 
   const onTouchMove = (e: React.TouchEvent) => {
     const dx = e.touches[0].clientX - startX.current;
     const dy = e.touches[0].clientY - startY.current;
-    // 가로 움직임이 세로보다 크면 스와이프
+    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+      if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; }
+    }
     if (!swiping.current && Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 10) {
       swiping.current = true;
     }
@@ -329,9 +335,10 @@ function SwipeableThread({ thread, isSelected, onOpen, onDelete }: {
   };
 
   const onTouchEnd = () => {
-    if (offsetX < -70) setOffsetX(-140); // 왼쪽 열림
-    else if (offsetX > 35) setOffsetX(70); // 오른쪽 열림
-    else setOffsetX(0); // 닫힘
+    if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; }
+    if (offsetX < -70) setOffsetX(-140);
+    else if (offsetX > 35) setOffsetX(70);
+    else setOffsetX(0);
     swiping.current = false;
   };
 
@@ -400,6 +407,48 @@ function SwipeableThread({ thread, isSelected, onOpen, onDelete }: {
           </span>
         )}
       </div>
+      {/* 롱프레스 바텀시트 */}
+      {showMenu && typeof window !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-end justify-center" onClick={() => setShowMenu(false)}>
+          <div className="absolute inset-0 bg-black/50" />
+          <div className="relative w-full md:w-[400px] animate-slide-up" onClick={(e) => e.stopPropagation()}>
+            {/* 핸들 */}
+            <div className="flex justify-center pt-3 pb-1 bg-white rounded-t-2xl">
+              <div className="w-10 h-1 bg-toss-gray-200 rounded-full" />
+            </div>
+            {/* 닉네임 */}
+            <div className="bg-white px-5 py-2 text-center">
+              <span className="text-[15px] font-semibold text-toss-gray-900">{thread.other_user?.nickname || "알 수 없음"}</span>
+            </div>
+            {/* 메뉴 */}
+            <div className="bg-white px-3 pb-2">
+              <button onClick={() => { setShowMenu(false); alert("읽음으로 표시되었습니다"); }} className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl hover:bg-toss-gray-50 transition">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-toss-gray-600"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                <span className="text-[15px] text-toss-gray-900">읽음으로 표시</span>
+              </button>
+              <button onClick={() => { setShowMenu(false); alert("알림이 꺼졌습니다"); }} className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl hover:bg-toss-gray-50 transition">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-toss-gray-600"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                <span className="text-[15px] text-toss-gray-900">알림 끄기</span>
+              </button>
+              <button onClick={() => { setShowMenu(false); alert("상단에 고정되었습니다"); }} className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl hover:bg-toss-gray-50 transition">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-toss-gray-600"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/></svg>
+                <span className="text-[15px] text-toss-gray-900">상단 고정</span>
+              </button>
+              <button onClick={() => { setShowMenu(false); if (confirm("채팅방을 나갈까요?")) onDelete(); }} className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl hover:bg-toss-gray-50 transition">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-toss-red"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                <span className="text-[15px] text-toss-red">채팅방 나가기</span>
+              </button>
+            </div>
+            {/* 닫기 */}
+            <div className="bg-white px-3 pb-[env(safe-area-inset-bottom,8px)]">
+              <button onClick={() => setShowMenu(false)} className="w-full py-3.5 rounded-xl bg-toss-gray-50 text-[15px] font-semibold text-toss-gray-700">
+                닫기
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }
