@@ -16,7 +16,9 @@ interface Message {
 
 function formatTime(iso: string): string {
   const d = new Date(iso);
-  return `${d.getHours().toString().padStart(2, "0")}:${d.getMinutes().toString().padStart(2, "0")}`;
+  const h = d.getHours();
+  const m = d.getMinutes().toString().padStart(2, "0");
+  return `${h < 12 ? "오전" : "오후"} ${h === 0 ? 12 : h > 12 ? h - 12 : h}:${m}`;
 }
 
 export default function ChatPage() {
@@ -163,8 +165,14 @@ export default function ChatPage() {
             const next = messages[idx + 1];
             const isLast = !next || next.sender_id !== msg.sender_id;
             return (
-              <div key={msg.id} className={`flex ${isMine ? "justify-end" : "justify-start"}`}>
-                <div className="max-w-[75%]">
+              <div key={msg.id} className={`flex items-end gap-1.5 ${isMine ? "justify-end" : "justify-start"}`}>
+                {/* 내 메시지: 시간이 왼쪽 */}
+                {isMine && isLast && (
+                  <span className="text-[10px] text-toss-gray-300 mb-1 flex-shrink-0">
+                    {msg.is_read && "읽음 "}{formatTime(msg.created_at)}
+                  </span>
+                )}
+                <div className="max-w-[70%]">
                   <div className={`px-4 py-2.5 rounded-2xl text-[14px] leading-relaxed ${
                     isMine
                       ? "bg-toss-blue text-white rounded-br-md"
@@ -172,13 +180,13 @@ export default function ChatPage() {
                   }`}>
                     {msg.content}
                   </div>
-                  {isLast && (
-                    <p className={`text-[10px] text-toss-gray-300 mt-1 mb-2 ${isMine ? "text-right" : "text-left"}`}>
-                      {formatTime(msg.created_at)}
-                      {isMine && msg.is_read && " · 읽음"}
-                    </p>
-                  )}
                 </div>
+                {/* 상대 메시지: 시간이 오른쪽 */}
+                {!isMine && isLast && (
+                  <span className="text-[10px] text-toss-gray-300 mb-1 flex-shrink-0">
+                    {formatTime(msg.created_at)}
+                  </span>
+                )}
               </div>
             );
           })}
