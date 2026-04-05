@@ -10,7 +10,9 @@ interface PortfolioVideo {
   id: string;
   type: string;
   youtube_url: string | null;
+  youtube_video_id: string | null;
   external_url: string | null;
+  file_key: string | null;
   title: string | null;
   thumbnail_url: string | null;
   description: string | null;
@@ -179,35 +181,69 @@ export default function EditorDetailPage() {
         {/* 포트폴리오 */}
         {tab === "portfolio" && (
           <div>
-            <h2 className="text-[18px] font-bold text-toss-gray-900 mb-4">포트폴리오</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-[18px] font-bold text-toss-gray-900">포트폴리오</h2>
+              {editor.portfolio_videos.length > 0 && (
+                <span className="text-[13px] text-toss-gray-400">{editor.portfolio_videos.length}개</span>
+              )}
+            </div>
             {editor.portfolio_videos.length === 0 ? (
               <div className="text-center py-16">
+                <div className="w-14 h-14 bg-toss-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-toss-gray-300"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+                </div>
                 <p className="text-[15px] font-semibold text-toss-gray-900 mb-1">아직 포트폴리오가 없어요</p>
                 <p className="text-[13px] text-toss-gray-400">편집자가 작업물을 등록하면 여기에 표시됩니다</p>
               </div>
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
-                {editor.portfolio_videos.map((v) => (
-                  <div key={v.id} className="bg-white rounded-xl border border-toss-gray-100 overflow-hidden">
-                    {v.thumbnail_url ? (
-                      <div className="aspect-video bg-toss-gray-100 relative">
-                        <img src={v.thumbnail_url} alt={v.title || ""} className="w-full h-full object-cover" />
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="w-10 h-10 bg-black/50 rounded-full flex items-center justify-center">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                {editor.portfolio_videos.map((v) => {
+                  const link = v.youtube_url || v.external_url || (v.file_key ? `/api/posts/image?key=${encodeURIComponent(v.file_key)}` : null);
+                  const typeLabel = v.type === "youtube" ? "YouTube" : v.type === "file" ? "업로드" : "외부링크";
+                  const typeColor = v.type === "youtube" ? "bg-red-500" : v.type === "file" ? "bg-toss-blue" : "bg-toss-gray-600";
+
+                  return (
+                    <button
+                      key={v.id}
+                      onClick={() => {
+                        if (v.youtube_url) window.open(v.youtube_url, "_blank");
+                        else if (v.external_url) window.open(v.external_url, "_blank");
+                        else if (v.description) alert(v.description);
+                      }}
+                      className="bg-white rounded-xl border border-toss-gray-100 overflow-hidden text-left hover:border-toss-gray-200 hover:shadow-sm transition group"
+                    >
+                      {/* 썸네일 */}
+                      <div className="aspect-video bg-toss-gray-100 relative overflow-hidden">
+                        {v.thumbnail_url ? (
+                          <img src={v.thumbnail_url} alt={v.title || ""} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-toss-gray-50 to-toss-gray-100">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-toss-gray-300"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
                           </div>
-                        </div>
+                        )}
+                        {/* 재생 버튼 오버레이 */}
+                        {(v.youtube_url || v.external_url) && (
+                          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
+                            <div className="w-11 h-11 bg-black/60 rounded-full flex items-center justify-center backdrop-blur-sm">
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                            </div>
+                          </div>
+                        )}
+                        {/* 유형 뱃지 */}
+                        <span className={`absolute top-2 left-2 text-[10px] font-bold text-white px-1.5 py-0.5 rounded ${typeColor}`}>
+                          {typeLabel}
+                        </span>
                       </div>
-                    ) : (
-                      <div className="aspect-video bg-toss-gray-100 flex items-center justify-center">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-toss-gray-300"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+                      {/* 정보 */}
+                      <div className="p-3">
+                        <p className="text-[13px] font-semibold text-toss-gray-900 line-clamp-2 leading-snug">{v.title || "제목 없음"}</p>
+                        {v.description && (
+                          <p className="text-[11px] text-toss-gray-400 mt-1 line-clamp-1">{v.description}</p>
+                        )}
                       </div>
-                    )}
-                    <div className="p-3">
-                      <p className="text-[13px] font-medium text-toss-gray-900 line-clamp-2">{v.title || "제목 없음"}</p>
-                    </div>
-                  </div>
-                ))}
+                    </button>
+                  );
+                })}
               </div>
             )}
           </div>
