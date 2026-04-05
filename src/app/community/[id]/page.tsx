@@ -75,6 +75,7 @@ export default function PostDetailPage() {
   const [similarPosts, setSimilarPosts] = useState<Post[]>([]);
   const [keywords, setKeywords] = useState<string[]>([]);
   const [subscribedKeywords, setSubscribedKeywords] = useState<Set<string>>(new Set());
+  const [imageViewerIndex, setImageViewerIndex] = useState<number | null>(null);
 
   useEffect(() => {
     fetch(`/api/posts/${id}`)
@@ -319,7 +320,7 @@ export default function PostDetailPage() {
         <div className="bg-white px-5 py-5 md:px-8 md:py-8 md:rounded-2xl md:border md:border-toss-gray-100 md:my-4 md:mx-4">
           {/* 카테고리 뱃지 */}
           <Link
-            href={`/community?category=${encodeURIComponent(post.category)}`}
+            href={`/community/category/${encodeURIComponent(post.category)}`}
             className={`inline-flex items-center gap-1 text-[12px] font-medium px-2.5 py-1 rounded ${getCategoryStyle(post.category)}`}
           >
             {post.category}
@@ -357,7 +358,8 @@ export default function PostDetailPage() {
                   key={i}
                   src={url}
                   alt=""
-                  className={`rounded-xl object-cover w-full ${
+                  onClick={() => setImageViewerIndex(i)}
+                  className={`rounded-xl object-cover w-full cursor-pointer ${
                     post.image_urls.length === 1 ? "max-h-[400px]" : "aspect-square"
                   }`}
                 />
@@ -576,6 +578,58 @@ export default function PostDetailPage() {
           </div>
         )}
       </div>
+
+      {/* 이미지 전체화면 뷰어 */}
+      {imageViewerIndex !== null && post.image_urls?.length > 0 && (
+        <div className="fixed inset-0 z-[9999] bg-black flex flex-col" onClick={() => setImageViewerIndex(null)}>
+          {/* 헤더 */}
+          <div className="flex items-center justify-between px-4 h-12 pt-[env(safe-area-inset-top,0px)] flex-shrink-0">
+            <button onClick={() => setImageViewerIndex(null)} className="w-10 h-10 flex items-center justify-center text-white">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+            <span className="text-[14px] text-white/70">{imageViewerIndex + 1} / {post.image_urls.length}</span>
+            <div className="w-10" />
+          </div>
+          {/* 이미지 */}
+          <div className="flex-1 flex items-center justify-center overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <img
+              src={post.image_urls[imageViewerIndex]}
+              alt=""
+              className="max-w-full max-h-full object-contain select-none"
+              draggable={false}
+            />
+          </div>
+          {/* 좌우 네비게이션 */}
+          {post.image_urls.length > 1 && (
+            <>
+              {imageViewerIndex > 0 && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); setImageViewerIndex(imageViewerIndex - 1); }}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white backdrop-blur-sm"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+                </button>
+              )}
+              {imageViewerIndex < post.image_urls.length - 1 && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); setImageViewerIndex(imageViewerIndex + 1); }}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white backdrop-blur-sm"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M9 18l6-6-6-6"/></svg>
+                </button>
+              )}
+            </>
+          )}
+          {/* 인디케이터 */}
+          {post.image_urls.length > 1 && (
+            <div className="flex justify-center gap-1.5 pb-8 pt-4 flex-shrink-0">
+              {post.image_urls.map((_, i) => (
+                <div key={i} className={`w-2 h-2 rounded-full transition ${i === imageViewerIndex ? "bg-white" : "bg-white/30"}`} />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* 댓글 입력 */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-toss-gray-100 z-[51]">
