@@ -28,8 +28,8 @@ export default function ChatPage() {
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [otherName, setOtherName] = useState(searchParams.get("name") || "");
-  const [bottomOffset, setBottomOffset] = useState(0);
 
   const fetchMessages = useCallback(async () => {
     if (!profile) return;
@@ -51,25 +51,29 @@ export default function ChatPage() {
     return () => clearInterval(interval);
   }, [fetchMessages]);
 
-  // 메시지 추가 시 스크롤
   useEffect(() => {
     setTimeout(() => {
       scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
     }, 100);
   }, [messages]);
 
-  // iOS 키보드: visualViewport로 입력창 위치 조정
+  // iOS visualViewport 기반 레이아웃 조정
   useEffect(() => {
     const vv = window.visualViewport;
-    if (!vv) return;
+    if (!vv || !containerRef.current) return;
+
     const update = () => {
-      const offset = window.innerHeight - vv.height - vv.offsetTop;
-      setBottomOffset(Math.max(0, offset));
-      // 키보드 올라오면 스크롤
-      setTimeout(() => scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight }), 50);
+      const el = containerRef.current;
+      if (!el) return;
+      // visualViewport의 offsetTop은 키보드가 올라와서 화면이 밀린 양
+      el.style.top = `${vv.offsetTop}px`;
+      el.style.height = `${vv.height}px`;
+      setTimeout(() => scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight }), 30);
     };
+
     vv.addEventListener("resize", update);
     vv.addEventListener("scroll", update);
+    update();
     return () => {
       vv.removeEventListener("resize", update);
       vv.removeEventListener("scroll", update);
@@ -106,8 +110,6 @@ export default function ChatPage() {
 
   if (!profile) return null;
 
-  const headerH = 52;
-
   return (
     <>
       <style jsx global>{`
@@ -115,11 +117,26 @@ export default function ChatPage() {
         .chat-active .pb-14 { padding-bottom: 0 !important; }
         .chat-active > nav { display: none !important; }
       `}</style>
-      <div className="chat-active" style={{ position: "fixed", inset: 0, zIndex: 100, display: "flex", flexDirection: "column", background: "#fff" }}>
-        {/* 헤더 - 절대 고정 */}
-        <div style={{ position: "sticky", top: 0, zIndex: 10, background: "#fff", flexShrink: 0 }}>
+      <div
+        ref={containerRef}
+        className="chat-active"
+        style={{
+          position: "fixed",
+          left: 0,
+          right: 0,
+          top: 0,
+          height: "100%",
+          zIndex: 100,
+          display: "flex",
+          flexDirection: "column",
+          background: "#fff",
+          overflow: "hidden",
+        }}
+      >
+        {/* 헤더 */}
+        <div style={{ flexShrink: 0, background: "#fff", zIndex: 10 }}>
           <div style={{ height: "env(safe-area-inset-top, 0px)" }} />
-          <div className="flex items-center px-5 border-b border-toss-gray-100" style={{ height: headerH }}>
+          <div className="flex items-center px-5 border-b border-toss-gray-100" style={{ height: 52 }}>
             <button onClick={() => router.push("/messages")} className="w-9 h-9 flex items-center justify-center text-toss-gray-700 -ml-2 mr-1">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M15 18l-6-6 6-6"/></svg>
             </button>
@@ -131,7 +148,7 @@ export default function ChatPage() {
         <div
           ref={scrollRef}
           className="px-4 py-4 space-y-1"
-          style={{ flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch" }}
+          style={{ flex: 1, overflowY: "scroll", WebkitOverflowScrolling: "touch", minHeight: 0 }}
         >
           {messages.map((msg, idx) => {
             const isMine = msg.sender_id === profile.id;
@@ -160,7 +177,7 @@ export default function ChatPage() {
         </div>
 
         {/* 입력창 */}
-        <div style={{ flexShrink: 0, background: "#fff", borderTop: "1px solid #f2f4f6", marginBottom: bottomOffset }}>
+        <div style={{ flexShrink: 0, background: "#fff", borderTop: "1px solid #f2f4f6" }}>
           <div className="flex items-center gap-2 px-3 py-2">
             <input
               type="text"
@@ -180,7 +197,6 @@ export default function ChatPage() {
               </button>
             )}
           </div>
-          {bottomOffset === 0 && <div style={{ height: "env(safe-area-inset-bottom, 4px)" }} />}
         </div>
       </div>
     </>
