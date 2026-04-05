@@ -133,7 +133,7 @@ export default function NewPostPage() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* 헤더: X + 완료 */}
+      {/* 헤더: X + 등록 */}
       <div className="sticky top-0 z-30 bg-white">
         <div className="pt-[env(safe-area-inset-top,0px)]">
           <div className="flex items-center justify-between px-4 h-[52px]">
@@ -143,9 +143,9 @@ export default function NewPostPage() {
             <button
               onClick={handleSubmit}
               disabled={saving}
-              className="text-[15px] font-semibold text-toss-green disabled:opacity-50"
+              className="px-4 py-1.5 rounded-lg text-[14px] font-semibold bg-toss-blue text-white disabled:opacity-50"
             >
-              {saving ? "등록 중..." : "완료"}
+              {saving ? "등록 중..." : "등록"}
             </button>
           </div>
         </div>
@@ -156,12 +156,12 @@ export default function NewPostPage() {
         {/* 주제 선택 */}
         <button
           onClick={() => setShowCategorySheet(true)}
-          className="flex items-center gap-1 py-3 border-b border-toss-gray-100 w-full"
+          className="flex items-center justify-between py-3.5 border-b border-toss-gray-200 w-full"
         >
-          <span className={`text-[15px] font-medium ${category ? "text-toss-gray-900" : "text-toss-gray-400"}`}>
-            {category ? `${getCategoryIcon(category)} ${category}` : "주제를 선택해주세요."}
+          <span className={`text-[15px] ${category ? "font-medium text-toss-gray-900" : "text-toss-gray-400"}`}>
+            {category ? `${getCategoryIcon(category)} ${category}` : "게시판을 선택하세요"}
           </span>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-toss-gray-400"><path d="M6 9l6 6 6-6"/></svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-toss-gray-400"><path d="M6 9l6 6 6-6"/></svg>
         </button>
 
         {/* 제목 */}
@@ -170,16 +170,16 @@ export default function NewPostPage() {
           type="text"
           value={title}
           onChange={(e) => { setTitle(e.target.value); setError(""); }}
-          placeholder="제목을 입력하세요."
-          className="w-full py-4 text-[18px] font-bold text-toss-gray-900 placeholder:text-toss-gray-300 border-none outline-none bg-transparent"
+          placeholder="제목"
+          className="w-full py-3.5 text-[16px] font-semibold text-toss-gray-900 placeholder:text-toss-gray-300 border-b border-toss-gray-200 outline-none bg-transparent"
         />
 
         {/* 내용 */}
         <textarea
           value={content}
           onChange={(e) => { setContent(e.target.value); setError(""); }}
-          placeholder="영상인들과 이야기를 나눠보세요."
-          className="w-full text-[15px] text-toss-gray-700 placeholder:text-toss-gray-300 border-none outline-none bg-transparent resize-none leading-relaxed min-h-[200px]"
+          placeholder="내용을 입력하세요."
+          className="w-full py-3.5 text-[15px] text-toss-gray-700 placeholder:text-toss-gray-300 border-none outline-none bg-transparent resize-none leading-relaxed min-h-[200px]"
         />
 
         {/* 에러 */}
