@@ -91,24 +91,24 @@ export default function EditorDetailPage() {
   ];
 
   return (
-    <div className="min-h-full bg-gray-50 pb-24">
+    <div className="min-h-full bg-gray-50 pb-24 md:pb-8">
       <TopNav title="" backHref="/editors" />
 
       {/* 프로필 헤더 */}
-      <div className="bg-white px-5 pt-4 pb-5 border-b border-toss-gray-100">
+      <div className="bg-white px-5 md:px-0 pt-4 pb-5 border-b border-toss-gray-100 max-w-[900px] mx-auto">
         <div className="flex items-center gap-4 mb-4">
           <div className="relative">
             {editor.users?.profile_image ? (
-              <img src={editor.users.profile_image} alt="" className="w-16 h-16 rounded-full object-cover" referrerPolicy="no-referrer" />
+              <img src={editor.users.profile_image} alt="" className="w-16 h-16 md:w-20 md:h-20 rounded-full object-cover" referrerPolicy="no-referrer" />
             ) : (
-              <div className="w-16 h-16 bg-toss-gray-200 rounded-full flex items-center justify-center">
-                <span className="text-2xl font-bold text-toss-gray-400">{editor.display_name[0]}</span>
+              <div className="w-16 h-16 md:w-20 md:h-20 bg-toss-gray-200 rounded-full flex items-center justify-center">
+                <span className="text-2xl md:text-3xl font-bold text-toss-gray-400">{editor.display_name[0]}</span>
               </div>
             )}
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-2">
-              <h1 className="text-[18px] font-bold text-toss-gray-900">{editor.display_name}</h1>
+              <h1 className="text-[18px] md:text-[24px] font-bold text-toss-gray-900">{editor.display_name}</h1>
               {editor.available && (
                 <span className="text-[10px] font-bold text-toss-green bg-green-50 px-1.5 py-0.5 rounded">작업가능</span>
               )}
@@ -116,6 +116,27 @@ export default function EditorDetailPage() {
             <div className="flex items-center gap-1 mt-1">
               <StarRating rating={editor.rating_avg} size={14} />
               <span className="text-[13px] text-toss-gray-500 ml-0.5">{editor.rating_avg} ({editor.review_count})</span>
+            </div>
+            {/* PC 버튼 */}
+            <div className="hidden md:flex gap-2 mt-4">
+              <button
+                onClick={() => {
+                  if (!isLoggedIn) { openLoginModal(); return; }
+                  router.push(`/messages?to=${editor.user_id}`);
+                }}
+                className="px-6 py-2.5 rounded-xl border border-toss-gray-200 text-[14px] font-semibold text-toss-gray-900 hover:bg-toss-gray-50 transition"
+              >
+                문의하기
+              </button>
+              <button
+                onClick={() => {
+                  if (!isLoggedIn) { openLoginModal(); return; }
+                  router.push(`/messages?to=${editor.user_id}`);
+                }}
+                className="px-6 py-2.5 rounded-xl bg-toss-blue text-white text-[14px] font-semibold hover:bg-[var(--blue-hover)] transition"
+              >
+                쪽지 보내기
+              </button>
             </div>
           </div>
         </div>
@@ -134,8 +155,8 @@ export default function EditorDetailPage() {
       </div>
 
       {/* 탭 네비게이션 */}
-      <div className="bg-white sticky top-[52px] z-20 border-b border-toss-gray-100">
-        <div className="flex">
+      <div className="bg-white sticky top-[52px] md:top-[104px] z-20 border-b border-toss-gray-100">
+        <div className="flex max-w-[900px] mx-auto">
           {TABS.map((t) => (
             <button
               key={t.key}
@@ -154,7 +175,7 @@ export default function EditorDetailPage() {
       </div>
 
       {/* 탭 콘텐츠 */}
-      <div className="max-w-[1000px] mx-auto px-4 py-5">
+      <div className="max-w-[900px] mx-auto px-4 md:px-0 py-5 md:py-8">
         {/* 포트폴리오 */}
         {tab === "portfolio" && (
           <div>
@@ -165,7 +186,7 @@ export default function EditorDetailPage() {
                 <p className="text-[13px] text-toss-gray-400">편집자가 작업물을 등록하면 여기에 표시됩니다</p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
                 {editor.portfolio_videos.map((v) => (
                   <div key={v.id} className="bg-white rounded-xl border border-toss-gray-100 overflow-hidden">
                     {v.thumbnail_url ? (
@@ -360,8 +381,8 @@ export default function EditorDetailPage() {
         )}
       </div>
 
-      {/* 하단 고정 버튼 */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-toss-gray-100 px-4 py-3 pb-[env(safe-area-inset-bottom,12px)] flex gap-2 z-30">
+      {/* 하단 고정 버튼 (모바일만) */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-toss-gray-100 px-4 py-3 pb-[env(safe-area-inset-bottom,12px)] flex gap-2 z-30 md:hidden">
         <button className="w-12 h-12 rounded-xl border border-toss-gray-200 flex items-center justify-center flex-shrink-0 hover:bg-toss-gray-50 transition">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" className="text-toss-gray-500">
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
