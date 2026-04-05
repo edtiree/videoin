@@ -345,7 +345,7 @@ export default function PostDetailPage() {
           </Link>
 
           {/* 작성자 */}
-          <div className="flex items-center gap-3 mt-4">
+          <Link href={`/community/user/${post.user_id}`} className="flex items-center gap-3 mt-4">
             {post.users?.profile_image ? (
               <img src={post.users.profile_image} alt="" className="w-10 h-10 rounded-full object-cover" referrerPolicy="no-referrer" />
             ) : (
@@ -357,7 +357,7 @@ export default function PostDetailPage() {
               <p className="text-[14px] font-semibold text-toss-gray-900">{post.users?.nickname || "익명"}</p>
               <p className="text-[12px] text-toss-gray-400">{timeAgo(post.created_at)}</p>
             </div>
-          </div>
+          </Link>
 
           {/* 제목 */}
           <h1 className="text-[22px] font-bold text-toss-gray-900 mt-4 leading-tight">{post.title}</h1>
@@ -736,7 +736,7 @@ function CommentItem({ comment, isLoggedIn, isReply, onReply }: {
         {/* 내용 */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
-            <span className="text-[13px] font-semibold text-toss-gray-900">{comment.users?.nickname || "익명"}</span>
+            <Link href={`/community/user/${comment.user_id}`} className="text-[13px] font-semibold text-toss-gray-900" onClick={(e) => e.stopPropagation()}>{comment.users?.nickname || "익명"}</Link>
             <span className="text-[11px] text-toss-gray-300">{timeAgo(comment.created_at)}</span>
           </div>
           <p className="text-[14px] text-toss-gray-700 mt-1">{comment.content}</p>
