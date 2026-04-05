@@ -641,7 +641,7 @@ export default function PostDetailPage() {
             <button onClick={() => { setReplyTo(null); setCommentInput(""); }} className="text-[12px] text-toss-gray-400">취소</button>
           </div>
         )}
-        <div className="flex items-center gap-2 px-4 py-2 pb-[env(safe-area-inset-bottom,8px)]">
+        <div className="flex items-center gap-2 px-4 py-2.5">
           <button className="flex-shrink-0 p-1.5 text-toss-gray-400">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
               <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
@@ -667,6 +667,7 @@ export default function PostDetailPage() {
             </button>
           )}
         </div>
+        <div className="h-[env(safe-area-inset-bottom,8px)]" />
       </div>
     </div>
   );
