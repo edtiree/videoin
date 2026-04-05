@@ -345,19 +345,33 @@ export default function PostDetailPage() {
           </Link>
 
           {/* 작성자 */}
-          <Link href={`/community/user/${post.user_id}`} className="flex items-center gap-3 mt-4">
-            {post.users?.profile_image ? (
-              <img src={post.users.profile_image} alt="" className="w-10 h-10 rounded-full object-cover" referrerPolicy="no-referrer" />
-            ) : (
-              <div className="w-10 h-10 bg-toss-gray-100 rounded-full flex items-center justify-center">
-                <span className="text-[14px] font-bold text-toss-gray-400">{post.users?.nickname?.[0] || "?"}</span>
+          <div className="flex items-center justify-between mt-4">
+            <Link href={`/community/user/${post.user_id}`} className="flex items-center gap-3">
+              {post.users?.profile_image ? (
+                <img src={post.users.profile_image} alt="" className="w-10 h-10 rounded-full object-cover" referrerPolicy="no-referrer" />
+              ) : (
+                <div className="w-10 h-10 bg-toss-gray-100 rounded-full flex items-center justify-center">
+                  <span className="text-[14px] font-bold text-toss-gray-400">{post.users?.nickname?.[0] || "?"}</span>
+                </div>
+              )}
+              <div>
+                <p className="text-[14px] font-semibold text-toss-gray-900">{post.users?.nickname || "익명"}</p>
+                <p className="text-[12px] text-toss-gray-400">{timeAgo(post.created_at)}</p>
               </div>
+            </Link>
+            {!isOwner && (
+              <button
+                onClick={() => {
+                  if (!isLoggedIn) { openLoginModal(); return; }
+                  router.push(`/messages?to=${post.user_id}&source=community&source_id=${post.id}&source_title=${encodeURIComponent(post.title)}`);
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-toss-gray-200 text-[13px] font-medium text-toss-gray-600 hover:bg-toss-gray-50 transition"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                채팅
+              </button>
             )}
-            <div>
-              <p className="text-[14px] font-semibold text-toss-gray-900">{post.users?.nickname || "익명"}</p>
-              <p className="text-[12px] text-toss-gray-400">{timeAgo(post.created_at)}</p>
-            </div>
-          </Link>
+          </div>
 
           {/* 제목 */}
           <h1 className="text-[22px] font-bold text-toss-gray-900 mt-4 leading-tight">{post.title}</h1>
