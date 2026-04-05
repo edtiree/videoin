@@ -136,14 +136,14 @@ export default function NewPostPage() {
   return (
     <>
     <style jsx global>{`
-      .newpost-active .overflow-y-auto { overflow: hidden !important; }
-      .newpost-active .pb-14 { padding-bottom: 0 !important; }
-      .newpost-active > nav { display: none !important; }
+      body .overflow-y-auto { overflow: hidden !important; }
+      body .pb-14 { padding-bottom: 0 !important; }
+      body > div > div > nav { display: none !important; }
     `}</style>
-    <div className="newpost-active" style={{ position: "fixed", inset: 0, zIndex: 100, display: "flex", flexDirection: "column", background: "#fff" }}>
+    <div style={{ position: "fixed", inset: 0, zIndex: 100, display: "flex", flexDirection: "column", background: "#fff", overflow: "hidden" }}>
       {/* 헤더: X + 등록 */}
       <div style={{ flexShrink: 0, background: "#fff", zIndex: 10 }}>
-        <div className="pt-[env(safe-area-inset-top,0px)]">
+        <div style={{ height: "env(safe-area-inset-top, 0px)" }}>
           <div className="flex items-center justify-between px-4 h-[52px]">
             <button onClick={() => router.back()} className="w-10 h-10 flex items-center justify-center text-toss-gray-700">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
@@ -255,7 +255,7 @@ export default function NewPostPage() {
         )}
 
         {/* 툴바 */}
-        <div className="flex items-center gap-1 px-3 py-2 pb-[env(safe-area-inset-bottom,8px)]">
+        <div className="flex items-center gap-1 px-3 py-2">
           {/* 사진 */}
           <button
             onClick={() => fileInputRef.current?.click()}
@@ -293,6 +293,7 @@ export default function NewPostPage() {
         </div>
 
         <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleImageSelect} />
+        <div style={{ height: "env(safe-area-inset-bottom, 4px)" }} />
       </div>
 
       {/* 카테고리 선택 바텀시트 */}
