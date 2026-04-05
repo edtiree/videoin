@@ -255,10 +255,11 @@ export default function PostDetailPage() {
   }
 
   return (
-    <div className="min-h-screen pb-24">
+    <div className="min-h-screen pb-24 bg-white">
       {/* 커스텀 헤더 */}
-      <div className="sticky top-0 z-30 bg-white border-b border-toss-gray-100">
-        <div className="flex items-center justify-between px-2 h-12 pt-[env(safe-area-inset-top,0px)]">
+      <div className="sticky top-0 z-30 bg-white">
+        <div className="pt-[env(safe-area-inset-top,0px)]" />
+        <div className="flex items-center justify-between px-2 h-12 border-b border-toss-gray-100">
           <button onClick={() => router.back()} className="w-10 h-10 flex items-center justify-center text-toss-gray-700">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M15 18l-6-6 6-6"/></svg>
           </button>
