@@ -562,7 +562,7 @@ export default function CommunityPage() {
       <button
         onClick={() => {
           if (!isLoggedIn) { openLoginModal(); return; }
-          router.push("/community/new");
+          router.push(category ? `/community/new?category=${encodeURIComponent(category)}` : "/community/new");
         }}
         className="fixed bottom-24 right-5 md:bottom-8 md:right-8 w-14 h-14 bg-toss-blue text-white rounded-full shadow-lg flex items-center justify-center hover:bg-[var(--blue-hover)] transition z-40 active:scale-95"
       >
