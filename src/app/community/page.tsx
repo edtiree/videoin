@@ -197,6 +197,7 @@ export default function CommunityPage() {
 
   const handleCategoryClick = (cat: string) => {
     setCategory(prev => prev === cat ? null : cat);
+    window.scrollTo({ top: 0 });
   };
 
   // 검색 화면
@@ -392,13 +393,13 @@ export default function CommunityPage() {
                 <div className="fixed z-[9999] bg-white rounded-xl shadow-lg border border-toss-gray-100 py-1 min-w-[120px]"
                   style={{ top: `calc(env(safe-area-inset-top, 0px) + 52px + 44px)`, left: "16px" }}>
                   <button
-                    onClick={() => { setSortMode("latest"); setShowSortDropdown(false); }}
+                    onClick={() => { setSortMode("latest"); setShowSortDropdown(false); window.scrollTo({ top: 0 }); }}
                     className={`w-full px-4 py-2.5 text-left text-[14px] hover:bg-toss-gray-50 ${sortMode === "latest" ? "text-toss-blue font-semibold" : "text-toss-gray-700"}`}
                   >
                     최신순
                   </button>
                   <button
-                    onClick={() => { setSortMode("popular"); setShowSortDropdown(false); }}
+                    onClick={() => { setSortMode("popular"); setShowSortDropdown(false); window.scrollTo({ top: 0 }); }}
                     className={`w-full px-4 py-2.5 text-left text-[14px] hover:bg-toss-gray-50 ${sortMode === "popular" ? "text-toss-blue font-semibold" : "text-toss-gray-700"}`}
                   >
                     추천순
