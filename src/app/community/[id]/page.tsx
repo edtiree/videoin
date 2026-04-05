@@ -90,6 +90,15 @@ export default function PostDetailPage() {
       .catch(() => setLoading(false));
   }, [id]);
 
+  // 좋아요 상태 복원
+  useEffect(() => {
+    if (!profile?.id || !id) return;
+    fetch(`/api/posts/${id}/like?user_id=${profile.id}`)
+      .then(r => r.json())
+      .then(data => { if (data.liked) setLiked(true); })
+      .catch(() => {});
+  }, [id, profile?.id]);
+
   const fetchComments = useCallback(() => {
     fetch(`/api/posts/${id}/comments`)
       .then((r) => r.json())
@@ -317,7 +326,7 @@ export default function PostDetailPage() {
                     </button>
                   ) : (
                     <button
-                      onClick={() => { setShowMoreMenu(false); alert("신고가 접수되었습니다"); }}
+                      onClick={() => { setShowMoreMenu(false); alert("신고 기능은 준비 중입니다.\n문제가 있는 게시글은 관리자에게 문의해주세요."); }}
                       className="w-full px-4 py-2.5 text-left text-[14px] text-toss-gray-700 hover:bg-toss-gray-50"
                     >
                       신고하기
@@ -427,27 +436,18 @@ export default function PostDetailPage() {
             {post.view_count}명이 봤어요
           </p>
 
-          {/* 공감 + 저장 액션 바 */}
-          <div className="flex gap-2 mt-4 pt-4 border-t border-toss-gray-100">
+          {/* 공감 액션 바 */}
+          <div className="mt-4 pt-4 border-t border-toss-gray-100">
             <button
               onClick={handleLike}
-              className={`flex-1 h-[44px] rounded-xl border flex items-center justify-center gap-2 text-[14px] font-medium transition ${
+              className={`h-[40px] rounded-xl border flex items-center justify-center gap-2 px-5 text-[14px] font-medium transition ${
                 liked ? "border-toss-red bg-red-50 text-toss-red" : "border-toss-gray-200 text-toss-gray-500"
               }`}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill={liked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
-                <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
               </svg>
-              공감하기 {likeCount > 0 && likeCount}
-            </button>
-            <button
-              onClick={() => alert("준비 중입니다")}
-              className="flex-1 h-[44px] rounded-xl border border-toss-gray-200 text-toss-gray-500 flex items-center justify-center gap-2 text-[14px] font-medium transition hover:bg-toss-gray-50"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-              </svg>
-              저장
+              공감 {likeCount > 0 && likeCount}
             </button>
           </div>
         </div>
@@ -461,7 +461,7 @@ export default function PostDetailPage() {
               onClick={() => setCommentSort(prev => prev === "asc" ? "desc" : "asc")}
               className="text-[13px] text-toss-gray-400 hover:text-toss-gray-600 transition"
             >
-              {commentSort === "asc" ? "최신순" : "인기순"}
+              {commentSort === "asc" ? "등록순" : "최신순"}
             </button>
           </div>
 

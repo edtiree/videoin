@@ -1,6 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
 
+// GET: 유저의 좋아요 상태 확인
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const { searchParams } = new URL(request.url);
+  const userId = searchParams.get("user_id");
+  if (!userId) return NextResponse.json({ liked: false });
+
+  const supabase = getSupabase();
+  const { data } = await supabase.from("post_likes").select("id").eq("post_id", id).eq("user_id", userId).single();
+  return NextResponse.json({ liked: !!data });
+}
+
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { user_id } = await request.json();
