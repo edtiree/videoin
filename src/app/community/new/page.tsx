@@ -35,6 +35,7 @@ export default function NewPostPage() {
   const [pollOptions, setPollOptions] = useState(["", "", ""]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [tradeType, setTradeType] = useState<"판매" | "구매" | "">("");
 
   // 모달 상태
   const [showCategorySheet, setShowCategorySheet] = useState(false);
@@ -88,6 +89,7 @@ export default function NewPostPage() {
 
   const handleSubmit = async () => {
     if (!category) { setShowCategorySheet(true); return; }
+    if (category === "장터" && !tradeType) { setError("구매/판매를 선택해주세요"); return; }
     if (!title.trim()) { setError("제목을 입력해주세요"); return; }
     if (!content.trim()) { setError("내용을 입력해주세요"); return; }
 
@@ -109,7 +111,7 @@ export default function NewPostPage() {
       body: JSON.stringify({
         user_id: profile?.id,
         category,
-        title: title.trim(),
+        title: (category === "장터" && tradeType ? `[${tradeType}] ` : "") + title.trim(),
         content: content.trim(),
         image_urls: imageUrls,
         poll_options: pollData,
@@ -163,6 +165,32 @@ export default function NewPostPage() {
           </span>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-toss-gray-400"><path d="M6 9l6 6 6-6"/></svg>
         </button>
+
+        {/* 장터: 구매/판매 선택 */}
+        {category === "장터" && (
+          <div className="flex gap-2 py-3 border-b border-toss-gray-200">
+            <button
+              onClick={() => setTradeType("판매")}
+              className={`flex-1 h-[40px] rounded-xl text-[14px] font-medium transition ${
+                tradeType === "판매"
+                  ? "bg-toss-blue text-white"
+                  : "bg-toss-gray-50 text-toss-gray-500 border border-toss-gray-200"
+              }`}
+            >
+              판매
+            </button>
+            <button
+              onClick={() => setTradeType("구매")}
+              className={`flex-1 h-[40px] rounded-xl text-[14px] font-medium transition ${
+                tradeType === "구매"
+                  ? "bg-toss-blue text-white"
+                  : "bg-toss-gray-50 text-toss-gray-500 border border-toss-gray-200"
+              }`}
+            >
+              구매
+            </button>
+          </div>
+        )}
 
         {/* 제목 */}
         <input
