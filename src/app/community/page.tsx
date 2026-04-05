@@ -116,6 +116,8 @@ export default function CommunityPage() {
 
   // Pull to refresh
   const handleTouchStart = (e: React.TouchEvent) => {
+    const target = e.target as HTMLElement;
+    if (target.closest("[data-no-pull]")) { touchStartY.current = 0; return; }
     if (window.scrollY === 0) touchStartY.current = e.touches[0].clientY;
     else touchStartY.current = 0;
   };
@@ -376,7 +378,7 @@ export default function CommunityPage() {
           </div>
         </div>
         {/* 필터 칩 (헤더에 포함) */}
-        <div className="border-t border-b border-toss-gray-100">
+        <div className="border-t border-b border-toss-gray-100" data-no-pull>
         <div className="max-w-[680px] mx-auto flex gap-2 overflow-x-auto overflow-y-hidden px-4 py-3 scrollbar-hide touch-pan-x">
           {/* 정렬 드롭다운 */}
           <div className="relative flex-shrink-0">
@@ -384,7 +386,7 @@ export default function CommunityPage() {
               onClick={() => setShowSortDropdown(!showSortDropdown)}
               className="px-3 h-[32px] rounded-full text-[13px] font-medium transition flex items-center gap-1 bg-white border border-toss-gray-200 text-toss-gray-700"
             >
-              {sortMode === "latest" ? "최신" : sortMode === "popular" ? "인기" : "추천"}
+              {sortMode === "latest" ? "최신" : "인기"}
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={`transition-transform ${showSortDropdown ? "rotate-180" : ""}`}><path d="M6 9l6 6 6-6"/></svg>
             </button>
             {showSortDropdown && typeof window !== "undefined" && createPortal(
@@ -402,27 +404,13 @@ export default function CommunityPage() {
                     onClick={() => { setSortMode("popular"); setShowSortDropdown(false); window.scrollTo({ top: 0 }); }}
                     className={`w-full px-4 py-2.5 text-left text-[14px] hover:bg-toss-gray-50 ${sortMode === "popular" ? "text-toss-blue font-semibold" : "text-toss-gray-700"}`}
                   >
-                    추천순
+                    인기순
                   </button>
                 </div>
               </>,
               document.body
             )}
           </div>
-
-          <button
-            onClick={() => setSortMode(sortMode === "popular" ? "latest" : "popular")}
-            className={`flex-shrink-0 px-3 h-[32px] rounded-full text-[13px] font-medium transition flex items-center gap-1.5 ${
-              sortMode === "popular"
-                ? "bg-toss-blue text-white"
-                : "bg-white border border-toss-gray-200 text-toss-gray-600"
-            }`}
-          >
-            <span className="text-[12px]">🔥</span>
-            인기
-          </button>
-
-          <div className="w-px h-[20px] bg-toss-gray-200 self-center flex-shrink-0" />
 
           {/* 카테고리 칩 */}
           {CATEGORIES.map((c) => (
@@ -461,11 +449,10 @@ export default function CommunityPage() {
           >최신</button>
           <button
             onClick={() => setSortMode("popular")}
-            className={`flex-shrink-0 px-3 h-[32px] rounded-full text-[13px] font-medium transition flex items-center gap-1.5 ${
-              sortMode === "popular" ? "bg-toss-blue text-white" : "bg-white border border-toss-gray-200 text-toss-gray-600"
+            className={`flex-shrink-0 px-3 h-[32px] rounded-full text-[13px] font-medium transition flex items-center gap-1 ${
+              sortMode === "popular" ? "bg-toss-gray-900 text-white" : "bg-white border border-toss-gray-200 text-toss-gray-600"
             }`}
-          ><span className="text-[12px]">🔥</span> 인기</button>
-          <div className="w-px h-[20px] bg-toss-gray-200 self-center flex-shrink-0" />
+          >인기</button>
           {CATEGORIES.map((c) => (
             <button key={c} onClick={() => handleCategoryClick(c)}
               className={`flex-shrink-0 px-3 h-[32px] rounded-full text-[13px] font-medium transition ${
