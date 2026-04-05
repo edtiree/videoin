@@ -118,6 +118,7 @@ export default function CommunityPage() {
     const q = (query ?? searchQuery).trim();
     if (!q) return;
     if (query) setSearchQuery(q);
+    searchInputRef.current?.blur();
     saveRecentSearch(q);
     setSearching(true);
     try {
