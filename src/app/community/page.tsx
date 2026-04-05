@@ -387,7 +387,10 @@ export default function CommunityPage() {
       )}
 
       {/* 커스텀 헤더 + 필터 칩 - 모바일 (fixed) */}
-      <div className={`fixed top-0 left-0 right-0 z-30 md:hidden bg-white transition-transform duration-300 ${headerVisible ? "translate-y-0" : "-translate-y-full"}`}>
+      <div
+        className="fixed top-0 left-0 right-0 z-30 md:hidden bg-white"
+        style={{ transform: headerVisible ? "translateY(0)" : "translateY(-100%)", transition: "transform 0.3s ease" }}
+      >
         <div className="pt-[env(safe-area-inset-top,0px)]" />
         <div className="flex items-center justify-between px-5 h-[52px]">
           <h2 className="text-[18px] font-extrabold text-toss-gray-900">커뮤니티</h2>
