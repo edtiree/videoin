@@ -138,22 +138,6 @@ export default function CommunityUserPage() {
         </div>
       </div>
 
-      {/* 1:1 채팅 버튼 */}
-      {!isMe && user && (
-        <div className="px-5 pb-4">
-          <button
-            onClick={() => {
-              if (!isLoggedIn) { openLoginModal(); return; }
-              router.push(`/messages?to=${userId}&source=community&source_title=${encodeURIComponent(user?.nickname + "님의 프로필")}`);
-            }}
-            className="w-full h-[44px] rounded-xl bg-toss-blue text-white text-[14px] font-semibold flex items-center justify-center gap-2 hover:bg-[var(--blue-hover)] transition active:scale-[0.98]"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            1:1 채팅하기
-          </button>
-        </div>
-      )}
-
       {/* 탭 */}
       <div className="flex border-b border-toss-gray-100">
         <button

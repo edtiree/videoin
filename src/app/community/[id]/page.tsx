@@ -359,18 +359,6 @@ export default function PostDetailPage() {
                 <p className="text-[12px] text-toss-gray-400">{timeAgo(post.created_at)}</p>
               </div>
             </Link>
-            {!isOwner && (
-              <button
-                onClick={() => {
-                  if (!isLoggedIn) { openLoginModal(); return; }
-                  router.push(`/messages?to=${post.user_id}&source=community&source_id=${post.id}&source_title=${encodeURIComponent(post.title)}`);
-                }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-toss-gray-200 text-[13px] font-medium text-toss-gray-600 hover:bg-toss-gray-50 transition"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                채팅
-              </button>
-            )}
           </div>
 
           {/* 제목 */}
