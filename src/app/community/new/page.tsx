@@ -134,9 +134,15 @@ export default function NewPostPage() {
   if (!isLoggedIn) return null;
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <>
+    <style jsx global>{`
+      .newpost-active .overflow-y-auto { overflow: hidden !important; }
+      .newpost-active .pb-14 { padding-bottom: 0 !important; }
+      .newpost-active > nav { display: none !important; }
+    `}</style>
+    <div className="newpost-active" style={{ position: "fixed", inset: 0, zIndex: 100, display: "flex", flexDirection: "column", background: "#fff" }}>
       {/* 헤더: X + 등록 */}
-      <div className="sticky top-0 z-30 bg-white">
+      <div style={{ flexShrink: 0, background: "#fff", zIndex: 10 }}>
         <div className="pt-[env(safe-area-inset-top,0px)]">
           <div className="flex items-center justify-between px-4 h-[52px]">
             <button onClick={() => router.back()} className="w-10 h-10 flex items-center justify-center text-toss-gray-700">
@@ -154,7 +160,7 @@ export default function NewPostPage() {
       </div>
 
       {/* 본문 */}
-      <div className="flex-1 px-5">
+      <div className="px-5" style={{ flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch" }}>
         {/* 주제 선택 */}
         <button
           onClick={() => setShowCategorySheet(true)}
@@ -230,7 +236,7 @@ export default function NewPostPage() {
       </div>
 
       {/* 하단: 이미지 프리뷰 + 툴바 */}
-      <div className="sticky bottom-0 bg-white border-t border-toss-gray-100">
+      <div style={{ flexShrink: 0 }} className="bg-white border-t border-toss-gray-100">
         {/* 이미지 프리뷰 */}
         {images.length > 0 && (
           <div className="flex gap-2 overflow-x-auto px-4 py-3 scrollbar-hide">
@@ -416,5 +422,6 @@ export default function NewPostPage() {
         document.body
       )}
     </div>
+    </>
   );
 }
