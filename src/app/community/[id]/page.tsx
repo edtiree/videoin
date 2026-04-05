@@ -674,7 +674,7 @@ export default function PostDetailPage() {
           )}
         </div>
         </div>
-        <div className="h-[env(safe-area-inset-bottom,8px)] bg-white" />
+        <div className="h-[max(env(safe-area-inset-bottom,0px),16px)] bg-white" />
       </div>
     </div>
   );
