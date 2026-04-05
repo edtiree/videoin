@@ -457,11 +457,11 @@ export default function CommunityPage() {
 
       {/* 게시글 목록 */}
       <div className="max-w-[680px] mx-auto">
-        {loading ? (
+        {loading && !refreshing ? (
           <div className="flex justify-center py-20">
             <div className="w-6 h-6 border-2 border-toss-gray-200 border-t-toss-blue rounded-full animate-spin" />
           </div>
-        ) : posts.length === 0 ? (
+        ) : posts.length === 0 && !loading ? (
           <div className="text-center py-20">
             <p className="text-toss-gray-400 text-[15px]">아직 게시글이 없습니다</p>
             <button
