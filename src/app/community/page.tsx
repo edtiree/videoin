@@ -304,38 +304,27 @@ export default function CommunityPage() {
   }
 
   return (
-    <div className="min-h-screen pb-20">
-      {/* 커스텀 헤더 - 모바일 (fixed) */}
-      <div className="fixed top-0 left-0 right-0 z-30 md:hidden">
-        <div className="bg-white pt-[env(safe-area-inset-top,0px)]">
-          <div className="flex items-center justify-between px-5 h-[52px] border-b border-toss-gray-100">
-            <h2 className="text-[18px] font-extrabold text-toss-gray-900">커뮤니티</h2>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setShowSearch(true)}
-                className="w-9 h-9 flex items-center justify-center text-toss-gray-700"
-              >
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                  <circle cx="11" cy="11" r="8"/>
-                  <path d="M21 21l-4.35-4.35"/>
-                </svg>
-              </button>
-              <NotificationBell />
-            </div>
+    <div className="min-h-screen pb-20 bg-white">
+      {/* 커스텀 헤더 + 필터 칩 - 모바일 (fixed) */}
+      <div className="fixed top-0 left-0 right-0 z-30 md:hidden bg-white">
+        <div className="pt-[env(safe-area-inset-top,0px)]" />
+        <div className="flex items-center justify-between px-5 h-[52px]">
+          <h2 className="text-[18px] font-extrabold text-toss-gray-900">커뮤니티</h2>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowSearch(true)}
+              className="w-9 h-9 flex items-center justify-center text-toss-gray-700"
+            >
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <circle cx="11" cy="11" r="8"/>
+                <path d="M21 21l-4.35-4.35"/>
+              </svg>
+            </button>
+            <NotificationBell />
           </div>
         </div>
-      </div>
-
-      {/* 모바일 헤더 높이만큼 스페이서 */}
-      <div className="h-[calc(52px+env(safe-area-inset-top,0px))] md:hidden" />
-
-      {/* 데스크톱 헤더 */}
-      <div className="hidden md:block max-w-[680px] mx-auto px-4 pt-6 pb-2">
-        <h1 className="text-[24px] font-extrabold text-toss-gray-900">커뮤니티</h1>
-      </div>
-
-      {/* 필터 칩 */}
-      <div className="sticky top-[calc(52px+env(safe-area-inset-top,0px))] md:top-0 z-20 bg-white border-b border-toss-gray-100">
+        {/* 필터 칩 (헤더에 포함) */}
+        <div className="border-t border-b border-toss-gray-100">
         <div className="max-w-[680px] mx-auto flex gap-2 overflow-x-auto px-4 py-3 scrollbar-hide">
           {/* 최신/인기 정렬 */}
           <button
@@ -377,6 +366,41 @@ export default function CommunityPage() {
             >
               {c}
             </button>
+          ))}
+        </div>
+        </div>
+      </div>
+
+      {/* 모바일 헤더+필터 높이만큼 스페이서 */}
+      <div className="h-[calc(52px+50px+env(safe-area-inset-top,0px))] md:hidden" />
+
+      {/* 데스크톱 헤더 */}
+      <div className="hidden md:block max-w-[680px] mx-auto px-4 pt-6 pb-2">
+        <h1 className="text-[24px] font-extrabold text-toss-gray-900">커뮤니티</h1>
+      </div>
+
+      {/* 데스크톱 필터 칩 */}
+      <div className="hidden md:block sticky top-0 z-20 bg-white border-b border-toss-gray-100">
+        <div className="max-w-[680px] mx-auto flex gap-2 overflow-x-auto px-4 py-3 scrollbar-hide">
+          <button
+            onClick={() => setSortMode("latest")}
+            className={`flex-shrink-0 px-3 h-[32px] rounded-full text-[13px] font-medium transition flex items-center gap-1 ${
+              sortMode === "latest" ? "bg-toss-gray-900 text-white" : "bg-white border border-toss-gray-200 text-toss-gray-600"
+            }`}
+          >최신</button>
+          <button
+            onClick={() => setSortMode("popular")}
+            className={`flex-shrink-0 px-3 h-[32px] rounded-full text-[13px] font-medium transition flex items-center gap-1.5 ${
+              sortMode === "popular" ? "bg-toss-blue text-white" : "bg-white border border-toss-gray-200 text-toss-gray-600"
+            }`}
+          ><span className="text-[12px]">🔥</span> 인기</button>
+          <div className="w-px h-[20px] bg-toss-gray-200 self-center flex-shrink-0" />
+          {CATEGORIES.map((c) => (
+            <button key={c} onClick={() => handleCategoryClick(c)}
+              className={`flex-shrink-0 px-3 h-[32px] rounded-full text-[13px] font-medium transition ${
+                category === c ? "bg-toss-gray-900 text-white" : "bg-white border border-toss-gray-200 text-toss-gray-600"
+              }`}
+            >{c}</button>
           ))}
         </div>
       </div>

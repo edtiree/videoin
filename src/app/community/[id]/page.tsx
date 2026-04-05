@@ -639,8 +639,8 @@ export default function PostDetailPage() {
       )}
 
       {/* 댓글 입력 */}
-      <div className="fixed bottom-0 left-0 right-0 z-[51]" style={{ backgroundColor: "var(--surface, #ffffff)" }}>
-        <div className="border-t border-toss-gray-100 bg-white">
+      <div className="fixed bottom-0 left-0 right-0 z-[51] bg-white">
+        <div className="border-t border-toss-gray-100">
         {replyTo && (
           <div className="flex items-center justify-between px-4 pt-2">
             <span className="text-[12px] text-toss-blue">@{replyTo.nickname}에게 답글</span>
