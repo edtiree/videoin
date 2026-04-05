@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 
@@ -159,10 +160,10 @@ export default function CommunityPage() {
       </button>
 
       {/* 카테고리 선택 바텀시트 */}
-      {showWriteSheet && (
-        <div className="fixed inset-0 z-[9999] flex items-end md:items-center justify-center">
+      {showWriteSheet && typeof window !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-end md:items-center justify-center" onTouchMove={(e) => e.stopPropagation()}>
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowWriteSheet(false)} />
-          <div className="relative bg-white dark:bg-[var(--surface)] w-full md:w-[400px] md:rounded-2xl rounded-t-2xl pb-[env(safe-area-inset-bottom,16px)] animate-slide-up">
+          <div className="relative bg-white dark:bg-[var(--surface)] w-full md:w-[400px] md:rounded-2xl rounded-t-2xl pb-[env(safe-area-inset-bottom,16px)] animate-slide-up max-h-[80vh] overflow-y-auto overscroll-contain">
             <div className="flex items-center justify-between px-5 pt-5 pb-3">
               <h3 className="text-[18px] font-bold text-toss-gray-900">어떤 글을 쓸까요?</h3>
               <button onClick={() => setShowWriteSheet(false)} className="text-toss-gray-400 p-1">
@@ -195,7 +196,8 @@ export default function CommunityPage() {
               ))}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
