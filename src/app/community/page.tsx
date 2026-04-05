@@ -67,7 +67,22 @@ export default function CommunityPage() {
   const topAnchorRef = useRef<HTMLDivElement>(null);
   const [pullY, setPullY] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
+  const [headerVisible, setHeaderVisible] = useState(true);
+  const lastScrollY = useRef(0);
   const touchStartY = useRef(0);
+
+  // 스크롤 방향 감지: 아래로 → 헤더 숨김, 위로 → 헤더 표시
+  useEffect(() => {
+    const onScroll = () => {
+      const y = window.scrollY;
+      if (y < 10) { setHeaderVisible(true); }
+      else if (y > lastScrollY.current + 5) { setHeaderVisible(false); }
+      else if (y < lastScrollY.current - 5) { setHeaderVisible(true); }
+      lastScrollY.current = y;
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   // 바텀시트 열릴 때 배경 스크롤 막기
   useEffect(() => {
@@ -372,7 +387,7 @@ export default function CommunityPage() {
       )}
 
       {/* 커스텀 헤더 + 필터 칩 - 모바일 (fixed) */}
-      <div className="fixed top-0 left-0 right-0 z-30 md:hidden bg-white">
+      <div className={`fixed top-0 left-0 right-0 z-30 md:hidden bg-white transition-transform duration-300 ${headerVisible ? "translate-y-0" : "-translate-y-full"}`}>
         <div className="pt-[env(safe-area-inset-top,0px)]" />
         <div className="flex items-center justify-between px-5 h-[52px]">
           <h2 className="text-[18px] font-extrabold text-toss-gray-900">커뮤니티</h2>
