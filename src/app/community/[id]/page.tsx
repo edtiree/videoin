@@ -639,8 +639,8 @@ export default function PostDetailPage() {
       )}
 
       {/* 댓글 입력 */}
-      <div className="fixed bottom-0 left-0 right-0 z-[51] bg-white">
-        <div className="border-t border-toss-gray-100">
+      <div className="fixed bottom-0 left-0 right-0 z-[51]">
+        <div className="bg-white border-t border-toss-gray-100">
         {replyTo && (
           <div className="flex items-center justify-between px-4 pt-2">
             <span className="text-[12px] text-toss-blue">@{replyTo.nickname}에게 답글</span>
@@ -674,7 +674,7 @@ export default function PostDetailPage() {
           )}
         </div>
         </div>
-        <div className="h-[max(env(safe-area-inset-bottom,0px),16px)] bg-white" />
+        <div className="bg-white" style={{ height: "calc(env(safe-area-inset-bottom, 0px) + 16px)" }} />
       </div>
     </div>
   );
