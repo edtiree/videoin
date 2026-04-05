@@ -18,7 +18,7 @@ export default function BottomNav() {
   if (/^\/community\/.+/.test(pathname) || /^\/messages\/.+/.test(pathname)) return null;
 
   const activeTab =
-    pathname === "/" || pathname.startsWith("/jobs") || pathname.startsWith("/editors") ? "home"
+    pathname === "/" || pathname.startsWith("/jobs") || pathname.startsWith("/editors") || pathname.startsWith("/sponsorship") ? "home"
     : pathname.startsWith("/community") ? "community"
     : (pathname.startsWith("/tools") || pathname.startsWith("/review") || pathname.startsWith("/instagram-card") || pathname.startsWith("/youtube-title") || pathname.startsWith("/youtube-shorts") || pathname.startsWith("/screen-material")) ? "ai"
     : pathname.startsWith("/messages") ? "chat"
