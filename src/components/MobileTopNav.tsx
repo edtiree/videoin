@@ -62,9 +62,12 @@ export default function MobileTopNav() {
             {/* 검색 */}
             <button
               onClick={() => setShowSearch((v) => !v)}
-              className="p-2 rounded-lg hover:bg-toss-gray-50 transition text-toss-gray-400"
+              className="w-9 h-9 flex items-center justify-center text-toss-gray-700"
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <circle cx="11" cy="11" r="8"/>
+                <path d="M21 21l-4.35-4.35"/>
+              </svg>
             </button>
             {isLoggedIn && <NotificationBell />}
           </div>
